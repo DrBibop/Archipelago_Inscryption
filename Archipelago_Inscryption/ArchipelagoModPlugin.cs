@@ -1,4 +1,5 @@
-﻿using BepInEx;
+﻿using Archipelago_Inscryption.Assets;
+using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using System.Reflection;
@@ -6,7 +7,8 @@ using System.Reflection;
 namespace Archipelago_Inscryption
 {
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
-    public class ArchipelagoInscryption : BaseUnityPlugin
+    [BepInDependency("cyantist.inscryption.api")]
+    public class ArchipelagoModPlugin : BaseUnityPlugin
     {
         internal const string PluginGuid = "ballininc.inscryption.archipelagomod";
         internal const string PluginName = "ArchipelagoMod";
@@ -16,8 +18,10 @@ namespace Archipelago_Inscryption
 
         private void Awake()
         {
+            Log = Logger;
             Harmony harmony = new Harmony(PluginGuid);
             harmony.PatchAll(Assembly.GetExecutingAssembly());
+            AssetsManager.LoadAssets();
         }
     }
 }
