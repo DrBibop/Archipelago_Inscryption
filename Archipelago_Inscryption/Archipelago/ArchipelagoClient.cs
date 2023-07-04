@@ -78,15 +78,14 @@ namespace Archipelago_Inscryption.Archipelago
         {
             if (!isConnected) return;
 
-            Task<LocationInfoPacket> task = session.Locations.ScoutLocationsAsync();
-            task.ContinueWith(t => callback(t.Result));
+            session.Locations.ScoutLocationsAsync().ContinueWith(t => callback(t.Result));
         }
 
         internal static void SendChecksToServerAsync()
         {
             if (!isConnected) return;
 
-            ThreadPool.QueueUserWorkItem(_ => session.Locations.CompleteLocationChecksAsync(serverData.completedChecks.ToArray()));
+            session.Locations.CompleteLocationChecksAsync(serverData.completedChecks.ToArray());
         }
 
         internal static void SendGoalCompleted()
@@ -183,8 +182,7 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void OnItemReceived(ReceivedItemsHelper helper)
         {
-            if (serverData.index >= helper.AllItemsReceived.Count) return;
-
+            if (serverData.index >= helper.Index) return;
             NetworkItem receivedItem = helper.DequeueItem();
 
             serverData.index++;
