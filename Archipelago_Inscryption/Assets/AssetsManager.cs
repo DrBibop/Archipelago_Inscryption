@@ -9,6 +9,9 @@ namespace Archipelago_Inscryption.Assets
         internal static Sprite archiSettingsTabSprite;
         internal static Sprite inputFieldSprite;
 
+        internal static GameObject selectableCardPrefab;
+        internal static GameObject archipelagoUIPrefab;
+
         internal static void LoadAssets()
         {
             assetBundle = AssetBundle.LoadFromMemory(Properties.Resources.archiassets);
@@ -25,6 +28,9 @@ namespace Archipelago_Inscryption.Assets
 
             archiSettingsTabSprite = GenerateSprite(archipelagoTabTex);
             inputFieldSprite = GenerateSprite(inputFieldTex);
+
+            selectableCardPrefab = Resources.Load<GameObject>("prefabs/cards/SelectableCard");
+            archipelagoUIPrefab = assetBundle.LoadAsset<GameObject>("ArchipelagoUI");
         }
 
         private static Sprite GenerateSprite(Texture2D tex)

@@ -1,16 +1,18 @@
 ﻿using Archipelago.MultiClient.Net;
+using Archipelago_Inscryption.Archipelago;
 using DiskCardGame;
+using Steamworks;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Archipelago_Inscryption.Archipelago
+namespace Archipelago_Inscryption.Components
 {
     internal class ArchipelagoOptionsMenu : ManagedBehaviour
     {
-        private Components.InputField hostNameField;
-        private Components.InputField portField;
-        private Components.InputField slotNameField;
-        private Components.InputField passwordField;
+        private InputField hostNameField;
+        private InputField portField;
+        private InputField slotNameField;
+        private InputField passwordField;
 
         private GameObject statusBox;
         private Text statusText;
@@ -18,22 +20,22 @@ namespace Archipelago_Inscryption.Archipelago
         private MainInputInteractable button;
         private Text buttonText;
 
-        internal void SetFields(Components.InputField hostNameField, Components.InputField portField, Components.InputField slotNameField, Components.InputField passwordField, GameObject statusBox, MainInputInteractable button)
+        internal void SetFields(InputField hostNameField, InputField portField, InputField slotNameField, InputField passwordField, GameObject statusBox, MainInputInteractable button)
         {
             this.hostNameField = hostNameField;
             this.portField = portField;
             this.slotNameField = slotNameField;
             this.passwordField = passwordField;
             this.statusBox = statusBox;
-            this.statusText = statusBox.GetComponentInChildren<Text>();
+            statusText = statusBox.GetComponentInChildren<Text>();
             this.button = button;
-            this.buttonText = button.GetComponentInChildren<Text>();
+            buttonText = button.GetComponentInChildren<Text>();
             button.CursorSelectEnded = OnConnectButtonPressed;
 
             statusBox.SetActive(false);
         }
 
-        protected override void OnEnable()
+        public override void OnEnable()
         {
             base.OnEnable();
             ArchipelagoClient.onConnectAttemptDone += OnConnectAttemptDone;
@@ -74,6 +76,12 @@ namespace Archipelago_Inscryption.Archipelago
             else
             {
                 statusText.text = "CONNECTION FAILED. CHECK LOGS.";
+                string[] errors = ((LoginFailure)result).Errors;
+
+                for (int i  = 0; i < errors.Length; i++)
+                {
+                    Singleton<ArchipelagoUI>.Instance.LogError(errors[i]);
+                }
             }
         }
 

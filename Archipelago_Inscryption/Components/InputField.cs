@@ -35,7 +35,7 @@ namespace Archipelago_Inscryption.Components
             set { censor = value; }
         }
 
-        protected override bool CollisionIs2D => true;
+        public override bool CollisionIs2D => true;
 
         private KeyboardInputHandler keyboardInput;
         private Text label;
@@ -95,12 +95,12 @@ namespace Archipelago_Inscryption.Components
             text.text = (censor ? new string('*', realText.Length) : realText) + (showTextCursor ? "" : "|");
         }
 
-        protected override void OnCursorEnter()
+        public override void OnCursorEnter()
         {
             isPointerInside = true;
         }
 
-        protected override void OnCursorExit()
+        public override void OnCursorExit()
         {
             isPointerInside = false;
         }

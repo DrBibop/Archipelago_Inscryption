@@ -1,4 +1,5 @@
-﻿using Archipelago_Inscryption.Assets;
+﻿using Archipelago_Inscryption.Archipelago;
+using Archipelago_Inscryption.Assets;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -22,6 +23,8 @@ namespace Archipelago_Inscryption
             Harmony harmony = new Harmony(PluginGuid);
             harmony.PatchAll(Assembly.GetExecutingAssembly());
             AssetsManager.LoadAssets();
+            ArchipelagoManager.Init();
+            ArchipelagoClient.Init();
         }
     }
 }

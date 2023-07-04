@@ -10,5 +10,15 @@ namespace Archipelago_Inscryption.Utils
             transform.localRotation = Quaternion.identity;
             transform.localScale = Vector3.one;
         }
+
+        internal static void SetLayerRecursive(this GameObject gameObject, int layer)
+        {
+            gameObject.layer = layer;
+
+            foreach (Transform t in gameObject.transform)
+            {
+                t.gameObject.SetLayerRecursive(layer);
+            }
+        }
     }
 }

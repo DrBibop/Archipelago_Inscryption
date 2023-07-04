@@ -1,10 +1,16 @@
 ﻿using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.Enums;
+using Archipelago.MultiClient.Net.Helpers;
 using Archipelago.MultiClient.Net.MessageLog.Messages;
+using Archipelago.MultiClient.Net.Models;
+using Archipelago.MultiClient.Net.Packets;
+using Archipelago_Inscryption.Components;
+using InscryptionAPI.Saves;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 // Most of this class is based on the Messenger Archipelago Mod: https://github.com/alwaysintreble/TheMessengerRandomizerModAP/blob/archipelago/Archipelago/ArchipelagoClient.cs
 namespace Archipelago_Inscryption.Archipelago
@@ -12,9 +18,12 @@ namespace Archipelago_Inscryption.Archipelago
     internal static class ArchipelagoClient
     {
         internal static Action<LoginResult> onConnectAttemptDone;
+        internal static Action<NetworkItem> onItemReceived;
 
         internal static bool IsConnecting => isConnecting;
         internal static bool IsConnected => isConnected;
+
+        internal static Data serverData;
 
         private const string ArchipelagoVersion = "0.4.1";
 
@@ -22,15 +31,30 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static bool isConnecting = false;
         private static bool isConnected = false;
-        private static Data serverData;
 
         private static ArchipelagoSession session;
+
+        internal static void Init()
+        {
+            serverData = new Data("");
+
+            List<long> storedCompletedChecks = ModdedSaveManager.SaveData.GetValueAsObject<List<long>>(ArchipelagoModPlugin.PluginGuid, "CompletedChecks");
+            List<long> storedReceivedItems = ModdedSaveManager.SaveData.GetValueAsObject<List<long>>(ArchipelagoModPlugin.PluginGuid, "ReceivedItems");
+
+            if (storedCompletedChecks != null) serverData.completedChecks = storedCompletedChecks;
+            if (storedReceivedItems != null) serverData.receivedItems = storedReceivedItems;
+
+            serverData.index = (uint)ModdedSaveManager.SaveData.GetValueAsInt(ArchipelagoModPlugin.PluginGuid, "Index");
+        }
 
         internal static bool ConnectAsync(string hostName, int port, string slotName, string password)
         {
             if (isConnecting || isConnected) return false;
 
-            serverData = new Data(hostName, port, slotName, password);
+            serverData.hostName = hostName;
+            serverData.port = port;
+            serverData.slotName = slotName;
+            serverData.password = password;
 
             isConnecting = true;
 
@@ -41,12 +65,45 @@ namespace Archipelago_Inscryption.Archipelago
             return true;
         }
 
+        internal static void Disconnect()
+        {
+            ArchipelagoModPlugin.Log.LogInfo("Disconnecting from server...");
+            session?.Socket.DisconnectAsync();
+            session = null;
+            isConnected = false;
+            isConnecting = false;
+        }
+
+        internal static void ScoutLocationsAsync(Action<LocationInfoPacket> callback)
+        {
+            if (!isConnected) return;
+
+            Task<LocationInfoPacket> task = session.Locations.ScoutLocationsAsync();
+            task.ContinueWith(t => callback(t.Result));
+        }
+
+        internal static void SendChecksToServerAsync()
+        {
+            if (!isConnected) return;
+
+            ThreadPool.QueueUserWorkItem(_ => session.Locations.CompleteLocationChecksAsync(serverData.completedChecks.ToArray()));
+        }
+
+        internal static void SendGoalCompleted()
+        {
+            if (!isConnected) return;
+
+            StatusUpdatePacket statusUpdate = new StatusUpdatePacket() { Status = ArchipelagoClientState.ClientGoal };
+            session.Socket.SendPacketAsync(statusUpdate);
+        }
+
         private static ArchipelagoSession CreateSession()
         {
             var session = ArchipelagoSessionFactory.CreateSession(serverData.hostName, serverData.port);
             session.MessageLog.OnMessageReceived += OnMessageReceived;
             session.Socket.ErrorReceived += SessionErrorReceived;
             session.Socket.SocketClosed += SessionSocketClosed;
+            session.Items.ItemReceived += OnItemReceived;
             return session;
         }
 
@@ -94,17 +151,11 @@ namespace Archipelago_Inscryption.Archipelago
             attempt(result);
         }
 
-        internal static void Disconnect()
-        {
-            ArchipelagoModPlugin.Log.LogInfo("Disconnecting from server...");
-            session?.Socket.DisconnectAsync();
-            session = null;
-            isConnected = false;
-            isConnecting = false;
-        }
-
         private static void OnConnected(LoginResult result)
         {
+            Singleton<ArchipelagoUI>.Instance.UpdateConnectionStatus(result.Successful);
+            SendChecksToServerAsync();
+
             if (onConnectAttemptDone != null)
             {
                 onConnectAttemptDone(result);
@@ -113,6 +164,7 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void SessionSocketClosed(string reason)
         {
+            Singleton<ArchipelagoUI>.Instance.UpdateConnectionStatus(false);
             ArchipelagoModPlugin.Log.LogInfo($"Connection lost: {reason}");
             Disconnect();
         }
@@ -125,7 +177,34 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void OnMessageReceived(LogMessage message)
         {
-            ArchipelagoModPlugin.Log.LogInfo(message.ToString());
+            ArchipelagoModPlugin.Log.LogMessage(message.ToString());
+            Singleton<ArchipelagoUI>.Instance.LogMessage(message.ToString());
+        }
+
+        private static void OnItemReceived(ReceivedItemsHelper helper)
+        {
+            if (serverData.index >= helper.AllItemsReceived.Count) return;
+
+            NetworkItem receivedItem = helper.DequeueItem();
+
+            serverData.index++;
+
+            if (onItemReceived != null)
+                onItemReceived(receivedItem);
+        }
+
+        internal static string GetPlayerName(int player)
+        {
+            if (!isConnected) return "";
+
+            return session.Players.GetPlayerName(player);
+        }
+
+        internal static string GetItemName(long item)
+        {
+            if (!isConnected) return "";
+
+            return session.Items.GetItemName(item);
         }
 
         internal struct Data
@@ -137,8 +216,9 @@ namespace Archipelago_Inscryption.Archipelago
             public bool deathlink;
             public string seed;
             public Dictionary<string, object> slotData;
-            public List<string> completedChecks;
-            public List<string> receivedItems;
+            public List<long> completedChecks;
+            public List<long> receivedItems;
+            public uint index;
 
             public Data(
                 string hostName                     = "archipelago.gg",
@@ -148,8 +228,8 @@ namespace Archipelago_Inscryption.Archipelago
                 bool deathlink                      = false,
                 string seed                         = "Unknown",
                 Dictionary<string, object> slotData = null,
-                List<string> completedChecks        = null,
-                List<string> receivedItems          = null
+                List<long> completedChecks        = null,
+                List<long> receivedItems          = null
                 )
             {
                 this.hostName           = hostName;
@@ -159,8 +239,9 @@ namespace Archipelago_Inscryption.Archipelago
                 this.deathlink          = deathlink;
                 this.seed               = seed;
                 this.slotData           = slotData == null ? new Dictionary<string, object>() : slotData;
-                this.completedChecks    = completedChecks == null ? new List<string>() : completedChecks;
-                this.receivedItems      = receivedItems == null ? new List<string>() : receivedItems;
+                this.completedChecks    = completedChecks == null ? new List<long>() : completedChecks;
+                this.receivedItems      = receivedItems == null ? new List<long>() : receivedItems;
+                this.index = 0;
             }
         }
     }

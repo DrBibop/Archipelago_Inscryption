@@ -1,8 +1,8 @@
-﻿using Archipelago_Inscryption.Archipelago;
-using Archipelago_Inscryption.Assets;
+﻿using Archipelago_Inscryption.Assets;
 using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Helpers;
 using Archipelago_Inscryption.Utils;
+using DiskCardGame;
 using GBC;
 using HarmonyLib;
 using System.Collections.Generic;
@@ -90,6 +90,17 @@ namespace Archipelago_Inscryption.Patches
             archipelagoMenu.SetFields(hostNameField, portField, slotNameField, passwordField, statusBox, connectButton.GetComponent<GenericUIButton>());
 
             return true;
+        }
+
+        [HarmonyPatch(typeof(MenuController), "Start")]
+        [HarmonyPostfix]
+        static void CreateStatusAndLogsUI()
+        {
+            if (ArchipelagoUI.exists) return;
+
+            GameObject uiObj = Object.Instantiate(AssetsManager.archipelagoUIPrefab);
+            uiObj.AddComponent<ArchipelagoUI>();
+            Object.DontDestroyOnLoad(uiObj);
         }
     }
 }
