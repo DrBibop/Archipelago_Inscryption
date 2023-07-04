@@ -1,0 +1,1 @@
+# Archipelago Multiworld Randomizer integration for Inscryption
