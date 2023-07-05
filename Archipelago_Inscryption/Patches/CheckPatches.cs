@@ -41,14 +41,20 @@ namespace Archipelago_Inscryption.Patches
             GameObject stinkbugCard = __instance.regularContents.GetComponentInChildren<DiscoverableTalkingCardInteractable>(true).gameObject;
             DiscoverableCheckInteractable checkCard = RandomizerHelper.CreateDiscoverableCardCheck(stinkbugCard, APCheck.CabinSafe, true, StoryEvent.SafeOpened);
 
+            MainInputInteractable key = __instance.interiorObjects[1];
+
             if (!ArchipelagoManager.HasItem(APItem.WardrobeKey))
             {
-                GameObject key = __instance.interiorObjects[1].gameObject;
-                key.SetActive(false);
-                __instance.gameObject.AddComponent<ActivateOnItemReceived>().Init(key, APItem.WardrobeKey);
+                key.transform.parent.gameObject.SetActive(false);
+                __instance.gameObject.AddComponent<ActivateOnItemReceived>().Init(key.transform.parent.gameObject, APItem.WardrobeKey);
+            }
+            else
+            {
+                key.transform.parent.gameObject.SetActive(true);
             }
 
             __instance.interiorObjects.Clear();
+            __instance.interiorObjects.Add(key);
 
             if (checkCard)
             {
@@ -120,7 +126,8 @@ namespace Archipelago_Inscryption.Patches
             {
                 __instance.largeCompartmentContents.Add(checkCard1);
                 checkCard1.gameObject.SetLayerRecursive(fplLayer);
-                checkCard1.SetEnabled(false);
+                if (!StoryEventsData.EventCompleted(StoryEvent.ClockCompartmentOpened))
+                    checkCard1.SetEnabled(false);
             }
 
             if (checkCard2)
@@ -131,7 +138,8 @@ namespace Archipelago_Inscryption.Patches
 
                 __instance.smallCompartmentContents.Add(checkCard2);
                 checkCard2.gameObject.SetLayerRecursive(fplLayer);
-                checkCard2.SetEnabled(false);
+                if (!StoryEventsData.EventCompleted(StoryEvent.ClockCompartmentOpened))
+                    checkCard2.SetEnabled(false);
             }
 
             return true;
@@ -184,6 +192,15 @@ namespace Archipelago_Inscryption.Patches
             return false;
         }
 
+        [HarmonyPatch(typeof(OilPaintingPuzzle.SaveState), "get_RewardRedeemed")]
+        [HarmonyPrefix]
+        static bool SkipStoryEventVerification(OilPaintingPuzzle.SaveState __instance, ref bool __result)
+        {
+            __result = __instance.rewardTaken;
+
+            return false;
+        }
+
         [HarmonyPatch(typeof(OilPaintingPuzzle), "Start")]
         [HarmonyPrefix]
         static bool ReplacePaintingRewardsWithChecks(OilPaintingPuzzle __instance)
@@ -216,6 +233,10 @@ namespace Archipelago_Inscryption.Patches
                 __instance.rewardDisplayedItems.Add(Object.Instantiate(checkCard1.card.gameObject, rewardDisplayParent));
                 checkCard1.SetEnabled(false);
             }
+            else
+            {
+                __instance.rewardDisplayedItems.Add(new GameObject());
+            }
 
             if (checkCard2)
             {
@@ -224,6 +245,10 @@ namespace Archipelago_Inscryption.Patches
                 __instance.rewardDisplayedItems.Add(Object.Instantiate(checkCard2.card.gameObject, rewardDisplayParent));
                 checkCard2.SetEnabled(false);
             }
+            else
+            {
+                __instance.rewardDisplayedItems.Add(new GameObject());
+            }
 
             if (checkCard3)
             {
@@ -231,6 +256,10 @@ namespace Archipelago_Inscryption.Patches
                 Object.Destroy(checkCard3.card.GetComponent<BoxCollider>());
                 __instance.rewardDisplayedItems.Add(Object.Instantiate(checkCard3.card.gameObject, rewardDisplayParent));
                 checkCard3.SetEnabled(false);
+            }
+            else
+            {
+                __instance.rewardDisplayedItems.Add(new GameObject());
             }
 
             foreach (GameObject go in __instance.rewardDisplayedItems)

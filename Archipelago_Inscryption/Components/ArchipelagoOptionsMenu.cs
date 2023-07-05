@@ -1,7 +1,7 @@
 ﻿using Archipelago.MultiClient.Net;
 using Archipelago_Inscryption.Archipelago;
 using DiskCardGame;
-using Steamworks;
+using InscryptionAPI.Saves;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,6 +32,20 @@ namespace Archipelago_Inscryption.Components
             buttonText = button.GetComponentInChildren<Text>();
             button.CursorSelectEnded = OnConnectButtonPressed;
 
+            string savedHostName = ModdedSaveManager.SaveData.GetValueAsObject<string>(ArchipelagoModPlugin.PluginGuid, "HostName");
+            int savedPort = ModdedSaveManager.SaveData.GetValueAsInt(ArchipelagoModPlugin.PluginGuid, "Port");
+            string savedSlotName = ModdedSaveManager.SaveData.GetValueAsObject<string>(ArchipelagoModPlugin.PluginGuid, "SlotName");
+            string savedPassword = ModdedSaveManager.SaveData.GetValueAsObject<string>(ArchipelagoModPlugin.PluginGuid, "Password");
+
+            if (savedHostName != null && savedHostName != "")
+                hostNameField.Text = savedHostName;
+            if (savedPort > 1024 && savedPort <= 65535)
+                portField.Text = savedPort.ToString();
+            if (savedSlotName != null && savedSlotName != "")
+                slotNameField.Text = savedSlotName;
+            if (savedPassword != null && savedPassword != "")
+                passwordField.Text = savedPassword;
+
             statusBox.SetActive(false);
         }
 
@@ -39,6 +53,7 @@ namespace Archipelago_Inscryption.Components
         {
             base.OnEnable();
             ArchipelagoClient.onConnectAttemptDone += OnConnectAttemptDone;
+            UpdateButton(ArchipelagoClient.IsConnected);
         }
 
         private void OnDisable()
@@ -54,6 +69,12 @@ namespace Archipelago_Inscryption.Components
 
             if (int.TryParse(portField.Text, out int port) && port > 1024 && port <= 65535)
             {
+                ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "HostName", hostNameField.Text);
+                ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "Port", port);
+                ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "SlotName", slotNameField.Text);
+                ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "Password", passwordField.Text);
+                SaveManager.SaveToFile(false);
+
                 statusText.text = "CONNECTING...";
                 ArchipelagoClient.ConnectAsync(hostNameField.Text, port, slotNameField.Text, passwordField.Text);
             }
@@ -69,9 +90,7 @@ namespace Archipelago_Inscryption.Components
             {
                 statusText.text = "CONNECTION SUCCESSFUL!";
 
-                button.CursorSelectEnded = OnDisconnectButtonPressed;
-
-                buttonText.text = "DISCONNECT";
+                UpdateButton(true);
             }
             else
             {
@@ -91,9 +110,21 @@ namespace Archipelago_Inscryption.Components
 
             statusText.text = "DISCONNECTED";
 
-            button.CursorSelectEnded = OnConnectButtonPressed;
+            UpdateButton(false);
+        }
 
-            buttonText.text = "CONNECT";
+        private void UpdateButton(bool isConnected)
+        {
+            if (isConnected)
+            {
+                button.CursorSelectEnded = OnDisconnectButtonPressed;
+                buttonText.text = "DISCONNECT";
+            }
+            else
+            {
+                button.CursorSelectEnded = OnConnectButtonPressed;
+                buttonText.text = "CONNECT";
+            }
         }
     }
 }

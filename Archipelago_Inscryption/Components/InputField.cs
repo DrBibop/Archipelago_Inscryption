@@ -1,4 +1,5 @@
 ﻿using DiskCardGame;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,6 +7,21 @@ namespace Archipelago_Inscryption.Components
 {
     internal class InputField : MainInputInteractable
     {
+        public static bool IsAnySelected 
+        {
+            get
+            {
+                foreach (InputField field in allInputFields)
+                {
+                    if (field.keyboardInput.enabled) return true;
+                }
+
+                return false;
+            }
+        }
+
+        private static List<InputField> allInputFields = new List<InputField>();
+
         internal string Label
         {
             get { return label.text; }
@@ -18,7 +34,7 @@ namespace Archipelago_Inscryption.Components
             set 
             { 
                 realText = value; 
-                text.text = value;
+                text.text = (censor ? new string('*', value.Length) : value); ;
                 keyboardInput.KeyboardInput = value;
             }
         }
@@ -59,6 +75,17 @@ namespace Archipelago_Inscryption.Components
 
             label = transform.Find("Title/Text").GetComponent<Text>();
             text = transform.Find("TextFrame/Text/Text").GetComponent<Text>();
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            allInputFields.Add(this);
+        }
+
+        private void OnDisable()
+        {
+            allInputFields.Remove(this);
         }
 
         private void OnEnterPressed()

@@ -1,4 +1,5 @@
-﻿using Archipelago_Inscryption.Assets;
+﻿using Archipelago_Inscryption.Archipelago;
+using Archipelago_Inscryption.Assets;
 using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Helpers;
 using Archipelago_Inscryption.Utils;
@@ -18,6 +19,8 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool AddArchipelagoOptionTab(TabbedUIPanel __instance)
         {
+            if (!__instance.gameObject.name.Contains("Options")) return true;
+
             // Setup tab button
 
             Transform tab = __instance.transform.Find("MainPanel/Tabs/Tab_4");
@@ -101,6 +104,34 @@ namespace Archipelago_Inscryption.Patches
             GameObject uiObj = Object.Instantiate(AssetsManager.archipelagoUIPrefab);
             uiObj.AddComponent<ArchipelagoUI>();
             Object.DontDestroyOnLoad(uiObj);
+        }
+
+        [HarmonyPatch(typeof(MenuController), "OnStartGameCardReachedSlot")]
+        [HarmonyPrefix]
+        static bool PreventPlayIfNotConnected(MenuController __instance)
+        {
+            if (!ArchipelagoClient.IsConnected)
+            {
+                UIHelper.ConnectFromMainMenu();
+
+                return false;
+            }
+
+            return true;
+        }
+
+        [HarmonyPatch(typeof(GenericUIButton), "UpdateInputButton")]
+        [HarmonyPrefix]
+        static bool PreventButtonUpdateIfInputFieldSelected()
+        {
+            return !Components.InputField.IsAnySelected;
+        }
+
+        [HarmonyPatch(typeof(GenericUIButton), "UpdateInputKey")]
+        [HarmonyPrefix]
+        static bool PreventKeyUpdateIfInputFieldSelected()
+        {
+            return !Components.InputField.IsAnySelected;
         }
     }
 }

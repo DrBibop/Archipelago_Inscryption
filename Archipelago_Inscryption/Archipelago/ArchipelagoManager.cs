@@ -67,7 +67,6 @@ namespace Archipelago_Inscryption.Archipelago
         private static void OnItemReceived(NetworkItem item)
         {
             AudioController.Instance.PlaySound2D("creepy_rattle_lofi");
-            ArchipelagoClient.serverData.receivedItems.Add(item.Item);
 
             string message;
             if (ArchipelagoClient.GetPlayerName(item.Player) == ArchipelagoClient.serverData.slotName)
@@ -78,14 +77,12 @@ namespace Archipelago_Inscryption.Archipelago
             Singleton<ArchipelagoUI>.Instance.LogImportant(message);
             ArchipelagoModPlugin.Log.LogMessage(message);
 
-            ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", ArchipelagoClient.serverData.receivedItems);
-            ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "Index", ArchipelagoClient.serverData.index);
+            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", ArchipelagoClient.serverData.receivedItems);
+            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Index", ArchipelagoClient.serverData.index);
 
             APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
 
             ApplyItemReceived(receivedItem);
-
-            SaveManager.SaveToFile();
         }
 
         private static void ApplyItemReceived(APItem receivedItem)
@@ -177,6 +174,11 @@ namespace Archipelago_Inscryption.Archipelago
                     Singleton<CandleHolder>.Instance.UpdateArmsAndFlames();
                     Singleton<CandleHolder>.Instance.anim.Play("add_candle");
                 }
+
+                if (receivedItem == APItem.BeeFigurine && Singleton<CardDrawPiles>.Instance is Part1CardDrawPiles piles)
+                {
+                    piles.SetSidePileFigurine(SidePileFigurine.Bee);
+                }
             }
             else
             {
@@ -185,6 +187,8 @@ namespace Archipelago_Inscryption.Archipelago
                     RunState.Run.playerLives = Mathf.Min(RunState.Run.maxPlayerLives, RunState.Run.playerLives + 1);
                 }
             }
+
+            SaveManager.SaveToFile(false);
 
             if (onItemReceived != null)
                 onItemReceived(receivedItem);
@@ -244,8 +248,9 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 ArchipelagoModPlugin.Log.LogMessage("Location check completed: " + check.ToString());
                 ArchipelagoClient.serverData.completedChecks.Add(checkID);
-                ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", ArchipelagoClient.serverData.completedChecks);
+                ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", ArchipelagoClient.serverData.completedChecks);
                 ArchipelagoClient.SendChecksToServerAsync();
+                SaveManager.SaveToFile(false);
             }
         }
 

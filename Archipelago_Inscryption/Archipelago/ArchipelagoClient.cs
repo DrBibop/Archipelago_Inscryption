@@ -5,6 +5,7 @@ using Archipelago.MultiClient.Net.MessageLog.Messages;
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago_Inscryption.Components;
+using DiskCardGame;
 using InscryptionAPI.Saves;
 using System;
 using System.Collections.Generic;
@@ -78,7 +79,7 @@ namespace Archipelago_Inscryption.Archipelago
         {
             if (!isConnected) return;
 
-            session.Locations.ScoutLocationsAsync().ContinueWith(t => callback(t.Result));
+            session.Locations.ScoutLocationsAsync(session.Locations.AllLocations.ToArray()).ContinueWith(t => callback(t.Result));
         }
 
         internal static void SendChecksToServerAsync()
@@ -185,6 +186,7 @@ namespace Archipelago_Inscryption.Archipelago
             if (serverData.index >= helper.Index) return;
             NetworkItem receivedItem = helper.DequeueItem();
 
+            serverData.receivedItems.Add(receivedItem.Item);
             serverData.index++;
 
             if (onItemReceived != null)
