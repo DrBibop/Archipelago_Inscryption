@@ -13,7 +13,7 @@ using UnityEngine;
 namespace Archipelago_Inscryption.Patches
 {
     [HarmonyPatch]
-    class CheckPatches
+    internal class CheckPatches
     {
         [HarmonyPatch(typeof(StoryEventsData), "SetEventCompleted")]
         [HarmonyPrefix]
@@ -284,6 +284,8 @@ namespace Archipelago_Inscryption.Patches
             reference.transform.eulerAngles = Vector3.zero;
             reference.transform.localScale = Vector3.one * 0.7114f;
             reference.AddComponent<BoxCollider>().size = new Vector3(0f, 0f, 0f);
+
+            __instance.card.gameObject.SetActive(false);
 
             DiscoverableCheckInteractable checkCard = RandomizerHelper.CreateDiscoverableCardCheck(reference, APCheck.CabinSmoke, true);
 

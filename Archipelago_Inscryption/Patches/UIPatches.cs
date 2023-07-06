@@ -13,7 +13,7 @@ using UnityEngine.UI;
 namespace Archipelago_Inscryption.Patches
 {
     [HarmonyPatch]
-    class UIPatches
+    internal class UIPatches
     {
         [HarmonyPatch(typeof(TabbedUIPanel), "Awake")]
         [HarmonyPrefix]

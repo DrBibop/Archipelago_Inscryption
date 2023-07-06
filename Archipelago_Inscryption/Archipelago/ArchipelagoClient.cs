@@ -44,8 +44,6 @@ namespace Archipelago_Inscryption.Archipelago
 
             if (storedCompletedChecks != null) serverData.completedChecks = storedCompletedChecks;
             if (storedReceivedItems != null) serverData.receivedItems = storedReceivedItems;
-
-            serverData.index = (uint)ModdedSaveManager.SaveData.GetValueAsInt(ArchipelagoModPlugin.PluginGuid, "Index");
         }
 
         internal static bool ConnectAsync(string hostName, int port, string slotName, string password)
@@ -183,7 +181,15 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void OnItemReceived(ReceivedItemsHelper helper)
         {
+            // If this is the first item received this session, we need to flush out what we already collected.
+            while (serverData.index < serverData.receivedItems.Count)
+            {
+                helper.DequeueItem();
+                serverData.index++;
+            }
+
             if (serverData.index >= helper.Index) return;
+
             NetworkItem receivedItem = helper.DequeueItem();
 
             serverData.receivedItems.Add(receivedItem.Item);

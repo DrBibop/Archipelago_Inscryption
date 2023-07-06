@@ -78,7 +78,6 @@ namespace Archipelago_Inscryption.Archipelago
             ArchipelagoModPlugin.Log.LogMessage(message);
 
             ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", ArchipelagoClient.serverData.receivedItems);
-            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Index", ArchipelagoClient.serverData.index);
 
             APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
 
@@ -144,9 +143,25 @@ namespace Archipelago_Inscryption.Archipelago
 
                 if (receivedItem == APItem.Dagger && Singleton<GameFlowManager>.Instance is Part1GameFlowManager)
                 {
-                    DiscoverableDaggerInteractable daggerInteractable = new GameObject("Dagger").AddComponent<DiscoverableDaggerInteractable>();
-                    daggerInteractable.UnlockObject();
-                    GameObject.Destroy(daggerInteractable.gameObject);
+                    if (RunState.Run.consumables.Count >= 3)
+                    {
+                        string itemName = RunState.Run.consumables[0];
+                        if (RunState.Run.consumables.Contains("Pliers"))
+                        {
+                            itemName = "Pliers";
+                        }
+                        else
+                        {
+                            for (int i = 2; i >= 0; i--)
+                            {
+                                if (RunState.Run.consumables[i] != "FishHook")
+                                    itemName = RunState.Run.consumables[i];
+                            }
+                        }
+                        Singleton<ItemsManager>.Instance.DestroyItem(itemName);
+                    }
+                    RunState.Run.consumables.Add("SpecialDagger");
+                    Singleton<ItemsManager>.Instance.UpdateItems(false);
                 }
 
                 if (receivedItem == APItem.AnglerHook && Singleton<GameFlowManager>.Instance is Part1GameFlowManager)
