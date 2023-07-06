@@ -40,7 +40,7 @@ namespace Archipelago_Inscryption.Archipelago
             serverData = new Data("");
 
             List<long> storedCompletedChecks = ModdedSaveManager.SaveData.GetValueAsObject<List<long>>(ArchipelagoModPlugin.PluginGuid, "CompletedChecks");
-            List<long> storedReceivedItems = ModdedSaveManager.SaveData.GetValueAsObject<List<long>>(ArchipelagoModPlugin.PluginGuid, "ReceivedItems");
+            List<NetworkItem> storedReceivedItems = ModdedSaveManager.SaveData.GetValueAsObject<List<NetworkItem>>(ArchipelagoModPlugin.PluginGuid, "ReceivedItems");
 
             if (storedCompletedChecks != null) serverData.completedChecks = storedCompletedChecks;
             if (storedReceivedItems != null) serverData.receivedItems = storedReceivedItems;
@@ -181,22 +181,51 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void OnItemReceived(ReceivedItemsHelper helper)
         {
-            // If this is the first item received this session, we need to flush out what we already collected.
-            while (serverData.index < serverData.receivedItems.Count)
-            {
-                helper.DequeueItem();
-                serverData.index++;
-            }
-
             if (serverData.index >= helper.Index) return;
 
-            NetworkItem receivedItem = helper.DequeueItem();
+            List<NetworkItem> itemsToReceive = new List<NetworkItem>();
+            List<NetworkItem> tempAlreadyReceivedItems = new List<NetworkItem>(serverData.receivedItems);
 
-            serverData.receivedItems.Add(receivedItem.Item);
-            serverData.index++;
+            // We need to flush out what we already collected.
+            while (serverData.index < serverData.receivedItems.Count)
+            {
+                NetworkItem nextItem = helper.DequeueItem();
+                NetworkItem itemToRemove = tempAlreadyReceivedItems.FirstOrDefault(x => IsSameItem(x, nextItem));
+                if (IsSameItem(itemToRemove, default(NetworkItem)))
+                {
+                    // We already received and processed this item
+                    tempAlreadyReceivedItems.Remove(itemToRemove);
+                    serverData.index++;
+                }
+                else
+                {
+                    // This item is new
+                    itemsToReceive.Add(nextItem);
+                }
+            }
 
-            if (onItemReceived != null)
-                onItemReceived(receivedItem);
+            // Add the rest of the new items
+            while (itemsToReceive.Count < helper.Index - serverData.index)
+            {
+                itemsToReceive.Add(helper.DequeueItem());
+            }
+
+            // Process the new items
+            foreach (NetworkItem receivedItem in itemsToReceive)
+            {
+                serverData.receivedItems.Add(receivedItem);
+                serverData.index++;
+
+                if (onItemReceived != null)
+                    onItemReceived(receivedItem);
+            }
+        }
+
+        private static bool IsSameItem(NetworkItem left, NetworkItem right)
+        {
+            return left.Item == right.Item 
+                && left.Location == right.Location 
+                && left.Player == right.Player;
         }
 
         internal static string GetPlayerName(int player)
@@ -223,7 +252,7 @@ namespace Archipelago_Inscryption.Archipelago
             public string seed;
             public Dictionary<string, object> slotData;
             public List<long> completedChecks;
-            public List<long> receivedItems;
+            public List<NetworkItem> receivedItems;
             public uint index;
 
             public Data(
@@ -235,7 +264,7 @@ namespace Archipelago_Inscryption.Archipelago
                 string seed                         = "Unknown",
                 Dictionary<string, object> slotData = null,
                 List<long> completedChecks        = null,
-                List<long> receivedItems          = null
+                List<NetworkItem> receivedItems          = null
                 )
             {
                 this.hostName           = hostName;
@@ -246,7 +275,7 @@ namespace Archipelago_Inscryption.Archipelago
                 this.seed               = seed;
                 this.slotData           = slotData == null ? new Dictionary<string, object>() : slotData;
                 this.completedChecks    = completedChecks == null ? new List<long>() : completedChecks;
-                this.receivedItems      = receivedItems == null ? new List<long>() : receivedItems;
+                this.receivedItems      = receivedItems == null ? new List<NetworkItem>() : receivedItems;
                 this.index = 0;
             }
         }

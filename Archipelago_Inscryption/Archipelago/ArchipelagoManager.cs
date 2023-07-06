@@ -7,6 +7,7 @@ using GBC;
 using InscryptionAPI.Saves;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Archipelago_Inscryption.Archipelago
@@ -133,52 +134,53 @@ namespace Archipelago_Inscryption.Archipelago
                 RunState.Run.maxPlayerLives = 3;
             }
 
+            if (receivedItem == APItem.Dagger && SaveManager.SaveFile.IsPart1)
+            {
+                if (RunState.Run.consumables.Count >= 3)
+                {
+                    string itemName = RunState.Run.consumables[0];
+                    if (RunState.Run.consumables.Contains("Pliers"))
+                    {
+                        itemName = "Pliers";
+                    }
+                    else
+                    {
+                        for (int i = 2; i >= 0; i--)
+                        {
+                            if (RunState.Run.consumables[i] != "FishHook")
+                                itemName = RunState.Run.consumables[i];
+                        }
+                    }
+                    Singleton<ItemsManager>.Instance.DestroyItem(itemName);
+                }
+                RunState.Run.consumables.Add("SpecialDagger");
+                if (Singleton<ItemsManager>.Instance)
+                    Singleton<ItemsManager>.Instance.UpdateItems(false);
+            }
+
+            if (receivedItem == APItem.AnglerHook && SaveManager.SaveFile.IsPart1)
+            {
+                if (RunState.Run.consumables.Count >= 3)
+                {
+                    string itemName = "SquirrelBottle";
+                    for (int i = 2; i >= 0; i--)
+                    {
+                        if (RunState.Run.consumables[i] != "SpecialDagger")
+                            itemName = RunState.Run.consumables[i];
+                    }
+
+                    Singleton<ItemsManager>.Instance.DestroyItem(itemName);
+                }
+                RunState.Run.consumables.Add("FishHook");
+                if (Singleton<ItemsManager>.Instance)
+                    Singleton<ItemsManager>.Instance.UpdateItems(false);
+            }
+
             if (Singleton<GameFlowManager>.Instance != null)
             {
                 if (receivedItem == APItem.MagnificusEye && Singleton<GameFlowManager>.Instance is Part1GameFlowManager)
                 {
-                    RunState.Run.eyeState = EyeballState.Wizard;
                     Singleton<UIManager>.Instance.Effects.GetEffect<WizardEyeEffect>().SetIntensity(1f, 0f);
-                }
-
-                if (receivedItem == APItem.Dagger && Singleton<GameFlowManager>.Instance is Part1GameFlowManager)
-                {
-                    if (RunState.Run.consumables.Count >= 3)
-                    {
-                        string itemName = RunState.Run.consumables[0];
-                        if (RunState.Run.consumables.Contains("Pliers"))
-                        {
-                            itemName = "Pliers";
-                        }
-                        else
-                        {
-                            for (int i = 2; i >= 0; i--)
-                            {
-                                if (RunState.Run.consumables[i] != "FishHook")
-                                    itemName = RunState.Run.consumables[i];
-                            }
-                        }
-                        Singleton<ItemsManager>.Instance.DestroyItem(itemName);
-                    }
-                    RunState.Run.consumables.Add("SpecialDagger");
-                    Singleton<ItemsManager>.Instance.UpdateItems(false);
-                }
-
-                if (receivedItem == APItem.AnglerHook && Singleton<GameFlowManager>.Instance is Part1GameFlowManager)
-                {
-                    if (RunState.Run.consumables.Count >= 3)
-                    {
-                        string itemName = "SquirrelBottle";
-                        for (int i = 2; i >= 0; i--)
-                        {
-                            if (RunState.Run.consumables[i] != "SpecialDagger")
-                                itemName = RunState.Run.consumables[i];
-                        }
-
-                        Singleton<ItemsManager>.Instance.DestroyItem(itemName);
-                    }
-                    RunState.Run.consumables.Add("FishHook");
-                    Singleton<ItemsManager>.Instance.UpdateItems(false);
                 }
 
                 if (receivedItem == APItem.ExtraCandle && Singleton<GameFlowManager>.Instance is Part1GameFlowManager)
@@ -280,7 +282,7 @@ namespace Archipelago_Inscryption.Archipelago
         {
             long itemID = ITEM_ID_OFFSET + (long)item;
 
-            return ArchipelagoClient.serverData.receivedItems.Contains(itemID);
+            return ArchipelagoClient.serverData.receivedItems.Any(x => x.Item == itemID);
         }
 
         internal static CheckInfo GetCheckInfo(APCheck check)
