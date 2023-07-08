@@ -263,8 +263,8 @@ namespace Archipelago_Inscryption.Archipelago
                 bool deathlink                      = false,
                 string seed                         = "Unknown",
                 Dictionary<string, object> slotData = null,
-                List<long> completedChecks        = null,
-                List<NetworkItem> receivedItems          = null
+                List<long> completedChecks          = null,
+                List<NetworkItem> receivedItems     = null
                 )
             {
                 this.hostName           = hostName;

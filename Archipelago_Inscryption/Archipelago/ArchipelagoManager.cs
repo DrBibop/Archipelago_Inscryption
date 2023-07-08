@@ -25,7 +25,11 @@ namespace Archipelago_Inscryption.Archipelago
             { StoryEvent.ProspectorDefeated,            APCheck.CabinBossProspector },
             { StoryEvent.AnglerDefeated,                APCheck.CabinBossAngler },
             { StoryEvent.TrapperTraderDefeated,         APCheck.CabinBossTrapper },
-            { StoryEvent.LeshyDefeated,                 APCheck.CabinBossLeshy }
+            { StoryEvent.LeshyDefeated,                 APCheck.CabinBossLeshy },
+            { StoryEvent.GBCLeshyDefeated,              APCheck.GBCBossLeshy },
+            { StoryEvent.GBCGrimoraDefeated,            APCheck.GBCBossGrimora },
+            { StoryEvent.GBCMagnificusDefeated,         APCheck.GBCBossMagnificus },
+            { StoryEvent.GBCPoeDefeated,                APCheck.GBCBossP03 }
         };
 
         // When one of the following items is received, set the associated story event as completed.
@@ -45,16 +49,23 @@ namespace Archipelago_Inscryption.Archipelago
             { APItem.GreaterSmoke,                      StoryEvent.ImprovedSmokeCardDiscovered },
             { APItem.AnglerHook,                        StoryEvent.FishHookUnlocked },
             { APItem.Ring,                              StoryEvent.RingFound },
+            { APItem.PileOfMeat,                        StoryEvent.GBCDogFoodFound },
+            { APItem.Monocle,                           StoryEvent.GBCMonocleFound },
+            { APItem.AncientObol,                       StoryEvent.GBCObolFound },
+            { APItem.MycologistsHoloKey,                StoryEvent.MycologistHutKeyFound },
+            { APItem.BoneLordHoloKey,                   StoryEvent.BonelordHoloKeyFound },
+            { APItem.BoneLordFemur,                     StoryEvent.GBCBoneFound },
+            { APItem.AncientObol,                       StoryEvent.GBCObolFound },
         };
 
         // When one of the following items is received, add the associated card(s) to the deck.
         private static readonly Dictionary<APItem, UnlockableCardInfo> itemCardPair = new Dictionary<APItem, UnlockableCardInfo>()
         {
-            { APItem.StinkbugCard,                      new UnlockableCardInfo(new List<string>() { "Stinkbug_Talking" }, new List<string>() { "Stinkbug_Talking", "Stoat_Talking" }) },
-            { APItem.StuntedWolfCard,                   new UnlockableCardInfo(new List<string>() { "Wolf_Talking" }, new List<string>() { "Wolf_Talking", "Stoat_Talking" }) },
-            { APItem.SkinkCard,                         new UnlockableCardInfo(new List<string>() { "Skink" }) },
-            { APItem.AntCards,                          new UnlockableCardInfo(new List<string>() { "Ant", "AntQueen" }) },
-            { APItem.CagedWolfCard,                     new UnlockableCardInfo(new List<string>() { "CagedWolf" }) },
+            { APItem.StinkbugCard,                      new UnlockableCardInfo(new string[1] { "Stinkbug_Talking" }, new string[2] { "Stinkbug_Talking", "Stoat_Talking" }) },
+            { APItem.StuntedWolfCard,                   new UnlockableCardInfo(new string[1] { "Wolf_Talking" }, new string[2] { "Wolf_Talking", "Stoat_Talking" }) },
+            { APItem.SkinkCard,                         new UnlockableCardInfo(new string[1] { "Skink" }) },
+            { APItem.AntCards,                          new UnlockableCardInfo(new string[2] { "Ant", "AntQueen" }) },
+            { APItem.CagedWolfCard,                     new UnlockableCardInfo(new string[1] { "CagedWolf" }) },
         };
 
         private static Dictionary<APCheck, CheckInfo> checkInfos = new Dictionary<APCheck, CheckInfo>();
@@ -94,15 +105,15 @@ namespace Archipelago_Inscryption.Archipelago
 
             if (itemCardPair.TryGetValue(receivedItem, out UnlockableCardInfo info))
             {
-                foreach (string cardName in info.cardsToUnlock)
+                for (int i = 0; i < info.cardsToUnlock.Length; i++)
                 {
-                    SaveManager.SaveFile.CurrentDeck.AddCard(CardLoader.GetCardByName(cardName));
+                    SaveManager.SaveFile.CurrentDeck.AddCard(CardLoader.GetCardByName(info.cardsToUnlock[i]));
                 }
 
-                foreach (string cardName in info.rigDraws)
+                for (int i = 0; i < info.rigDraws.Length; i++)
                 {
-                    if (!SaveManager.SaveFile.RiggedDraws.Contains(cardName))
-                        SaveManager.SaveFile.RiggedDraws.Add(cardName);
+                    if (!SaveManager.SaveFile.RiggedDraws.Contains(info.rigDraws[i]))
+                        SaveManager.SaveFile.RiggedDraws.Add(info.rigDraws[i]);
                 }
             }
 
@@ -148,10 +159,16 @@ namespace Archipelago_Inscryption.Archipelago
                         for (int i = 2; i >= 0; i--)
                         {
                             if (RunState.Run.consumables[i] != "FishHook")
+                            {
                                 itemName = RunState.Run.consumables[i];
+                                break;
+                            }
                         }
                     }
-                    Singleton<ItemsManager>.Instance.DestroyItem(itemName);
+                    if (Singleton<ItemsManager>.Instance)
+                        Singleton<ItemsManager>.Instance.DestroyItem(itemName);
+                    else
+                        RunState.Run.consumables.Remove(itemName);
                 }
                 RunState.Run.consumables.Add("SpecialDagger");
                 if (Singleton<ItemsManager>.Instance)
@@ -162,14 +179,20 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 if (RunState.Run.consumables.Count >= 3)
                 {
-                    string itemName = "SquirrelBottle";
+                    string itemName = RunState.Run.consumables[0];
                     for (int i = 2; i >= 0; i--)
                     {
                         if (RunState.Run.consumables[i] != "SpecialDagger")
+                        {
                             itemName = RunState.Run.consumables[i];
+                            break;
+                        }
                     }
 
-                    Singleton<ItemsManager>.Instance.DestroyItem(itemName);
+                    if (Singleton<ItemsManager>.Instance)
+                        Singleton<ItemsManager>.Instance.DestroyItem(itemName);
+                    else
+                        RunState.Run.consumables.Remove(itemName);
                 }
                 RunState.Run.consumables.Add("FishHook");
                 if (Singleton<ItemsManager>.Instance)
@@ -205,10 +228,10 @@ namespace Archipelago_Inscryption.Archipelago
                 }
             }
 
-            SaveManager.SaveToFile(false);
-
             if (onItemReceived != null)
                 onItemReceived(receivedItem);
+
+            SaveManager.SaveToFile(false);
         }
 
         private static void OnConnectAttempt(LoginResult result)
@@ -263,7 +286,6 @@ namespace Archipelago_Inscryption.Archipelago
 
             if (!ArchipelagoClient.serverData.completedChecks.Contains(checkID))
             {
-                ArchipelagoModPlugin.Log.LogMessage("Location check completed: " + check.ToString());
                 ArchipelagoClient.serverData.completedChecks.Add(checkID);
                 ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", ArchipelagoClient.serverData.completedChecks);
                 ArchipelagoClient.SendChecksToServerAsync();
@@ -318,16 +340,16 @@ namespace Archipelago_Inscryption.Archipelago
 
     internal struct UnlockableCardInfo
     {
-        internal List<string> cardsToUnlock;
-        internal List<string> rigDraws;
+        internal string[] cardsToUnlock;
+        internal string[] rigDraws;
 
-        public UnlockableCardInfo(List<string> cardsToUnlock)
+        public UnlockableCardInfo(string[] cardsToUnlock)
         {
             this.cardsToUnlock = cardsToUnlock;
-            this.rigDraws = new List<string>();
+            this.rigDraws = new string[0];
         }
 
-        public UnlockableCardInfo(List<string> cardsToUnlock, List<string> rigDraws)
+        public UnlockableCardInfo(string[] cardsToUnlock, string[] rigDraws)
         {
             this.cardsToUnlock = cardsToUnlock;
             this.rigDraws = rigDraws;
