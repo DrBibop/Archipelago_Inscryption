@@ -3,6 +3,7 @@ using Archipelago_Inscryption.Assets;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using HarmonyLib.Tools;
 using System.Reflection;
 
 namespace Archipelago_Inscryption
@@ -21,6 +22,7 @@ namespace Archipelago_Inscryption
         {
             Log = Logger;
             Harmony harmony = new Harmony(PluginGuid);
+            HarmonyFileLog.Enabled = true;
             harmony.PatchAll(Assembly.GetExecutingAssembly());
             AssetsManager.LoadAssets();
             ArchipelagoManager.Init();

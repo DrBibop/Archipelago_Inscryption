@@ -1,4 +1,11 @@
-﻿using HarmonyLib;
+﻿using Archipelago_Inscryption.Helpers;
+using DiskCardGame;
+using HarmonyLib;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -6,9 +13,43 @@ namespace Archipelago_Inscryption.Patches
     internal class OtherPatches
     {
         [HarmonyPatch(typeof(AchievementManager), "Unlock")]
+        [HarmonyPrefix]
         static bool PreventAchievementUnlock()
         {
             return false;
+        }
+    }
+    
+    [HarmonyPatch]
+    [HarmonyDebug]
+    class DeathPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(Part1GameFlowManager).GetNestedType("<PlayerLostBattleSequence>d__9", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> CallPreDeathInstead(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(ViewManager), "SwitchToView")));
+
+            index += 3;
+
+            FileLog.Log(index.ToString());
+
+            codes.RemoveAt(index);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "PrePlayerDeathSequence"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
         }
     }
 }

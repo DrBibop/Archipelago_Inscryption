@@ -4,6 +4,7 @@ using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using InscryptionAPI.Card;
+using System.Collections;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
@@ -140,6 +141,12 @@ namespace Archipelago_Inscryption.Helpers
         internal static void ClaimPaintingCheck(int rewardIndex)
         {
             paintingChecks[rewardIndex].Discover();
+        }
+
+        internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
+        {
+            ArchipelagoModPlugin.Log.LogMessage("Rip bozo");
+            yield return manager.KillPlayerSequence();
         }
     }
 }
