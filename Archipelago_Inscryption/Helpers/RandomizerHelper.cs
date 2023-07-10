@@ -194,10 +194,17 @@ namespace Archipelago_Inscryption.Helpers
                 npc.gainPacks = null;
                 APCheck check = RandomizerHelper.GetCheckGainedFromNPC(npc.DialogueSpeaker.characterId);
                 CardInfo card = RandomizerHelper.GenerateCardInfo(check);
-                Singleton<PlayerMovementController>.Instance.SetEnabled(false);
-                yield return SingleCardGainUI.instance.GainCard(card, true);
-                Singleton<PlayerMovementController>.Instance.SetEnabled(true);
-                SaveManager.SaveToFile(true);
+                if (!ArchipelagoManager.HasCompletedCheck(check))
+                {
+                    Singleton<PlayerMovementController>.Instance.SetEnabled(false);
+                    yield return SingleCardGainUI.instance.GainCard(card, true);
+                    Singleton<PlayerMovementController>.Instance.SetEnabled(true);
+                    SaveManager.SaveToFile(true);
+                }
+                else
+                {
+                    yield return null;
+                }
             }
         }
 

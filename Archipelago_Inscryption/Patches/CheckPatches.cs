@@ -30,6 +30,7 @@ namespace Archipelago_Inscryption.Patches
         }
 
         [HarmonyPatch(typeof(CardSingleChoicesSequencer), "AddChosenCardToDeck")]
+        [HarmonyPrefix]
         static bool DontAddIfCheckCard(CardSingleChoicesSequencer __instance)
         {
             if (__instance.chosenReward.name.Contains("Archipelago")) return false;
@@ -38,6 +39,7 @@ namespace Archipelago_Inscryption.Patches
         }
 
         [HarmonyPatch(typeof(SaveFile), "CollectGBCCard")]
+        [HarmonyPrefix]
         static bool SendCheckInsteadOfAddingCard(CardInfo card)
         {
             if (card.name.Contains("Archipelago"))
