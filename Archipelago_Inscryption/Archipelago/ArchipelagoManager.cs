@@ -54,8 +54,7 @@ namespace Archipelago_Inscryption.Archipelago
             { APItem.AncientObol,                       StoryEvent.GBCObolFound },
             { APItem.MycologistsHoloKey,                StoryEvent.MycologistHutKeyFound },
             { APItem.BoneLordHoloKey,                   StoryEvent.BonelordHoloKeyFound },
-            { APItem.BoneLordFemur,                     StoryEvent.GBCBoneFound },
-            { APItem.AncientObol,                       StoryEvent.GBCObolFound },
+            { APItem.BoneLordFemur,                     StoryEvent.GBCBoneFound }
         };
 
         // When one of the following items is received, add the associated card(s) to the deck.
