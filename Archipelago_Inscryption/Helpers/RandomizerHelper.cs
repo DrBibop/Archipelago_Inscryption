@@ -3,10 +3,14 @@ using Archipelago_Inscryption.Assets;
 using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Utils;
 using DiskCardGame;
+using GBC;
 using InscryptionAPI.Card;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
+using static GBC.DialogueSpeaker;
 
 namespace Archipelago_Inscryption.Helpers
 {
@@ -36,6 +40,27 @@ namespace Archipelago_Inscryption.Helpers
             "Did you print this one yourself?",
             "I'm sure this could be of use to someone, right?",
             "That's weird... Don't let it distract you, though."
+        };
+
+        private static readonly Dictionary<Character, APCheck> npcCheckPairs = new Dictionary<Character, APCheck>() 
+        {
+            { Character.Angler,                             APCheck.GBCBattleAngler },
+            { Character.Prospector,                         APCheck.GBCBattleProspector },
+            { Character.Trader,                             APCheck.GBCBattleTrapper },
+            { Character.Trapper,                            APCheck.GBCBattleTrapper },
+            { Character.Leshy,                              APCheck.GBCBossLeshy },
+            { Character.GhoulRoyal,                         APCheck.GBCBattleRoyal },
+            { Character.GhoulBriar,                         APCheck.GBCBattleKaycee },
+            { Character.GhoulSawyer,                        APCheck.GBCBattleSawyer },
+            { Character.Grimora,                            APCheck.GBCBossGrimora },
+            { Character.GreenWizard,                        APCheck.GBCBattleGoobert },
+            { Character.OrangeWizard,                       APCheck.GBCBattlePikeMage },
+            { Character.BlueWizard,                         APCheck.GBCBattleLonelyWizard },
+            { Character.Magnificus,                         APCheck.GBCBossMagnificus },
+            { Character.Inspector,                          APCheck.GBCBattleInspector },
+            { Character.Smelter,                            APCheck.GBCBattleMelter },
+            { Character.Dredger,                            APCheck.GBCBattleDredger },
+            { Character.P03,                                APCheck.GBCBossP03 }
         };
 
         internal static DiscoverableCheckInteractable CreateDiscoverableCardCheck(GameObject originalObject, APCheck check, bool destroyOriginal, StoryEvent activeStoryFlag = StoryEvent.NUM_EVENTS)
@@ -72,13 +97,7 @@ namespace Archipelago_Inscryption.Helpers
                     closeUpVerticalOffset = originalCardInteractable.closeUpVerticalOffset;
                 }
 
-                CheckInfo checkInfo = ArchipelagoManager.GetCheckInfo(check);
-
-                CardInfo info = ScriptableObject.CreateInstance<CardInfo>();
-                info.SetNames("ArchipelagoCheck_" + check.ToString(), checkInfo.itemName);
-                info.SetHideStats();
-                string modPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                info.SetPortrait(modPath + "\\CardPortraits\\archi_portrait.png");
+                CardInfo info = GenerateCardInfo(check);
 
                 DiscoverableCheckInteractable newCardInteractable = newCheckCard.AddComponent<DiscoverableCheckInteractable>();
 
@@ -140,6 +159,46 @@ namespace Archipelago_Inscryption.Helpers
         internal static void ClaimPaintingCheck(int rewardIndex)
         {
             paintingChecks[rewardIndex].Discover();
+        }
+
+        internal static CardInfo GenerateCardInfo(APCheck check)
+        {
+            CheckInfo checkInfo = ArchipelagoManager.GetCheckInfo(check);
+
+            CardInfo info = ScriptableObject.CreateInstance<CardInfo>();
+            info.SetNames("ArchipelagoCheck_" + check.ToString(), checkInfo.itemName);
+            info.SetHideStats();
+            string modPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            info.SetPortrait(modPath + "\\CardPortraits\\archi_portrait.png");
+            info.SetPixelPortrait(modPath + "\\CardPortraits\\archi_portrait_gbc.png");
+            string description =
+                checkInfo.recipientName == ArchipelagoClient.serverData.slotName ?
+                $"A misplaced item from your world. Collect this card to receive {checkInfo.itemName}." :
+                $"An item from another world. Collecting this card will send {checkInfo.itemName} to {checkInfo.recipientName}.";
+            info.description = description;
+            return info;
+        }
+
+        internal static APCheck GetCheckGainedFromNPC(Character npcCharacter)
+        {
+            if (npcCheckPairs.TryGetValue(npcCharacter, out APCheck check))
+                return check;
+            else
+                return APCheck.COUNT;
+        }
+
+        internal static IEnumerator RewardCheckSequence(CardBattleNPC npc)
+        {
+            if (npc.gainPacks != null)
+            {
+                npc.gainPacks = null;
+                APCheck check = RandomizerHelper.GetCheckGainedFromNPC(npc.DialogueSpeaker.characterId);
+                CardInfo card = RandomizerHelper.GenerateCardInfo(check);
+                Singleton<PlayerMovementController>.Instance.SetEnabled(false);
+                yield return SingleCardGainUI.instance.GainCard(card, true);
+                Singleton<PlayerMovementController>.Instance.SetEnabled(true);
+                SaveManager.SaveToFile(true);
+            }
         }
     }
 }

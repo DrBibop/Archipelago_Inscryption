@@ -3,7 +3,10 @@ using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Helpers;
 using Archipelago_Inscryption.Utils;
 using DiskCardGame;
+using GBC;
 using HarmonyLib;
+using HarmonyLib.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -30,6 +33,20 @@ namespace Archipelago_Inscryption.Patches
         static bool DontAddIfCheckCard(CardSingleChoicesSequencer __instance)
         {
             if (__instance.chosenReward.name.Contains("Archipelago")) return false;
+
+            return true;
+        }
+
+        [HarmonyPatch(typeof(SaveFile), "CollectGBCCard")]
+        static bool SendCheckInsteadOfAddingCard(CardInfo card)
+        {
+            if (card.name.Contains("Archipelago"))
+            {
+                string checkName = card.name.Substring(card.name.IndexOf('_') + 1);
+                APCheck check = Enum.GetValues(typeof(APCheck)).Cast<APCheck>().FirstOrDefault(c => c.ToString() == checkName);
+                ArchipelagoManager.SendCheck(check);
+                return false;
+            }
 
             return true;
         }
@@ -116,7 +133,7 @@ namespace Archipelago_Inscryption.Patches
 
             DiscoverableCheckInteractable checkCard1 = RandomizerHelper.CreateDiscoverableCardCheck(stuntedWolfCard, APCheck.CabinClock1, true, StoryEvent.ClockCompartmentOpened);
             DiscoverableCheckInteractable checkCard2 = RandomizerHelper.CreateDiscoverableCardCheck(ring, APCheck.CabinClock2, true, StoryEvent.ClockSmallCompartmentOpened);
-            Object.Destroy(__instance.largeCompartmentContents[1].gameObject);
+            GameObject.Destroy(__instance.largeCompartmentContents[1].gameObject);
             __instance.largeCompartmentContents.Clear();
             __instance.smallCompartmentContents.Clear();
 
@@ -215,7 +232,7 @@ namespace Archipelago_Inscryption.Patches
 
             foreach (GameObject go in __instance.rewardDisplayedItems)
             {
-                Object.Destroy(go);
+                GameObject.Destroy(go);
             }
 
             __instance.rewardDisplayedItems.Clear();
@@ -229,8 +246,8 @@ namespace Archipelago_Inscryption.Patches
             if (checkCard1)
             {
                 checkCard1.card.RenderCard();
-                Object.Destroy(checkCard1.card.GetComponent<BoxCollider>());
-                __instance.rewardDisplayedItems.Add(Object.Instantiate(checkCard1.card.gameObject, rewardDisplayParent));
+                GameObject.Destroy(checkCard1.card.GetComponent<BoxCollider>());
+                __instance.rewardDisplayedItems.Add(GameObject.Instantiate(checkCard1.card.gameObject, rewardDisplayParent));
                 checkCard1.SetEnabled(false);
             }
             else
@@ -241,8 +258,8 @@ namespace Archipelago_Inscryption.Patches
             if (checkCard2)
             {
                 checkCard2.card.RenderCard();
-                Object.Destroy(checkCard2.card.GetComponent<BoxCollider>());
-                __instance.rewardDisplayedItems.Add(Object.Instantiate(checkCard2.card.gameObject, rewardDisplayParent));
+                GameObject.Destroy(checkCard2.card.GetComponent<BoxCollider>());
+                __instance.rewardDisplayedItems.Add(GameObject.Instantiate(checkCard2.card.gameObject, rewardDisplayParent));
                 checkCard2.SetEnabled(false);
             }
             else
@@ -253,8 +270,8 @@ namespace Archipelago_Inscryption.Patches
             if (checkCard3)
             {
                 checkCard3.card.RenderCard();
-                Object.Destroy(checkCard3.card.GetComponent<BoxCollider>());
-                __instance.rewardDisplayedItems.Add(Object.Instantiate(checkCard3.card.gameObject, rewardDisplayParent));
+                GameObject.Destroy(checkCard3.card.GetComponent<BoxCollider>());
+                __instance.rewardDisplayedItems.Add(GameObject.Instantiate(checkCard3.card.gameObject, rewardDisplayParent));
                 checkCard3.SetEnabled(false);
             }
             else
@@ -293,7 +310,7 @@ namespace Archipelago_Inscryption.Patches
 
             checkCard.SetEnabled(false);
             __instance.card = checkCard;
-            Object.Destroy(checkCard.card.GetComponent<BoxCollider>());
+            GameObject.Destroy(checkCard.card.GetComponent<BoxCollider>());
 
             return true;
         }
@@ -369,6 +386,36 @@ namespace Archipelago_Inscryption.Patches
                 new CodeInstruction(OpCodes.Ldloc_1),
                 new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(ChooseEyeballSequencer), "wizardEyeball")),
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "CreateWizardEyeCheck"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2BattlePatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(CardBattleNPC).GetNestedType("<PostCombatEncounterSequence>d__64", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceCardPackRewardWithCheck(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(GainCardPacks), "OpenPacksSequence")));
+
+            index--;
+
+            codes.RemoveRange(index, 2);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "RewardCheckSequence"))
             };
 
             codes.InsertRange(index, newCodes);
