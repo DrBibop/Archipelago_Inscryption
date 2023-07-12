@@ -25,11 +25,7 @@ namespace Archipelago_Inscryption.Archipelago
             { StoryEvent.ProspectorDefeated,            APCheck.CabinBossProspector },
             { StoryEvent.AnglerDefeated,                APCheck.CabinBossAngler },
             { StoryEvent.TrapperTraderDefeated,         APCheck.CabinBossTrapper },
-            { StoryEvent.LeshyDefeated,                 APCheck.CabinBossLeshy },
-            { StoryEvent.GBCLeshyDefeated,              APCheck.GBCBossLeshy },
-            { StoryEvent.GBCGrimoraDefeated,            APCheck.GBCBossGrimora },
-            { StoryEvent.GBCMagnificusDefeated,         APCheck.GBCBossMagnificus },
-            { StoryEvent.GBCPoeDefeated,                APCheck.GBCBossP03 }
+            { StoryEvent.LeshyDefeated,                 APCheck.CabinBossLeshy }
         };
 
         // When one of the following items is received, set the associated story event as completed.
@@ -72,7 +68,7 @@ namespace Archipelago_Inscryption.Archipelago
         internal static void Init()
         {
             ArchipelagoClient.onConnectAttemptDone += OnConnectAttempt;
-            ArchipelagoClient.onItemReceived += OnItemReceived;
+            ArchipelagoClient.onNewItemReceived += OnItemReceived;
         }
 
         private static void OnItemReceived(NetworkItem item)
@@ -88,7 +84,14 @@ namespace Archipelago_Inscryption.Archipelago
             Singleton<ArchipelagoUI>.Instance.LogImportant(message);
             ArchipelagoModPlugin.Log.LogMessage(message);
 
-            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", ArchipelagoClient.serverData.receivedItems);
+            List<string> encodedItems = new List<string>();
+
+            foreach (NetworkItem networkItem in ArchipelagoClient.serverData.receivedItems)
+            {
+                encodedItems.Add(ArchipelagoClient.EncodeItemToString(networkItem));
+            }
+
+            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", encodedItems);
 
             APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
 

@@ -5,13 +5,13 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using HarmonyLib;
-using HarmonyLib.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -339,6 +339,29 @@ namespace Archipelago_Inscryption.Patches
 
             return codes.AsEnumerable();
         }
+
+        [HarmonyPatch(typeof(ContainerVolume), "Start")]
+        [HarmonyPostfix]
+        static void ReplaceContainterContentWithCheck(ContainerVolume __instance)
+        {
+            if (__instance.pickupEvent.GetPersistentEventCount() > 0)
+            {
+                __instance.pickupEvent = new EventTrigger.TriggerEvent();
+                __instance.pickupEvent.AddListener(data => RandomizerHelper.GiveContainerCheck(__instance));
+            }
+            else if (__instance.postTextEvent.GetPersistentEventCount() > 0)
+            {
+                __instance.postTextEvent = new EventTrigger.TriggerEvent();
+                __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveContainerCheck(__instance));
+            }
+            else
+            {
+                return;
+            }
+
+            __instance.textLines.Clear();
+            __instance.textLines.Add("You found a strange card inside.");
+        }
     }
 
     [HarmonyPatch]
@@ -417,7 +440,37 @@ namespace Archipelago_Inscryption.Patches
 
             var newCodes = new List<CodeInstruction>()
             {
-                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "RewardCheckSequence"))
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "CombatRewardCheckSequence"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2CardGainMessage
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(SingleCardGainUI).GetNestedType("<HideEndingSequence>d__10", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceMessageIfCheckCard(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.opcode == OpCodes.Ldstr && (string)x.operand == "The card was added to your collection.");
+
+            codes.RemoveAt(index);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldloc_1),
+                new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(SingleCardGainUI), "currentCard")),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GetCardGainedMessage"))
             };
 
             codes.InsertRange(index, newCodes);

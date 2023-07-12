@@ -39,6 +39,7 @@
         AncientObol,
         GreatKrakenCard,
         DrownedSoulCard,
+        SalmonCard,
         COUNT
     }
 }

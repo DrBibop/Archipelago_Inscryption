@@ -20,5 +20,10 @@ namespace Archipelago_Inscryption.Utils
                 t.gameObject.SetLayerRecursive(layer);
             }
         }
+
+        internal static string GetPath(this Transform transform)
+        {
+            return (transform.parent ? transform.parent.GetPath() + "/" : "") + transform.name;
+        }
     }
 }

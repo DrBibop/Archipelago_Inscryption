@@ -8,8 +8,10 @@ using InscryptionAPI.Card;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Animations;
 using static GBC.DialogueSpeaker;
 
 namespace Archipelago_Inscryption.Helpers
@@ -42,7 +44,7 @@ namespace Archipelago_Inscryption.Helpers
             "That's weird... Don't let it distract you, though."
         };
 
-        private static readonly Dictionary<Character, APCheck> npcCheckPairs = new Dictionary<Character, APCheck>() 
+        private static readonly Dictionary<Character, APCheck> npcCheckPairs = new Dictionary<Character, APCheck>()
         {
             { Character.Angler,                             APCheck.GBCBattleAngler },
             { Character.Prospector,                         APCheck.GBCBattleProspector },
@@ -61,6 +63,37 @@ namespace Archipelago_Inscryption.Helpers
             { Character.Smelter,                            APCheck.GBCBattleMelter },
             { Character.Dredger,                            APCheck.GBCBattleDredger },
             { Character.P03,                                APCheck.GBCBossP03 }
+        };
+
+        private static readonly Dictionary<string, APCheck> gbcContainerCheckPair = new Dictionary<string, APCheck>()
+        {
+            { "GBC_Docks/Room/Objects/Chest/ContainerVolume",                                           APCheck.GBCDockChest },
+            { "GBC_Temple_Nature/Temple/OutdoorsCentral/Chest_NaturePack/ContainerVolume",              APCheck.GBCForestChest },
+            { "GBC_Temple_Nature/Temple/Meadow/Objects/Chest_NaturePack/ContainerVolume",               APCheck.GBCForestBurrowChest },
+            { "GBC_Temple_Nature/Temple/Cabin/Objects/SliderPuzzleContainer",                           APCheck.GBCCabinDrawer },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/Casket_CardPack (1)/ContainerVolume",          APCheck.GBCCryptCasket1 },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/Casket_CardPack/ContainerVolume",              APCheck.GBCCryptCasket2 },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/Casket_Piece/ContainerVolume",                 APCheck.GBCEpitaphPiece7 },
+            { "GBC_Temple_Wizard/Temple/Floor_1/Chest_WizardPack/ContainerVolume",                      APCheck.GBCTowerChest1 },
+            { "GBC_Temple_Wizard/Temple/Floor_2/Objects/Chest_WizardPack (1)/ContainerVolume",          APCheck.GBCTowerChest2 },
+            { "GBC_Temple_Wizard/Temple/Floor_3/Objects/Chest_Card",                                    APCheck.GBCTowerChest3 },
+            { "GBC_Temple_Tech/Temple/--- MainRoom ---/Objects/TechSliderPuzzleContainer",              APCheck.GBCFactoryDrawer1 },
+            { "GBC_Temple_Tech/Temple/--- MainRoom ---/Objects/TechSliderPuzzleContainer (1)",          APCheck.GBCFactoryDrawer2 },
+            { "GBC_Temple_Tech/Temple/--- AssemblyRoom ---/Objects/Chest_TechPack/ContainerVolume",     APCheck.GBCFactoryChest1 },
+            { "GBC_Temple_Tech/Temple/--- AssemblyRoom ---/Objects/Chest_TechPack (1)/ContainerVolume", APCheck.GBCFactoryChest2 },
+            { "GBC_Temple_Tech/Temple/--- DredgingRoom ---/Objects/Chest_TechPack/ContainerVolume",     APCheck.GBCFactoryChest3 },
+            { "GBC_Temple_Tech/Temple/--- DredgingRoom ---/Objects/Chest_TechPack (1)/ContainerVolume", APCheck.GBCFactoryChest4 },
+        };
+
+        private static readonly Dictionary<string, APCheck> gbcEpitaphCheckPair = new Dictionary<string, APCheck>()
+        {
+            { "Objects",                                    APCheck.GBCEpitaphPiece1 },
+            { "EpitaphPieceVolume (1)",                     APCheck.GBCEpitaphPiece2 },
+            { "OverworldGhoulNPC_Sawyer",                   APCheck.GBCEpitaphPiece3 },
+            { "OverworldGhoulNPC_Royal",                    APCheck.GBCEpitaphPiece4 },
+            { "EpitaphPieceVolume (2)",                     APCheck.GBCEpitaphPiece5 },
+            { "OverworldGhoulNPC_Briar",                    APCheck.GBCEpitaphPiece6 },
+            { "MirrorRoom",                                 APCheck.GBCEpitaphPiece9 },
         };
 
         internal static DiscoverableCheckInteractable CreateDiscoverableCardCheck(GameObject originalObject, APCheck check, bool destroyOriginal, StoryEvent activeStoryFlag = StoryEvent.NUM_EVENTS)
@@ -187,24 +220,13 @@ namespace Archipelago_Inscryption.Helpers
                 return APCheck.COUNT;
         }
 
-        internal static IEnumerator RewardCheckSequence(CardBattleNPC npc)
+        internal static IEnumerator CombatRewardCheckSequence(CardBattleNPC npc)
         {
             if (npc.gainPacks != null)
             {
                 npc.gainPacks = null;
-                APCheck check = RandomizerHelper.GetCheckGainedFromNPC(npc.DialogueSpeaker.characterId);
-                CardInfo card = RandomizerHelper.GenerateCardInfo(check);
-                if (!ArchipelagoManager.HasCompletedCheck(check))
-                {
-                    Singleton<PlayerMovementController>.Instance.SetEnabled(false);
-                    yield return SingleCardGainUI.instance.GainCard(card, true);
-                    Singleton<PlayerMovementController>.Instance.SetEnabled(true);
-                    SaveManager.SaveToFile(true);
-                }
-                else
-                {
-                    yield return null;
-                }
+                APCheck check = GetCheckGainedFromNPC(npc.DialogueSpeaker.characterId);
+                yield return GiveGBCCheckSequence(check);
             }
         }
 
@@ -212,6 +234,40 @@ namespace Archipelago_Inscryption.Helpers
         {
             ArchipelagoModPlugin.Log.LogMessage("Rip bozo");
             yield return manager.KillPlayerSequence();
+        }
+
+        internal static void GiveContainerCheck(ContainerVolume instance)
+        {
+            string containerPath = instance.transform.GetPath();
+            string key = $"{SceneLoader.ActiveSceneName}/{containerPath}";
+            if (gbcContainerCheckPair.TryGetValue(key, out APCheck check) && !ArchipelagoManager.HasCompletedCheck(check))
+            {
+                CustomCoroutine.Instance.StartCoroutine(GiveGBCCheckSequence(check));
+            }
+        }
+
+        internal static IEnumerator GiveGBCCheckSequence(APCheck check)
+        {
+            CardInfo card = GenerateCardInfo(check);
+            if (!ArchipelagoManager.HasCompletedCheck(check))
+            {
+                Singleton<PlayerMovementController>.Instance.SetEnabled(false);
+                yield return SingleCardGainUI.instance.GainCard(card, true);
+                Singleton<PlayerMovementController>.Instance.SetEnabled(true);
+                SaveManager.SaveToFile(true);
+            }
+            else
+            {
+                yield return null;
+            }
+        }
+
+        internal static string GetCardGainedMessage(CardInfo info)
+        {
+            if (info.name.Contains("Archipelago"))
+                return "The card was sent to its rightful owner.";
+            else
+                return "The card was added to your collection.";
         }
     }
 }
