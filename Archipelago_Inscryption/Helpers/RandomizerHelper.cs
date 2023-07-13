@@ -65,7 +65,7 @@ namespace Archipelago_Inscryption.Helpers
             { Character.P03,                                APCheck.GBCBossP03 }
         };
 
-        private static readonly Dictionary<string, APCheck> gbcContainerCheckPair = new Dictionary<string, APCheck>()
+        private static readonly Dictionary<string, APCheck> gbcObjectCheckPair = new Dictionary<string, APCheck>()
         {
             { "GBC_Docks/Room/Objects/Chest/ContainerVolume",                                           APCheck.GBCDockChest },
             { "GBC_Temple_Nature/Temple/OutdoorsCentral/Chest_NaturePack/ContainerVolume",              APCheck.GBCForestChest },
@@ -73,27 +73,24 @@ namespace Archipelago_Inscryption.Helpers
             { "GBC_Temple_Nature/Temple/Cabin/Objects/SliderPuzzleContainer",                           APCheck.GBCCabinDrawer },
             { "GBC_Temple_Undead/Temple/MainRoom/Objects/Casket_CardPack (1)/ContainerVolume",          APCheck.GBCCryptCasket1 },
             { "GBC_Temple_Undead/Temple/MainRoom/Objects/Casket_CardPack/ContainerVolume",              APCheck.GBCCryptCasket2 },
-            { "GBC_Temple_Undead/Temple/MainRoom/Objects/Casket_Piece/ContainerVolume",                 APCheck.GBCEpitaphPiece7 },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/EpitaphPieceVolume",                           APCheck.GBCEpitaphPiece1 },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/EpitaphPieceVolume (1)",                       APCheck.GBCEpitaphPiece2 },
+            { "GBC_Temple_Undead/Temple/MainRoom/OverworldGhoulNPC_Sawyer",                             APCheck.GBCEpitaphPiece3 },
+            { "GBC_Temple_Undead/Temple/BasementRoom/EpitaphPieceVolume (2)",                           APCheck.GBCEpitaphPiece4 },
+            { "GBC_Temple_Undead/Temple/MainRoom/OverworldGhoulNPC_Royal",                              APCheck.GBCEpitaphPiece5 },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/Casket_Piece/ContainerVolume",                 APCheck.GBCEpitaphPiece6 },
+            { "GBC_Temple_Undead/Temple/MirrorRoom/EpitaphPieceVolume",                                 APCheck.GBCEpitaphPiece7 },
+            { "GBC_Temple_Undead/Temple/MainRoom/OverworldGhoulNPC_Briar",                              APCheck.GBCEpitaphPiece8 },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/Well/ContainerVolume",                         APCheck.GBCEpitaphPiece9 },
             { "GBC_Temple_Wizard/Temple/Floor_1/Chest_WizardPack/ContainerVolume",                      APCheck.GBCTowerChest1 },
             { "GBC_Temple_Wizard/Temple/Floor_2/Objects/Chest_WizardPack (1)/ContainerVolume",          APCheck.GBCTowerChest2 },
-            { "GBC_Temple_Wizard/Temple/Floor_3/Objects/Chest_Card",                                    APCheck.GBCTowerChest3 },
+            { "GBC_Temple_Wizard/Temple/Floor_3/Objects/Chest_Card/ContainerVolume",                    APCheck.GBCTowerChest3 },
             { "GBC_Temple_Tech/Temple/--- MainRoom ---/Objects/TechSliderPuzzleContainer",              APCheck.GBCFactoryDrawer1 },
             { "GBC_Temple_Tech/Temple/--- MainRoom ---/Objects/TechSliderPuzzleContainer (1)",          APCheck.GBCFactoryDrawer2 },
             { "GBC_Temple_Tech/Temple/--- AssemblyRoom ---/Objects/Chest_TechPack/ContainerVolume",     APCheck.GBCFactoryChest1 },
             { "GBC_Temple_Tech/Temple/--- AssemblyRoom ---/Objects/Chest_TechPack (1)/ContainerVolume", APCheck.GBCFactoryChest2 },
             { "GBC_Temple_Tech/Temple/--- DredgingRoom ---/Objects/Chest_TechPack/ContainerVolume",     APCheck.GBCFactoryChest3 },
             { "GBC_Temple_Tech/Temple/--- DredgingRoom ---/Objects/Chest_TechPack (1)/ContainerVolume", APCheck.GBCFactoryChest4 },
-        };
-
-        private static readonly Dictionary<string, APCheck> gbcEpitaphCheckPair = new Dictionary<string, APCheck>()
-        {
-            { "Objects",                                    APCheck.GBCEpitaphPiece1 },
-            { "EpitaphPieceVolume (1)",                     APCheck.GBCEpitaphPiece2 },
-            { "OverworldGhoulNPC_Sawyer",                   APCheck.GBCEpitaphPiece3 },
-            { "OverworldGhoulNPC_Royal",                    APCheck.GBCEpitaphPiece4 },
-            { "EpitaphPieceVolume (2)",                     APCheck.GBCEpitaphPiece5 },
-            { "OverworldGhoulNPC_Briar",                    APCheck.GBCEpitaphPiece6 },
-            { "MirrorRoom",                                 APCheck.GBCEpitaphPiece9 },
         };
 
         internal static DiscoverableCheckInteractable CreateDiscoverableCardCheck(GameObject originalObject, APCheck check, bool destroyOriginal, StoryEvent activeStoryFlag = StoryEvent.NUM_EVENTS)
@@ -236,14 +233,19 @@ namespace Archipelago_Inscryption.Helpers
             yield return manager.KillPlayerSequence();
         }
 
-        internal static void GiveContainerCheck(ContainerVolume instance)
+        internal static void GiveObjectRelatedCheck(GameObject instance)
         {
-            string containerPath = instance.transform.GetPath();
-            string key = $"{SceneLoader.ActiveSceneName}/{containerPath}";
-            if (gbcContainerCheckPair.TryGetValue(key, out APCheck check) && !ArchipelagoManager.HasCompletedCheck(check))
+            string objectPath = instance.transform.GetPath();
+            string key = $"{SceneLoader.ActiveSceneName}/{objectPath}";
+            if (gbcObjectCheckPair.TryGetValue(key, out APCheck check) && !ArchipelagoManager.HasCompletedCheck(check))
             {
-                CustomCoroutine.Instance.StartCoroutine(GiveGBCCheckSequence(check));
+                GiveGBCCheck(check);
             }
+        }
+
+        internal static void GiveGBCCheck(APCheck check)
+        {
+            CustomCoroutine.Instance.StartCoroutine(GiveGBCCheckSequence(check));
         }
 
         internal static IEnumerator GiveGBCCheckSequence(APCheck check)

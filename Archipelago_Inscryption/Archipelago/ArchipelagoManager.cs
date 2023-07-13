@@ -39,7 +39,7 @@ namespace Archipelago_Inscryption.Archipelago
             { APItem.CagedWolfCard,                     StoryEvent.CageCardDiscovered },
             { APItem.SquirrelTotemHead,                 StoryEvent.SquirrelHeadDiscovered },
             { APItem.Dagger,                            StoryEvent.SpecialDaggerDiscovered },
-            { APItem.CloverPlant,                       StoryEvent.CloverFound },
+            { APItem.CabinCloverPlant,                       StoryEvent.CloverFound },
             { APItem.ExtraCandle,                       StoryEvent.CandleArmFound },
             { APItem.BeeFigurine,                       StoryEvent.BeeFigurineFound },
             { APItem.GreaterSmoke,                      StoryEvent.ImprovedSmokeCardDiscovered },
@@ -122,9 +122,9 @@ namespace Archipelago_Inscryption.Archipelago
             if (receivedItem == APItem.Currency)
             {
                 if (SaveManager.SaveFile.IsPart2)
-                    SaveData.Data.currency += 3;
+                    SaveData.Data.currency++;
                 else
-                    RunState.Run.currency += 3;
+                    RunState.Run.currency++;
             }
 
             if (receivedItem == APItem.SquirrelTotemHead && !RunState.Run.totemTops.Contains(Tribe.Squirrel))
