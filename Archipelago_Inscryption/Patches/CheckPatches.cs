@@ -433,6 +433,29 @@ namespace Archipelago_Inscryption.Patches
 
             return true;
         }
+
+        [HarmonyPatch(typeof(BrokenCoin), "RespondsToOtherCardAssignedToSlot")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> AllowObolRepairIfCheckAvailable(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(StoryEventsData), "EventCompleted")));
+
+            index--;
+
+            codes.RemoveRange(index, 2);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCAncientObol),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ArchipelagoManager), "HasCompletedCheck"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
     }
 
     [HarmonyPatch]
@@ -640,6 +663,72 @@ namespace Archipelago_Inscryption.Patches
             {
                 new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCTentacle),
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GiveGBCCheck"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2SafeCheckPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(SafeVolume).GetNestedType("<GainDogFoodSequence>d__6", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceMeatWithCheck(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(TextBox), "ShowUntilInput")));
+
+            index -= 11;
+
+            codes.RemoveRange(index, 12);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCCabinSafe),
+                new CodeInstruction(OpCodes.Ldstr, "You found a strange card inside."),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GiveGBCCheckWithMessageSequence"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2ObolCheckPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(BrokenCoin).GetNestedType("<OnOtherCardAssignedToSlot>d__3", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceObolWithCheck(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            CodeInstruction messageInstruction = codes.Find(x => x.opcode == OpCodes.Ldstr && (string)x.operand == "You received an Ancient Obol.");
+            messageInstruction.operand = $"You received an Ancient Obol...but it turned itself into a strange card.";
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(StoryEventsData), "SetEventCompleted")));
+
+            index -= 3;
+
+            codes.RemoveRange(index, 4);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCAncientObol),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ArchipelagoManager), "SendCheck"))
             };
 
             codes.InsertRange(index, newCodes);

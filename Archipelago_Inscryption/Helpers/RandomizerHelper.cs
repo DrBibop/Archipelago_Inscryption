@@ -264,6 +264,13 @@ namespace Archipelago_Inscryption.Helpers
             }
         }
 
+        internal static IEnumerator GiveGBCCheckWithMessageSequence(APCheck check, string message)
+        {
+            yield return Singleton<TextBox>.Instance.ShowUntilInput(message, TextBox.Style.Nature);
+            yield return new WaitForSeconds(0.25f);
+            yield return GiveGBCCheckSequence(check);
+        }
+
         internal static string GetCardGainedMessage(CardInfo info)
         {
             if (info.name.Contains("Archipelago"))
