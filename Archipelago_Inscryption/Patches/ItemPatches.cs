@@ -17,7 +17,6 @@ namespace Archipelago_Inscryption.Patches
             if (ArchipelagoManager.HasItem(APItem.MagnificusEye))
             {
                 __instance.eyeState = EyeballState.Wizard;
-                Singleton<UIManager>.Instance.Effects.GetEffect<WizardEyeEffect>().SetIntensity(1f, 0f);
             }
         }
 

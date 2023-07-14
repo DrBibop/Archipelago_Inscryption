@@ -264,11 +264,19 @@ namespace Archipelago_Inscryption.Helpers
             }
         }
 
+        internal static void GiveGBCCheckWithMessage(APCheck check, string message)
+        {
+            CustomCoroutine.instance.StartCoroutine(GiveGBCCheckWithMessageSequence(check, message));
+        }
+
         internal static IEnumerator GiveGBCCheckWithMessageSequence(APCheck check, string message)
         {
+            Singleton<PlayerMovementController>.Instance.SetEnabled(false);
             yield return Singleton<TextBox>.Instance.ShowUntilInput(message, TextBox.Style.Nature);
             yield return new WaitForSeconds(0.25f);
             yield return GiveGBCCheckSequence(check);
+            if (!Singleton<PlayerMovementController>.Instance.enabled)
+                Singleton<PlayerMovementController>.Instance.SetEnabled(true);
         }
 
         internal static string GetCardGainedMessage(CardInfo info)

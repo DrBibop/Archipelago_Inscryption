@@ -413,15 +413,42 @@ namespace Archipelago_Inscryption.Patches
 
         [HarmonyPatch(typeof(PickupObjectVolume), "Start")]
         [HarmonyPrefix]
-        static bool ReplaceCloverWithCheck(PickupObjectVolume __instance)
+        static bool ReplacePickupWithCheck(PickupObjectVolume __instance)
         {
-            if (__instance.unlockStoryEvent && __instance.storyEventToUnlock == StoryEvent.GBCCloverFound)
+            if (__instance.unlockStoryEvent)
             {
-                __instance.unlockStoryEvent = false;
-                __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCClover));
-                __instance.textLines.Clear();
-                __instance.textLines.Add("You picked the clover leaf from the stem...");
-                __instance.textLines.Add("...but it suddenly turned itself into a strange card.");
+                if (__instance.storyEventToUnlock == StoryEvent.GBCCloverFound)
+                {
+                    __instance.unlockStoryEvent = false;
+                    __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCClover));
+                    __instance.textLines.Clear();
+                    __instance.textLines.Add("You picked the clover leaf from the stem...");
+                    __instance.textLines.Add("...but it suddenly turned itself into a strange card.");
+                }
+                else if (__instance.storyEventToUnlock == StoryEvent.GBCBoneFound)
+                {
+                    __instance.unlockStoryEvent = false;
+                    __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCBoneLordFemur));
+                    __instance.textLines.Clear();
+                    __instance.textLines.Add("You took the Bone Lord's femur from the pedestal...");
+                    __instance.textLines.Add("...but it suddenly turned itself into a strange card.");
+                }
+                else if (__instance.storyEventToUnlock == StoryEvent.BonelordHoloKeyFound)
+                {
+                    __instance.unlockStoryEvent = false;
+                    __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCBoneLordHoloKey));
+                    __instance.textLines.Clear();
+                    __instance.textLines.Add("You found a strange flickering key...");
+                    __instance.textLines.Add("...but as you touched it, the key turned itself into a card.");
+                }
+                else if (__instance.storyEventToUnlock == StoryEvent.MycologistHutKeyFound)
+                {
+                    __instance.unlockStoryEvent = false;
+                    __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCMycologistsHoloKey));
+                    __instance.textLines.Clear();
+                    __instance.textLines.Add("You found a strange flickering key...");
+                    __instance.textLines.Add("...but as you touched it, the key turned itself into a card.");
+                }
             }
             else if (SceneLoader.ActiveSceneName == "GBC_Temple_Tech" && __instance.gameObject.name == "RecyclingBinVolume")
             {
@@ -429,6 +456,11 @@ namespace Archipelago_Inscryption.Patches
                 __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCFactoryTrashCan));
                 __instance.textLines.Clear();
                 __instance.textLines.Add("You rummage through the junk cards... And find a strange card that didn't seem to belong with the others.");
+            }
+            else if (SceneLoader.ActiveSceneName == "GBC_Temple_Undead" && __instance.gameObject.name == "Card")
+            {
+                __instance.pickupEvent = new EventTrigger.TriggerEvent();
+                __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCBoneLordHorn));
             }
 
             return true;
@@ -455,6 +487,39 @@ namespace Archipelago_Inscryption.Patches
             codes.InsertRange(index, newCodes);
 
             return codes.AsEnumerable();
+        }
+
+        [HarmonyPatch(typeof(InspectorNPC), "Suicide")]
+        [HarmonyPostfix]
+        static void GiveInspectorCheck()
+        {
+            RandomizerHelper.GiveGBCCheck(APCheck.GBCBattleInspector);
+        }
+
+        [HarmonyPatch(typeof(SmelterNPC), "Suicide")]
+        [HarmonyPostfix]
+        static void GiveMelterCheck()
+        {
+            RandomizerHelper.GiveGBCCheck(APCheck.GBCBattleMelter);
+        }
+
+        [HarmonyPatch(typeof(GainMonocleVolume), "Start")]
+        [HarmonyPostfix]
+        static void ChangeMonocleMessage(GainMonocleVolume __instance)
+        {
+            __instance.textLines.Add("Your vision was suddenly obstructed. You take off the monocle...");
+            __instance.textLines.Add("...or so you thought. It was a strange card instead.");
+        }
+
+        [HarmonyPatch(typeof(GainMonocleVolume), "OnPostMessage")]
+        [HarmonyPrefix]
+        static bool GiveMonocleCheck(GainMonocleVolume __instance)
+        {
+            __instance.SaveState.boolVal = true;
+            __instance.Hide();
+            RandomizerHelper.GiveGBCCheck(APCheck.GBCMonocle);
+
+            return false;
         }
     }
 
@@ -699,6 +764,12 @@ namespace Archipelago_Inscryption.Patches
 
             codes.InsertRange(index, newCodes);
 
+            index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(StoryEventsData), "SetEventCompleted")));
+
+            index -= 3;
+
+            codes.RemoveRange(index, 4);
+
             return codes.AsEnumerable();
         }
     }
@@ -729,6 +800,52 @@ namespace Archipelago_Inscryption.Patches
             {
                 new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCAncientObol),
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ArchipelagoManager), "SendCheck"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2CameraCheckPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(LeshyDialogueNPC).GetNestedType("<PostDialogueSequence>d__5", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceCameraWithCheck(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.LoadsField(AccessTools.Field(typeof(NatureTempleSaveData), "hasCamera")));
+
+            index -= 2;
+
+            codes.RemoveRange(index, 3);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCCameraReplica),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ArchipelagoManager), "HasCompletedCheck"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            index = codes.FindIndex(x => x.StoresField(AccessTools.Field(typeof(NatureTempleSaveData), "hasCamera")));
+
+            index -= 3;
+
+            codes.RemoveRange(index, 4);
+
+            newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCCameraReplica),
+                new CodeInstruction(OpCodes.Ldstr, "The camera suddenly turns into a strange card."),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GiveGBCCheckWithMessage"))
             };
 
             codes.InsertRange(index, newCodes);
