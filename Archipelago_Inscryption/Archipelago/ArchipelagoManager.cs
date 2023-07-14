@@ -64,6 +64,15 @@ namespace Archipelago_Inscryption.Archipelago
             { APItem.CagedWolfCard,                     new UnlockableCardInfo(new string[1] { "CagedWolf" }) },
         };
 
+        // When one of the following items is received, add the associated card(s) to the act 2 deck.
+        private static readonly Dictionary<APItem, string> itemPixelCardPair = new Dictionary<APItem, string>()
+        {
+            { APItem.BoneLordHorn,                      "BonelordHorn" },
+            { APItem.GreatKrakenCard,                   "Kraken" },
+            { APItem.DrownedSoulCard,                   "DrownedSoul" },
+            { APItem.SalmonCard,                        "Salmon" }
+        };
+
         private static Dictionary<APCheck, CheckInfo> checkInfos = new Dictionary<APCheck, CheckInfo>();
 
         internal static void Init()
@@ -118,6 +127,11 @@ namespace Archipelago_Inscryption.Archipelago
                     if (!SaveManager.SaveFile.RiggedDraws.Contains(info.rigDraws[i]))
                         SaveManager.SaveFile.RiggedDraws.Add(info.rigDraws[i]);
                 }
+            }
+
+            if (itemPixelCardPair.TryGetValue(receivedItem, out string cardName))
+            {
+                SaveManager.SaveFile.CollectGBCCard(CardLoader.GetCardByName(cardName));
             }
 
             if (receivedItem == APItem.Currency)

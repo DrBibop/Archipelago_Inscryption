@@ -6,7 +6,6 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using HarmonyLib;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,12 +25,7 @@ namespace Archipelago_Inscryption.Patches
             Transform tab = __instance.transform.Find("MainPanel/Tabs/Tab_4");
             if (!tab) return true;
 
-            List<GenericUIButton> tabButtons = (List<GenericUIButton>)ReflectionInfos.TabButtonsField.GetValue(__instance);
-            if (tabButtons == null || tabButtons.Count == 0) return true;
-
-            tabButtons.Add(tab.GetComponent<GenericUIButton>());
-
-            ReflectionInfos.TabButtonsField.SetValue(__instance, tabButtons);
+            __instance.tabButtons.Add(tab.GetComponent<GenericUIButton>());
 
             tab.gameObject.SetActive(true);
 
