@@ -844,7 +844,7 @@ namespace Archipelago_Inscryption.Patches
             newCodes = new List<CodeInstruction>()
             {
                 new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCCameraReplica),
-                new CodeInstruction(OpCodes.Ldstr, "The camera suddenly turns into a strange card."),
+                new CodeInstruction(OpCodes.Ldstr, "The camera suddenly turned into a strange card."),
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GiveGBCCheckWithMessage"))
             };
 

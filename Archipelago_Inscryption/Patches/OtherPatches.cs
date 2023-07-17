@@ -18,6 +18,32 @@ namespace Archipelago_Inscryption.Patches
         {
             return false;
         }
+
+        [HarmonyPatch(typeof(SaveManager), "get_SaveFilePath")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceSaveFileName(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            CodeInstruction fileNameInstruction = codes.Find(x => x.opcode == OpCodes.Ldstr && (string)x.operand == "SaveFile.gwsave");
+
+            fileNameInstruction.operand = "SaveFile-Archipelago.gwsave";
+
+            return codes.AsEnumerable();
+        }
+
+        [HarmonyPatch(typeof(SaveManager), "SaveToFile")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceBackUpSaveFileName(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            CodeInstruction fileNameInstruction = codes.Find(x => x.opcode == OpCodes.Ldstr && (string)x.operand == "SaveFile-Backup.gwsave");
+
+            fileNameInstruction.operand = "SaveFile-Archipelago-Backup.gwsave";
+
+            return codes.AsEnumerable();
+        }
     }
     
     [HarmonyPatch]
