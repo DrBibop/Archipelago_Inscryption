@@ -179,6 +179,18 @@ namespace Archipelago_Inscryption.Helpers
             return info;
         }
 
+        internal static CardInfo GenerateCardInfoWithName(string name, string description)
+        {
+            CardInfo info = ScriptableObject.CreateInstance<CardInfo>();
+            info.SetNames(name, name);
+            info.SetHideStats();
+            string modPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            info.SetPortrait(modPath + "\\CardPortraits\\archi_portrait.png");
+            info.SetPixelPortrait(modPath + "\\CardPortraits\\archi_portrait_gbc.png");
+            info.description = description;
+            return info;
+        }
+
         internal static APCheck GetCheckGainedFromNPC(Character npcCharacter)
         {
             if (npcCheckPairs.TryGetValue(npcCharacter, out APCheck check))
@@ -204,6 +216,19 @@ namespace Archipelago_Inscryption.Helpers
         internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
         {
             ArchipelagoModPlugin.Log.LogMessage("Rip bozo");
+            yield return Singleton<TextDisplayer>.Instance.ShowUntilInput("rip bozo");
+            CardChoicesNodeData choice = new CardChoicesNodeData();
+            CardChoice c1 = new CardChoice();
+            c1.CardInfo = GenerateCardInfoWithName("Yes", "You will restart without creating a new death card");
+            CardChoice c2 = new CardChoice();
+            c1.CardInfo = GenerateCardInfoWithName("No", "You will restart the game normally");
+            choice.overrideChoices = new List<CardChoice> { c1, c2 };
+            Singleton<ViewManager>.Instance.SwitchToView(View.BoardCentered, false, true);
+            yield return Singleton<CardSingleChoicesSequencer>.Instance.CardSelectionSequence(choice);
+            Singleton<ViewManager>.Instance.SwitchToView(View.Default, false, true);
+            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.5f);
             yield return manager.KillPlayerSequence();
         }
     }
