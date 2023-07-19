@@ -8,7 +8,9 @@ namespace Archipelago_Inscryption.Assets
 
         internal static Sprite archiSettingsTabSprite;
         internal static Sprite inputFieldSprite;
+        internal static Sprite[] packButtonSprites;
 
+        internal static GameObject cardPackPrefab;
         internal static GameObject selectableCardPrefab;
         internal static GameObject archipelagoUIPrefab;
 
@@ -29,7 +31,11 @@ namespace Archipelago_Inscryption.Assets
             archiSettingsTabSprite = GenerateSprite(archipelagoTabTex);
             inputFieldSprite = GenerateSprite(inputFieldTex);
 
-            selectableCardPrefab = Resources.Load<GameObject>("prefabs/cards/SelectableCard");
+            packButtonSprites = assetBundle.LoadAssetWithSubAssets<Sprite>("GBCCardPackButton");
+
+            cardPackPrefab = ResourceBank.Get<GameObject>("Prefabs/Cards/SpecificCardModels/CardPack");
+            selectableCardPrefab = ResourceBank.Get<GameObject>("prefabs/cards/SelectableCard");
+
             archipelagoUIPrefab = assetBundle.LoadAsset<GameObject>("ArchipelagoUI");
         }
 

@@ -2,6 +2,7 @@
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago_Inscryption.Components;
+using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using GBC;
 using InscryptionAPI.Saves;
@@ -75,10 +76,24 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static Dictionary<APCheck, CheckInfo> checkInfos = new Dictionary<APCheck, CheckInfo>();
 
+        private static int availableCardPacks = 0;
+
+        internal static int AvailableCardPacks
+        {
+            get { return availableCardPacks; }
+            set
+            {
+                availableCardPacks = value;
+                ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "AvailableCardPacks", value);
+            }
+        }
+
         internal static void Init()
         {
             ArchipelagoClient.onConnectAttemptDone += OnConnectAttempt;
             ArchipelagoClient.onNewItemReceived += OnItemReceived;
+
+            availableCardPacks = ModdedSaveManager.SaveData.GetValueAsInt(ArchipelagoModPlugin.PluginGuid, "AvailableCardPacks");
         }
 
         private static void OnItemReceived(NetworkItem item)
@@ -140,6 +155,12 @@ namespace Archipelago_Inscryption.Archipelago
                     SaveData.Data.currency++;
                 else
                     RunState.Run.currency++;
+            }
+
+            if (receivedItem == APItem.CardPack)
+            {
+                AvailableCardPacks++;
+                RandomizerHelper.UpdatePackButtonEnabled();
             }
 
             if (receivedItem == APItem.SquirrelTotemHead && !RunState.Run.totemTops.Contains(Tribe.Squirrel))

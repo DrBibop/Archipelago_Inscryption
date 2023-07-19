@@ -127,5 +127,31 @@ namespace Archipelago_Inscryption.Patches
         {
             return !Components.InputField.IsAnySelected;
         }
+
+        [HarmonyPatch(typeof(DeckBuildingUI), "Start")]
+        [HarmonyPostfix]
+        static void CreateCardPackButton(DeckBuildingUI __instance)
+        {
+            GameObject newButtonObject = Object.Instantiate(__instance.autoCompleteButton.gameObject);
+            newButtonObject.name = "OpenCardPackButton";
+            newButtonObject.transform.SetParent(__instance.transform);
+            newButtonObject.transform.localPosition = new Vector3(-1.66f, 0.66f, 0f);
+            newButtonObject.GetComponent<BoxCollider2D>().size = new Vector2(0.49f, 0.68f);
+
+            GenericUIButton newButton = newButtonObject.GetComponent<GenericUIButton>();
+            newButton.defaultSprite = AssetsManager.packButtonSprites[0];
+            newButton.hoveringSprite = AssetsManager.packButtonSprites[1];
+            newButton.downSprite = AssetsManager.packButtonSprites[2];
+            newButton.disabledSprite = AssetsManager.packButtonSprites[3];
+
+            newButtonObject.GetComponent<SpriteRenderer>().sprite = newButton.defaultSprite;
+
+            Object.Destroy(newButtonObject.transform.GetChild(0).gameObject);
+
+            newButton.CursorSelectEnded = (x => CustomCoroutine.instance.StartCoroutine(RandomizerHelper.OnPackButtonPressed(x)));
+
+            RandomizerHelper.packButton = newButton;
+            RandomizerHelper.UpdatePackButtonEnabled();
+        }
     }
 }

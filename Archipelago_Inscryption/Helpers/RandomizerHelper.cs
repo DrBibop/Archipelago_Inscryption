@@ -5,13 +5,13 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using InscryptionAPI.Card;
+using Pixelplacement;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Animations;
 using static GBC.DialogueSpeaker;
 
 namespace Archipelago_Inscryption.Helpers
@@ -92,6 +92,11 @@ namespace Archipelago_Inscryption.Helpers
             { "GBC_Temple_Tech/Temple/--- DredgingRoom ---/Objects/Chest_TechPack/ContainerVolume",     APCheck.GBCFactoryChest3 },
             { "GBC_Temple_Tech/Temple/--- DredgingRoom ---/Objects/Chest_TechPack (1)/ContainerVolume", APCheck.GBCFactoryChest4 },
         };
+
+        internal static GenericUIButton packButton;
+
+        private static GameObject packPile;
+        private static List<GameObject> packs = new List<GameObject>();
 
         internal static DiscoverableCheckInteractable CreateDiscoverableCardCheck(GameObject originalObject, APCheck check, bool destroyOriginal, StoryEvent activeStoryFlag = StoryEvent.NUM_EVENTS)
         {
@@ -285,6 +290,71 @@ namespace Archipelago_Inscryption.Helpers
                 return "The card was sent to its rightful owner.";
             else
                 return "The card was added to your collection.";
+        }
+
+        internal static IEnumerator OnPackButtonPressed(MainInputInteractable button)
+        {
+            PauseMenu.instance.SetPaused(false);
+            PauseMenu.pausingDisabled = true;
+            Singleton<PlayerMovementController>.Instance.SetEnabled(false);
+            yield return new WaitForSeconds(0.25f);
+            bool result = false;
+            TextBox.Prompt prompt = new TextBox.Prompt("Open a pack", "Cancel", option => result = (option == 0));
+            yield return Singleton<TextBox>.Instance.ShowUntilInput($"You have {ArchipelagoManager.AvailableCardPacks} card pack{(ArchipelagoManager.AvailableCardPacks > 1 ? "s" : "")} available.", TextBox.Style.Neutral, null, TextBox.ScreenPosition.ForceTop, 0, true, false, prompt);
+            if (result)
+            {
+                ArchipelagoManager.AvailableCardPacks--;
+                yield return PackOpeningUI.instance.OpenPack((CardTemple)Random.Range(0, (int)CardTemple.NUM_TEMPLES));
+                SaveManager.SaveToFile();
+            }
+            yield return new WaitForSeconds(0.25f);
+            UpdatePackButtonEnabled();
+            Singleton<PlayerMovementController>.Instance.SetEnabled(true);
+            PauseMenu.instance.SetPaused(true);
+            PauseMenu.instance.menuController.PlayMenuCardImmediate((PauseMenu.instance as GBCPauseMenu).modifyDeckCard);
+            PauseMenu.pausingDisabled = false;
+        }
+
+        internal static void UpdatePackButtonEnabled()
+        {
+            if (packButton == null) return;
+
+            packButton.SetEnabled(ArchipelagoManager.AvailableCardPacks > 0);
+        }
+
+        internal static void SpawnPackPile(DeckReviewSequencer instance)
+        {
+            packPile = new GameObject("PackPile");
+            packPile.transform.SetParent(instance.transform);
+            packPile.transform.localPosition = new Vector3(0f, 0f, -2.5f);
+            packPile.transform.localEulerAngles = new Vector3(0, 90, 0);
+            packPile.AddComponent<BoxCollider>().size = new Vector3(1.2f, 0.1f, 2.2f);
+
+            for (int i = 0; i < ArchipelagoManager.AvailableCardPacks; i++)
+            {
+                GameObject pack = Object.Instantiate(AssetsManager.cardPackPrefab, packPile.transform);
+                pack.transform.localPosition = new Vector3(-10, 0.1f * i, 0);
+                Tween.LocalPosition(pack.transform, new Vector3(0, 0.1f * i, 0), 0.20f, 0.02f * i, Tween.EaseOut);
+                packs.Add(pack);
+            }
+
+            CardPackPile pileScript = packPile.AddComponent<CardPackPile>();
+            pileScript.topPackBasePosition = new Vector3(0, 0.1f * (ArchipelagoManager.AvailableCardPacks - 1), 0);
+            pileScript.pileTop = packs.Last();
+        }
+
+        internal static void DestroyPackPile()
+        {
+            packPile.GetComponent<CardPackPile>().enabled = false;
+            int i = 0;
+            foreach (GameObject pack in packs)
+            {
+                Tween.LocalPosition(pack.transform, new Vector3(-10, 0.1f * i, 0), 0.20f, 0.02f * (ArchipelagoManager.AvailableCardPacks - i - 1), Tween.EaseIn);
+
+                i++;
+            }
+            packs.Clear();
+            Object.Destroy(packPile, 1);
         }
     }
 }

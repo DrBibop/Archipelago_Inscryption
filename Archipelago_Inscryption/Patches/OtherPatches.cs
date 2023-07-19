@@ -44,6 +44,14 @@ namespace Archipelago_Inscryption.Patches
 
             return codes.AsEnumerable();
         }
+
+        [HarmonyPatch(typeof(SaveFile), "GetCurrentRandomSeed")]
+        [HarmonyPostfix]
+        static void AddOpenedPacksToSeed(SaveFile __instance, ref int __result)
+        {
+            if (__instance.IsPart1 || __instance.IsPart3)
+                __result += __instance.gbcData.packsOpened * 2;
+        }
     }
     
     [HarmonyPatch]

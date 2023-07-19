@@ -1,9 +1,13 @@
 ﻿using Archipelago_Inscryption.Archipelago;
+using Archipelago_Inscryption.Assets;
+using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using HarmonyLib;
+using Pixelplacement;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using UnityEngine;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -49,6 +53,24 @@ namespace Archipelago_Inscryption.Patches
             codes.InsertRange(codeIndex, newCodes);
 
             return codes.AsEnumerable();
+        }
+
+        [HarmonyPatch(typeof(DeckReviewSequencer), "OnEnterDeckView")]
+        [HarmonyPostfix]
+        static void SpawnCardPackPile(DeckReviewSequencer __instance)
+        {
+            if (ArchipelagoManager.AvailableCardPacks <= 0 || Singleton<GameFlowManager>.Instance.CurrentGameState != GameState.Map) return;
+
+            RandomizerHelper.SpawnPackPile(__instance);
+        }
+
+        [HarmonyPatch(typeof(DeckReviewSequencer), "OnExitDeckView")]
+        [HarmonyPostfix]
+        static void DestroyCardPackPile(DeckReviewSequencer __instance)
+        {
+            if (ArchipelagoManager.AvailableCardPacks <= 0 || Singleton<GameFlowManager>.Instance.CurrentGameState != GameState.Map) return;
+
+            RandomizerHelper.DestroyPackPile();
         }
     }
 }
