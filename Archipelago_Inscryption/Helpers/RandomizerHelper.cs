@@ -345,6 +345,7 @@ namespace Archipelago_Inscryption.Helpers
 
         internal static void DestroyPackPile()
         {
+            if (packPile == null) return;
             packPile.GetComponent<CardPackPile>().enabled = false;
             int i = 0;
             foreach (GameObject pack in packs)
