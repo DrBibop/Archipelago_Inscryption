@@ -54,7 +54,6 @@ namespace Archipelago_Inscryption.Patches
     }
     
     [HarmonyPatch]
-    [HarmonyDebug]
     class DeathPatch
     {
         static MethodBase TargetMethod()
@@ -71,13 +70,43 @@ namespace Archipelago_Inscryption.Patches
 
             index += 3;
 
-            FileLog.Log(index.ToString());
-
             codes.RemoveAt(index);
 
             var newCodes = new List<CodeInstruction>()
             {
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "PrePlayerDeathSequence"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    [HarmonyDebug]
+    class AfterDeathPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(Part1GameFlowManager).GetNestedType("<KillPlayerSequence>d__13", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> CallPreDeathInstead(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.opcode == OpCodes.Ldstr && (string)x.operand == "Demo_End");
+
+            index -= 3;
+
+            codes.RemoveRange(index, 5);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Pop),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "AfterPlayerDeathSequence"))
             };
 
             codes.InsertRange(index, newCodes);

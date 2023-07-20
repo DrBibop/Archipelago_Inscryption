@@ -1,4 +1,5 @@
 ﻿using Archipelago.MultiClient.Net;
+using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Helpers;
 using Archipelago.MultiClient.Net.MessageLog.Messages;
@@ -108,6 +109,8 @@ namespace Archipelago_Inscryption.Archipelago
             session.Socket.ErrorReceived += SessionErrorReceived;
             session.Socket.SocketClosed += SessionSocketClosed;
             session.Items.ItemReceived += OnItemReceived;
+            if (serverData.deathlink)
+                session.CreateDeathLinkService();
             return session;
         }
 
@@ -138,6 +141,8 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 LoginSuccessful successfulResult = (LoginSuccessful)result;
                 serverData.slotData = successfulResult.SlotData;
+                if (serverData.slotData.TryGetValue("deathlink", out var DeathLink))
+                    serverData.deathlink = Convert.ToInt32(DeathLink) == 1;
                 serverData.seed = session.RoomState.Seed;
                 isConnected = true;
             }

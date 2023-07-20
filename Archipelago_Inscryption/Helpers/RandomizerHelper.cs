@@ -97,6 +97,7 @@ namespace Archipelago_Inscryption.Helpers
 
         private static GameObject packPile;
         private static List<GameObject> packs = new List<GameObject>();
+        private static bool doDeathCard = false;
 
         internal static DiscoverableCheckInteractable CreateDiscoverableCardCheck(GameObject originalObject, APCheck check, bool destroyOriginal, StoryEvent activeStoryFlag = StoryEvent.NUM_EVENTS)
         {
@@ -217,7 +218,7 @@ namespace Archipelago_Inscryption.Helpers
         internal static CardInfo GenerateCardInfoWithName(string name, string description)
         {
             CardInfo info = ScriptableObject.CreateInstance<CardInfo>();
-            info.SetNames(name, name);
+            info.SetNames("Archipelago_" + name, name);
             info.SetHideStats();
             string modPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             info.SetPortrait(modPath + "\\CardPortraits\\archi_portrait.png");
@@ -242,12 +243,6 @@ namespace Archipelago_Inscryption.Helpers
                 APCheck check = GetCheckGainedFromNPC(npc.DialogueSpeaker.characterId);
                 yield return GiveGBCCheckSequence(check);
             }
-        }
-
-        internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
-        {
-            ArchipelagoModPlugin.Log.LogMessage("Rip bozo");
-            yield return manager.KillPlayerSequence();
         }
 
         internal static void GiveObjectRelatedCheck(GameObject instance)
@@ -368,23 +363,36 @@ namespace Archipelago_Inscryption.Helpers
             }
             packs.Clear();
             Object.Destroy(packPile, 1);
+        }
+
         internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
         {
             ArchipelagoModPlugin.Log.LogMessage("Rip bozo");
-            yield return Singleton<TextDisplayer>.Instance.ShowUntilInput("rip bozo");
+            yield return Singleton<TextDisplayer>.Instance.ShowUntilInput("Choose if you want to create a new deathcard");
             CardChoicesNodeData choice = new CardChoicesNodeData();
+            choice.gemifyChoices = true;
             CardChoice c1 = new CardChoice();
-            c1.CardInfo = GenerateCardInfoWithName("Yes", "You will restart without creating a new death card");
+            c1.CardInfo = GenerateCardInfoWithName("Yes", "You will restart the game normally");
             CardChoice c2 = new CardChoice();
-            c1.CardInfo = GenerateCardInfoWithName("No", "You will restart the game normally");
-            choice.overrideChoices = new List<CardChoice> { c1, c2 };
+            c2.CardInfo = GenerateCardInfoWithName("No", "You will restart without creating a new death card");
+            choice.overrideChoices = new List<CardChoice> {c1, c2};
             Singleton<ViewManager>.Instance.SwitchToView(View.BoardCentered, false, true);
             yield return Singleton<CardSingleChoicesSequencer>.Instance.CardSelectionSequence(choice);
             Singleton<ViewManager>.Instance.SwitchToView(View.Default, false, true);
-            yield return new WaitForSeconds(0.5f);
-            yield return new WaitForSeconds(0.5f);
-            yield return new WaitForSeconds(0.5f);
+            if (Singleton<CardSingleChoicesSequencer>.Instance.chosenReward.Info.name == "Archipelago_Yes")
+                doDeathCard = true;
+            else
+                doDeathCard = false;
             yield return manager.KillPlayerSequence();
+        }
+
+        internal static void AfterPlayerDeathSequence()
+        {
+            if (doDeathCard)
+                SceneLoader.Load("Part1_Sanctum");
+            else
+                SaveManager.SaveFile.NewPart1Run();
+                SceneLoader.Load("Part1_Cabin");
         }
     }
 }
