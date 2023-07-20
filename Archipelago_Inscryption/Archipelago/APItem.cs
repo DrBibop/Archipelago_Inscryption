@@ -13,7 +13,7 @@
         FilmRoll,
         Ring,
         MagnificusEye,
-        CloverPlant,
+        CabinCloverPlant,
         ExtraCandle,
         BeeFigurine,
         GreaterSmoke,
@@ -39,6 +39,8 @@
         AncientObol,
         GreatKrakenCard,
         DrownedSoulCard,
+        SalmonCard,
+        GBCCloverPlant,
         COUNT
     }
 }

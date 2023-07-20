@@ -5,9 +5,11 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using InscryptionAPI.Card;
+using Pixelplacement;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using static GBC.DialogueSpeaker;
@@ -42,7 +44,7 @@ namespace Archipelago_Inscryption.Helpers
             "That's weird... Don't let it distract you, though."
         };
 
-        private static readonly Dictionary<Character, APCheck> npcCheckPairs = new Dictionary<Character, APCheck>() 
+        private static readonly Dictionary<Character, APCheck> npcCheckPairs = new Dictionary<Character, APCheck>()
         {
             { Character.Angler,                             APCheck.GBCBattleAngler },
             { Character.Prospector,                         APCheck.GBCBattleProspector },
@@ -62,6 +64,39 @@ namespace Archipelago_Inscryption.Helpers
             { Character.Dredger,                            APCheck.GBCBattleDredger },
             { Character.P03,                                APCheck.GBCBossP03 }
         };
+
+        private static readonly Dictionary<string, APCheck> gbcObjectCheckPair = new Dictionary<string, APCheck>()
+        {
+            { "GBC_Docks/Room/Objects/Chest/ContainerVolume",                                           APCheck.GBCDockChest },
+            { "GBC_Temple_Nature/Temple/OutdoorsCentral/Chest_NaturePack/ContainerVolume",              APCheck.GBCForestChest },
+            { "GBC_Temple_Nature/Temple/Meadow/Objects/Chest_NaturePack/ContainerVolume",               APCheck.GBCForestBurrowChest },
+            { "GBC_Temple_Nature/Temple/Cabin/Objects/SliderPuzzleContainer",                           APCheck.GBCCabinDrawer },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/Casket_CardPack (1)/ContainerVolume",          APCheck.GBCCryptCasket1 },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/Casket_CardPack/ContainerVolume",              APCheck.GBCCryptCasket2 },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/EpitaphPieceVolume",                           APCheck.GBCEpitaphPiece1 },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/EpitaphPieceVolume (1)",                       APCheck.GBCEpitaphPiece2 },
+            { "GBC_Temple_Undead/Temple/MainRoom/OverworldGhoulNPC_Sawyer",                             APCheck.GBCEpitaphPiece3 },
+            { "GBC_Temple_Undead/Temple/BasementRoom/EpitaphPieceVolume (2)",                           APCheck.GBCEpitaphPiece4 },
+            { "GBC_Temple_Undead/Temple/MainRoom/OverworldGhoulNPC_Royal",                              APCheck.GBCEpitaphPiece5 },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/Casket_Piece/ContainerVolume",                 APCheck.GBCEpitaphPiece6 },
+            { "GBC_Temple_Undead/Temple/MirrorRoom/EpitaphPieceVolume",                                 APCheck.GBCEpitaphPiece7 },
+            { "GBC_Temple_Undead/Temple/MainRoom/OverworldGhoulNPC_Briar",                              APCheck.GBCEpitaphPiece8 },
+            { "GBC_Temple_Undead/Temple/MainRoom/Objects/Well/ContainerVolume",                         APCheck.GBCEpitaphPiece9 },
+            { "GBC_Temple_Wizard/Temple/Floor_1/Chest_WizardPack/ContainerVolume",                      APCheck.GBCTowerChest1 },
+            { "GBC_Temple_Wizard/Temple/Floor_2/Objects/Chest_WizardPack (1)/ContainerVolume",          APCheck.GBCTowerChest2 },
+            { "GBC_Temple_Wizard/Temple/Floor_3/Objects/Chest_Card/ContainerVolume",                    APCheck.GBCTowerChest3 },
+            { "GBC_Temple_Tech/Temple/--- MainRoom ---/Objects/TechSliderPuzzleContainer",              APCheck.GBCFactoryDrawer1 },
+            { "GBC_Temple_Tech/Temple/--- MainRoom ---/Objects/TechSliderPuzzleContainer (1)",          APCheck.GBCFactoryDrawer2 },
+            { "GBC_Temple_Tech/Temple/--- AssemblyRoom ---/Objects/Chest_TechPack/ContainerVolume",     APCheck.GBCFactoryChest1 },
+            { "GBC_Temple_Tech/Temple/--- AssemblyRoom ---/Objects/Chest_TechPack (1)/ContainerVolume", APCheck.GBCFactoryChest2 },
+            { "GBC_Temple_Tech/Temple/--- DredgingRoom ---/Objects/Chest_TechPack/ContainerVolume",     APCheck.GBCFactoryChest3 },
+            { "GBC_Temple_Tech/Temple/--- DredgingRoom ---/Objects/Chest_TechPack (1)/ContainerVolume", APCheck.GBCFactoryChest4 },
+        };
+
+        internal static GenericUIButton packButton;
+
+        private static GameObject packPile;
+        private static List<GameObject> packs = new List<GameObject>();
 
         internal static DiscoverableCheckInteractable CreateDiscoverableCardCheck(GameObject originalObject, APCheck check, bool destroyOriginal, StoryEvent activeStoryFlag = StoryEvent.NUM_EVENTS)
         {
@@ -199,20 +234,140 @@ namespace Archipelago_Inscryption.Helpers
                 return APCheck.COUNT;
         }
 
-        internal static IEnumerator RewardCheckSequence(CardBattleNPC npc)
+        internal static IEnumerator CombatRewardCheckSequence(CardBattleNPC npc)
         {
             if (npc.gainPacks != null)
             {
                 npc.gainPacks = null;
-                APCheck check = RandomizerHelper.GetCheckGainedFromNPC(npc.DialogueSpeaker.characterId);
-                CardInfo card = RandomizerHelper.GenerateCardInfo(check);
+                APCheck check = GetCheckGainedFromNPC(npc.DialogueSpeaker.characterId);
+                yield return GiveGBCCheckSequence(check);
+            }
+        }
+
+        internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
+        {
+            ArchipelagoModPlugin.Log.LogMessage("Rip bozo");
+            yield return manager.KillPlayerSequence();
+        }
+
+        internal static void GiveObjectRelatedCheck(GameObject instance)
+        {
+            string objectPath = instance.transform.GetPath();
+            string key = $"{SceneLoader.ActiveSceneName}/{objectPath}";
+            if (gbcObjectCheckPair.TryGetValue(key, out APCheck check) && !ArchipelagoManager.HasCompletedCheck(check))
+            {
+                GiveGBCCheck(check);
+            }
+        }
+
+        internal static void GiveGBCCheck(APCheck check)
+        {
+            CustomCoroutine.Instance.StartCoroutine(GiveGBCCheckSequence(check));
+        }
+
+        internal static IEnumerator GiveGBCCheckSequence(APCheck check)
+        {
+            CardInfo card = GenerateCardInfo(check);
+            if (!ArchipelagoManager.HasCompletedCheck(check))
+            {
                 Singleton<PlayerMovementController>.Instance.SetEnabled(false);
                 yield return SingleCardGainUI.instance.GainCard(card, true);
                 Singleton<PlayerMovementController>.Instance.SetEnabled(true);
                 SaveManager.SaveToFile(true);
             }
+            else
+            {
+                yield return null;
+            }
         }
 
+        internal static void GiveGBCCheckWithMessage(APCheck check, string message)
+        {
+            CustomCoroutine.instance.StartCoroutine(GiveGBCCheckWithMessageSequence(check, message));
+        }
+
+        internal static IEnumerator GiveGBCCheckWithMessageSequence(APCheck check, string message)
+        {
+            Singleton<PlayerMovementController>.Instance.SetEnabled(false);
+            yield return Singleton<TextBox>.Instance.ShowUntilInput(message, TextBox.Style.Nature);
+            yield return new WaitForSeconds(0.25f);
+            yield return GiveGBCCheckSequence(check);
+            if (!Singleton<PlayerMovementController>.Instance.enabled)
+                Singleton<PlayerMovementController>.Instance.SetEnabled(true);
+        }
+
+        internal static string GetCardGainedMessage(CardInfo info)
+        {
+            if (info.name.Contains("Archipelago"))
+                return "The card was sent to its rightful owner.";
+            else
+                return "The card was added to your collection.";
+        }
+
+        internal static IEnumerator OnPackButtonPressed(MainInputInteractable button)
+        {
+            PauseMenu.instance.SetPaused(false);
+            PauseMenu.pausingDisabled = true;
+            Singleton<PlayerMovementController>.Instance.SetEnabled(false);
+            yield return new WaitForSeconds(0.25f);
+            bool result = false;
+            TextBox.Prompt prompt = new TextBox.Prompt("Open a pack", "Cancel", option => result = (option == 0));
+            yield return Singleton<TextBox>.Instance.ShowUntilInput($"You have {ArchipelagoManager.AvailableCardPacks} card pack{(ArchipelagoManager.AvailableCardPacks > 1 ? "s" : "")} available.", TextBox.Style.Neutral, null, TextBox.ScreenPosition.ForceTop, 0, true, false, prompt);
+            if (result)
+            {
+                ArchipelagoManager.AvailableCardPacks--;
+                yield return PackOpeningUI.instance.OpenPack((CardTemple)Random.Range(0, (int)CardTemple.NUM_TEMPLES));
+                SaveManager.SaveToFile();
+            }
+            yield return new WaitForSeconds(0.25f);
+            UpdatePackButtonEnabled();
+            Singleton<PlayerMovementController>.Instance.SetEnabled(true);
+            PauseMenu.instance.SetPaused(true);
+            PauseMenu.instance.menuController.PlayMenuCardImmediate((PauseMenu.instance as GBCPauseMenu).modifyDeckCard);
+            PauseMenu.pausingDisabled = false;
+        }
+
+        internal static void UpdatePackButtonEnabled()
+        {
+            if (packButton == null) return;
+
+            packButton.SetEnabled(ArchipelagoManager.AvailableCardPacks > 0);
+        }
+
+        internal static void SpawnPackPile(DeckReviewSequencer instance)
+        {
+            packPile = new GameObject("PackPile");
+            packPile.transform.SetParent(instance.transform);
+            packPile.transform.localPosition = new Vector3(0f, 0f, -2.5f);
+            packPile.transform.localEulerAngles = new Vector3(0, 90, 0);
+            packPile.AddComponent<BoxCollider>().size = new Vector3(1.2f, 0.1f, 2.2f);
+
+            for (int i = 0; i < ArchipelagoManager.AvailableCardPacks; i++)
+            {
+                GameObject pack = Object.Instantiate(AssetsManager.cardPackPrefab, packPile.transform);
+                pack.transform.localPosition = new Vector3(-10, 0.1f * i, 0);
+                Tween.LocalPosition(pack.transform, new Vector3(0, 0.1f * i, 0), 0.20f, 0.02f * i, Tween.EaseOut);
+                packs.Add(pack);
+            }
+
+            CardPackPile pileScript = packPile.AddComponent<CardPackPile>();
+            pileScript.topPackBasePosition = new Vector3(0, 0.1f * (ArchipelagoManager.AvailableCardPacks - 1), 0);
+            pileScript.pileTop = packs.Last();
+        }
+
+        internal static void DestroyPackPile()
+        {
+            if (packPile == null) return;
+            packPile.GetComponent<CardPackPile>().enabled = false;
+            int i = 0;
+            foreach (GameObject pack in packs)
+            {
+                Tween.LocalPosition(pack.transform, new Vector3(-10, 0.1f * i, 0), 0.20f, 0.02f * (ArchipelagoManager.AvailableCardPacks - i - 1), Tween.EaseIn, Tween.LoopType.None, null, () => Object.Destroy(pack));
+
+                i++;
+            }
+            packs.Clear();
+            Object.Destroy(packPile, 1);
         internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
         {
             ArchipelagoModPlugin.Log.LogMessage("Rip bozo");

@@ -5,13 +5,14 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using HarmonyLib;
-using HarmonyLib.Tools;
+using Pixelplacement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -30,6 +31,7 @@ namespace Archipelago_Inscryption.Patches
         }
 
         [HarmonyPatch(typeof(CardSingleChoicesSequencer), "AddChosenCardToDeck")]
+        [HarmonyPrefix]
         static bool DontAddIfCheckCard(CardSingleChoicesSequencer __instance)
         {
             if (__instance.chosenReward.name.Contains("Archipelago")) return false;
@@ -38,6 +40,7 @@ namespace Archipelago_Inscryption.Patches
         }
 
         [HarmonyPatch(typeof(SaveFile), "CollectGBCCard")]
+        [HarmonyPrefix]
         static bool SendCheckInsteadOfAddingCard(CardInfo card)
         {
             if (card.name.Contains("Archipelago"))
@@ -337,6 +340,187 @@ namespace Archipelago_Inscryption.Patches
 
             return codes.AsEnumerable();
         }
+
+        [HarmonyPatch(typeof(ContainerVolume), "Start")]
+        [HarmonyPostfix]
+        static void ReplaceContainterContentWithCheck(ContainerVolume __instance)
+        {
+            if (__instance.transform.GetPath() == "Temple/BasementRoom/Casket/ContainerVolume") return;
+
+            if (__instance.pickupEvent.GetPersistentEventCount() > 0)
+            {
+                __instance.pickupEvent = new EventTrigger.TriggerEvent();
+                __instance.pickupEvent.AddListener(data => RandomizerHelper.GiveObjectRelatedCheck(__instance.gameObject));
+            }
+            else if (__instance.postTextEvent.GetPersistentEventCount() > 0)
+            {
+                __instance.postTextEvent = new EventTrigger.TriggerEvent();
+                __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveObjectRelatedCheck(__instance.gameObject));
+            }
+            else
+            {
+                return;
+            }
+
+            if (!__instance.GetComponent<GainEpitaphPiece>())
+            {
+                __instance.textLines.Clear();
+                __instance.textLines.Add("You found a strange card inside.");
+            }
+        }
+
+        [HarmonyPatch(typeof(GainEpitaphPiece), "GetTextBoxPickupLine")]
+        [HarmonyPrefix]
+        static bool ReplaceEpitaphText(ref string __result)
+        {
+            __result = "...Upon closer inspection, it's actually a strange looking card.";
+
+            return false;
+        }
+
+        [HarmonyPatch(typeof(GainEpitaphPiece), "Start")]
+        [HarmonyPrefix]
+        static bool AddEpitaphCheck(GainEpitaphPiece __instance)
+        {
+            PickupObjectVolume pickup = __instance.GetComponent<PickupObjectVolume>();
+
+            if (pickup != null)
+            {
+                pickup.pickupEvent = new EventTrigger.TriggerEvent();
+                pickup.postTextEvent.AddListener(data => RandomizerHelper.GiveObjectRelatedCheck(__instance.gameObject));
+            }
+
+            return true;
+        }
+
+        [HarmonyPatch(typeof(WellVolume), "OnPostMessage")]
+        [HarmonyPrefix]
+        static bool ReplaceWellItemsWithChecks(WellVolume __instance)
+        {
+            if (__instance.saveState.State.intVal == 0)
+            {
+                RandomizerHelper.GiveGBCCheck(APCheck.GBCEpitaphPiece9);
+            }
+            else if (__instance.saveState.State.intVal == 1)
+            {
+                RandomizerHelper.GiveGBCCheck(APCheck.GBCCryptWell);
+            }
+
+            __instance.saveState.State.intVal++;
+
+            return false;
+        }
+
+        [HarmonyPatch(typeof(PickupObjectVolume), "Start")]
+        [HarmonyPrefix]
+        static bool ReplacePickupWithCheck(PickupObjectVolume __instance)
+        {
+            if (__instance.unlockStoryEvent)
+            {
+                if (__instance.storyEventToUnlock == StoryEvent.GBCCloverFound)
+                {
+                    __instance.unlockStoryEvent = false;
+                    __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCClover));
+                    __instance.textLines.Clear();
+                    __instance.textLines.Add("You picked the clover leaf from the stem...");
+                    __instance.textLines.Add("...but it suddenly turned itself into a strange card.");
+                }
+                else if (__instance.storyEventToUnlock == StoryEvent.GBCBoneFound)
+                {
+                    __instance.unlockStoryEvent = false;
+                    __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCBoneLordFemur));
+                    __instance.textLines.Clear();
+                    __instance.textLines.Add("You took the Bone Lord's femur from the pedestal...");
+                    __instance.textLines.Add("...but it suddenly turned itself into a strange card.");
+                }
+                else if (__instance.storyEventToUnlock == StoryEvent.BonelordHoloKeyFound)
+                {
+                    __instance.unlockStoryEvent = false;
+                    __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCBoneLordHoloKey));
+                    __instance.textLines.Clear();
+                    __instance.textLines.Add("You found a strange flickering key...");
+                    __instance.textLines.Add("...but as you touched it, the key turned itself into a card.");
+                }
+                else if (__instance.storyEventToUnlock == StoryEvent.MycologistHutKeyFound)
+                {
+                    __instance.unlockStoryEvent = false;
+                    __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCMycologistsHoloKey));
+                    __instance.textLines.Clear();
+                    __instance.textLines.Add("You found a strange flickering key...");
+                    __instance.textLines.Add("...but as you touched it, the key turned itself into a card.");
+                }
+            }
+            else if (SceneLoader.ActiveSceneName == "GBC_Temple_Tech" && __instance.gameObject.name == "RecyclingBinVolume")
+            {
+                __instance.pickupEvent = new EventTrigger.TriggerEvent();
+                __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCFactoryTrashCan));
+                __instance.textLines.Clear();
+                __instance.textLines.Add("You rummage through the junk cards... And find a strange card that didn't seem to belong with the others.");
+            }
+            else if (SceneLoader.ActiveSceneName == "GBC_Temple_Undead" && __instance.gameObject.name == "Card")
+            {
+                __instance.pickupEvent = new EventTrigger.TriggerEvent();
+                __instance.postTextEvent.AddListener(data => RandomizerHelper.GiveGBCCheck(APCheck.GBCBoneLordHorn));
+            }
+
+            return true;
+        }
+
+        [HarmonyPatch(typeof(BrokenCoin), "RespondsToOtherCardAssignedToSlot")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> AllowObolRepairIfCheckAvailable(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(StoryEventsData), "EventCompleted")));
+
+            index--;
+
+            codes.RemoveRange(index, 2);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCAncientObol),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ArchipelagoManager), "HasCompletedCheck"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+
+        [HarmonyPatch(typeof(InspectorNPC), "Suicide")]
+        [HarmonyPostfix]
+        static void GiveInspectorCheck()
+        {
+            RandomizerHelper.GiveGBCCheck(APCheck.GBCBattleInspector);
+        }
+
+        [HarmonyPatch(typeof(SmelterNPC), "Suicide")]
+        [HarmonyPostfix]
+        static void GiveMelterCheck()
+        {
+            RandomizerHelper.GiveGBCCheck(APCheck.GBCBattleMelter);
+        }
+
+        [HarmonyPatch(typeof(GainMonocleVolume), "Start")]
+        [HarmonyPostfix]
+        static void ChangeMonocleMessage(GainMonocleVolume __instance)
+        {
+            __instance.textLines.Add("Your vision was suddenly obstructed. You take off the monocle...");
+            __instance.textLines.Add("...or so you thought. It was a strange card instead.");
+        }
+
+        [HarmonyPatch(typeof(GainMonocleVolume), "OnPostMessage")]
+        [HarmonyPrefix]
+        static bool GiveMonocleCheck(GainMonocleVolume __instance)
+        {
+            __instance.SaveState.boolVal = true;
+            __instance.Hide();
+            RandomizerHelper.GiveGBCCheck(APCheck.GBCMonocle);
+
+            return false;
+        }
     }
 
     [HarmonyPatch]
@@ -415,7 +599,253 @@ namespace Archipelago_Inscryption.Patches
 
             var newCodes = new List<CodeInstruction>()
             {
-                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "RewardCheckSequence"))
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "CombatRewardCheckSequence"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2CardGainMessagePatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(SingleCardGainUI).GetNestedType("<HideEndingSequence>d__10", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceMessageIfCheckCard(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.opcode == OpCodes.Ldstr && (string)x.operand == "The card was added to your collection.");
+
+            codes.RemoveAt(index);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldloc_1),
+                new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(SingleCardGainUI), "currentCard")),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GetCardGainedMessage"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2GhoulEpitaphCheckPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(GhoulNPC).GetNestedType("<OnDefeatedSequence>d__11", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceEpitaphWithCheck(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(GainEpitaphPiece), "GainPiece")));
+
+            index -= 2;
+
+            codes.RemoveRange(index, 3);
+
+            index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(Tween), "Shake")));
+
+            index += 2;
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldloc_1),
+                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(Component), "gameObject")),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GiveObjectRelatedCheck"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2MagnificusCheckPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(MagnificusNPC).GetNestedType("<GlitchOutSequence>d__8", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplacePackWithCheck(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(GainCardPacks), "OpenPacksSequence")));
+
+            index -= 2;
+
+            codes.RemoveRange(index, 3);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCBossMagnificus),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GiveGBCCheckSequence"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2TentacleCheckPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(TentacleInteractable).GetNestedType("<>c__DisplayClass14_0", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("<GiveCardSequence>b__1", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplacePackWithCheck(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(GainSingleCards), "TriggerCardsSequence")));
+
+            index -= 3;
+
+            codes.RemoveRange(index, 4);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCTentacle),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GiveGBCCheck"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2SafeCheckPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(SafeVolume).GetNestedType("<GainDogFoodSequence>d__6", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceMeatWithCheck(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(TextBox), "ShowUntilInput")));
+
+            index -= 11;
+
+            codes.RemoveRange(index, 12);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCCabinSafe),
+                new CodeInstruction(OpCodes.Ldstr, "You found a strange card inside."),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GiveGBCCheckWithMessageSequence"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(StoryEventsData), "SetEventCompleted")));
+
+            index -= 3;
+
+            codes.RemoveRange(index, 4);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2ObolCheckPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(BrokenCoin).GetNestedType("<OnOtherCardAssignedToSlot>d__3", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceObolWithCheck(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            CodeInstruction messageInstruction = codes.Find(x => x.opcode == OpCodes.Ldstr && (string)x.operand == "You received an Ancient Obol.");
+            messageInstruction.operand = $"You received an Ancient Obol...but it turned itself into a strange card.";
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(StoryEventsData), "SetEventCompleted")));
+
+            index -= 3;
+
+            codes.RemoveRange(index, 4);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCAncientObol),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ArchipelagoManager), "SendCheck"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act2CameraCheckPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(LeshyDialogueNPC).GetNestedType("<PostDialogueSequence>d__5", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceCameraWithCheck(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.LoadsField(AccessTools.Field(typeof(NatureTempleSaveData), "hasCamera")));
+
+            index -= 2;
+
+            codes.RemoveRange(index, 3);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCCameraReplica),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ArchipelagoManager), "HasCompletedCheck"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            index = codes.FindIndex(x => x.StoresField(AccessTools.Field(typeof(NatureTempleSaveData), "hasCamera")));
+
+            index -= 3;
+
+            codes.RemoveRange(index, 4);
+
+            newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.GBCCameraReplica),
+                new CodeInstruction(OpCodes.Ldstr, "The camera suddenly turned into a strange card."),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GiveGBCCheckWithMessage"))
             };
 
             codes.InsertRange(index, newCodes);

@@ -19,7 +19,7 @@ namespace Archipelago_Inscryption.Archipelago
     internal static class ArchipelagoClient
     {
         internal static Action<LoginResult> onConnectAttemptDone;
-        internal static Action<NetworkItem> onItemReceived;
+        internal static Action<NetworkItem> onNewItemReceived;
 
         internal static bool IsConnecting => isConnecting;
         internal static bool IsConnected => isConnected;
@@ -28,7 +28,7 @@ namespace Archipelago_Inscryption.Archipelago
 
         private const string ArchipelagoVersion = "0.4.1";
 
-        private delegate void OnConnectAttempt(LoginResult result);
+        private delegate void OnConnectAttempt(LoginResult result, Action<LoginResult> oneOffCallback);
 
         private static bool isConnecting = false;
         private static bool isConnected = false;
@@ -40,13 +40,19 @@ namespace Archipelago_Inscryption.Archipelago
             serverData = new Data("");
 
             List<long> storedCompletedChecks = ModdedSaveManager.SaveData.GetValueAsObject<List<long>>(ArchipelagoModPlugin.PluginGuid, "CompletedChecks");
-            List<NetworkItem> storedReceivedItems = ModdedSaveManager.SaveData.GetValueAsObject<List<NetworkItem>>(ArchipelagoModPlugin.PluginGuid, "ReceivedItems");
+            List<string> storedReceivedItems = ModdedSaveManager.SaveData.GetValueAsObject<List<string>>(ArchipelagoModPlugin.PluginGuid, "ReceivedItems");
 
             if (storedCompletedChecks != null) serverData.completedChecks = storedCompletedChecks;
-            if (storedReceivedItems != null) serverData.receivedItems = storedReceivedItems;
+            if (storedReceivedItems != null)
+            {
+                foreach (string encodedItem in  storedReceivedItems)
+                {
+                    serverData.receivedItems.Add(DecodeItemFromString(encodedItem));
+                }
+            }
         }
 
-        internal static bool ConnectAsync(string hostName, int port, string slotName, string password)
+        internal static bool ConnectAsync(string hostName, int port, string slotName, string password, Action<LoginResult> oneOffCallback = null)
         {
             if (isConnecting || isConnected) return false;
 
@@ -59,7 +65,7 @@ namespace Archipelago_Inscryption.Archipelago
 
             ArchipelagoModPlugin.Log.LogInfo($"Connecting to {serverData.hostName}:{serverData.port} as {serverData.slotName}...");
 
-            ThreadPool.QueueUserWorkItem(_ => Connect(OnConnected));
+            ThreadPool.QueueUserWorkItem(_ => Connect(OnConnected, oneOffCallback));
 
             return true;
         }
@@ -105,7 +111,7 @@ namespace Archipelago_Inscryption.Archipelago
             return session;
         }
 
-        private static void Connect(OnConnectAttempt attempt)
+        private static void Connect(OnConnectAttempt attempt, Action<LoginResult> oneOffCallback)
         {
             if (isConnected) return;
 
@@ -146,10 +152,10 @@ namespace Archipelago_Inscryption.Archipelago
                 Disconnect();
             }
 
-            attempt(result);
+            attempt(result, oneOffCallback);
         }
 
-        private static void OnConnected(LoginResult result)
+        private static void OnConnected(LoginResult result, Action<LoginResult> oneOffCallback)
         {
             Singleton<ArchipelagoUI>.Instance.UpdateConnectionStatus(result.Successful);
             SendChecksToServerAsync();
@@ -157,6 +163,11 @@ namespace Archipelago_Inscryption.Archipelago
             if (onConnectAttemptDone != null)
             {
                 onConnectAttemptDone(result);
+            }
+
+            if (oneOffCallback != null)
+            {
+                oneOffCallback(result);
             }
         }
 
@@ -183,42 +194,40 @@ namespace Archipelago_Inscryption.Archipelago
         {
             if (serverData.index >= helper.Index) return;
 
-            List<NetworkItem> itemsToReceive = new List<NetworkItem>();
-            List<NetworkItem> tempAlreadyReceivedItems = new List<NetworkItem>(serverData.receivedItems);
+            serverData.index++;
 
-            // We need to flush out what we already collected.
-            while (serverData.index < serverData.receivedItems.Count)
+            NetworkItem nextItem = helper.DequeueItem();
+            NetworkItem matchedItem = serverData.receivedItems.FirstOrDefault(x => IsSameItem(x, nextItem));
+
+            if (IsSameItem(matchedItem, default(NetworkItem)))
             {
-                NetworkItem nextItem = helper.DequeueItem();
-                NetworkItem itemToRemove = tempAlreadyReceivedItems.FirstOrDefault(x => IsSameItem(x, nextItem));
-                if (IsSameItem(itemToRemove, default(NetworkItem)))
-                {
-                    // We already received and processed this item
-                    tempAlreadyReceivedItems.Remove(itemToRemove);
-                    serverData.index++;
-                }
-                else
-                {
-                    // This item is new
-                    itemsToReceive.Add(nextItem);
-                }
-            }
+                // This item is new
+                serverData.receivedItems.Add(nextItem);
 
-            // Add the rest of the new items
-            while (itemsToReceive.Count < helper.Index - serverData.index)
-            {
-                itemsToReceive.Add(helper.DequeueItem());
+                if (onNewItemReceived != null)
+                    onNewItemReceived(nextItem);
             }
+        }
 
-            // Process the new items
-            foreach (NetworkItem receivedItem in itemsToReceive)
-            {
-                serverData.receivedItems.Add(receivedItem);
-                serverData.index++;
+        internal static string EncodeItemToString(NetworkItem item)
+        {
+            return $"{item.Item}|{item.Location}|{item.Player}|{(int)item.Flags}";
+        }
 
-                if (onItemReceived != null)
-                    onItemReceived(receivedItem);
-            }
+        private static NetworkItem DecodeItemFromString(string itemString)
+        {
+            string[] elements = itemString.Split('|');
+            NetworkItem networkItem = new NetworkItem();
+            if (long.TryParse(elements[0], out long item))
+                networkItem.Item = item;
+            if (long.TryParse(elements[1], out long location))
+                networkItem.Location = location;
+            if (int.TryParse(elements[2], out int player))
+                networkItem.Player = player;
+            if (Enum.TryParse(elements[3], out ItemFlags flags))
+                networkItem.Flags = flags;
+
+            return networkItem;
         }
 
         private static bool IsSameItem(NetworkItem left, NetworkItem right)

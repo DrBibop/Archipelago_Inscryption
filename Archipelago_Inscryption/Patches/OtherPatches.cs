@@ -2,7 +2,6 @@
 using DiskCardGame;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -17,6 +16,40 @@ namespace Archipelago_Inscryption.Patches
         static bool PreventAchievementUnlock()
         {
             return false;
+        }
+
+        [HarmonyPatch(typeof(SaveManager), "get_SaveFilePath")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceSaveFileName(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            CodeInstruction fileNameInstruction = codes.Find(x => x.opcode == OpCodes.Ldstr && (string)x.operand == "SaveFile.gwsave");
+
+            fileNameInstruction.operand = "SaveFile-Archipelago.gwsave";
+
+            return codes.AsEnumerable();
+        }
+
+        [HarmonyPatch(typeof(SaveManager), "SaveToFile")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceBackUpSaveFileName(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            CodeInstruction fileNameInstruction = codes.Find(x => x.opcode == OpCodes.Ldstr && (string)x.operand == "SaveFile-Backup.gwsave");
+
+            fileNameInstruction.operand = "SaveFile-Archipelago-Backup.gwsave";
+
+            return codes.AsEnumerable();
+        }
+
+        [HarmonyPatch(typeof(SaveFile), "GetCurrentRandomSeed")]
+        [HarmonyPostfix]
+        static void AddOpenedPacksToSeed(SaveFile __instance, ref int __result)
+        {
+            if (__instance.IsPart1 || __instance.IsPart3)
+                __result += __instance.gbcData.packsOpened * 2;
         }
     }
     

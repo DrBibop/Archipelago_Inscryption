@@ -5,6 +5,7 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using EasyFeedback;
 using InscryptionAPI.Saves;
+using System;
 using System.ComponentModel.Design;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ namespace Archipelago_Inscryption.Helpers
     {
         internal static InputField CreateInputField(GameObject prefab, Transform parent, string name, string label, string defaultContent, float yPosition, int characterLimit, bool censor = false)
         {
-            GameObject inputFieldInstance = Object.Instantiate(prefab);
+            GameObject inputFieldInstance = GameObject.Instantiate(prefab);
             inputFieldInstance.transform.SetParent(parent);
             inputFieldInstance.transform.ResetTransform();
             inputFieldInstance.transform.localPosition = new Vector3(0, yPosition, 0);
@@ -28,7 +29,7 @@ namespace Archipelago_Inscryption.Helpers
             return inputField;
         }
 
-        internal static void ConnectFromMainMenu()
+        internal static void ConnectFromMenu(Action<LoginResult> callback)
         {
             if (ArchipelagoClient.IsConnecting) return;
 
@@ -45,15 +46,12 @@ namespace Archipelago_Inscryption.Helpers
             else
             {
                 Singleton<ArchipelagoUI>.Instance.LogMessage("Connecting...");
-                ArchipelagoClient.onConnectAttemptDone += OnConnectAttemptDone;
-                ArchipelagoClient.ConnectAsync(savedHostName, savedPort, savedSlotName, savedPassword);
+                ArchipelagoClient.ConnectAsync(savedHostName, savedPort, savedSlotName, savedPassword, callback);
             }
         }
 
-        private static void OnConnectAttemptDone(LoginResult result)
+        internal static void OnConnectAttemptDoneFromMainMenu(LoginResult result)
         {
-            ArchipelagoClient.onConnectAttemptDone -= OnConnectAttemptDone;
-
             MenuController menu = Singleton<MenuController>.Instance;
 
             if (result.Successful)
@@ -71,6 +69,59 @@ namespace Archipelago_Inscryption.Helpers
                     Singleton<ArchipelagoUI>.Instance.LogError(errors[i]);
                 }
             }
+        }
+
+        internal static void OnConnectAttemptDoneFromChapterSelect(LoginResult result, ChapterSelectMenu menu)
+        {
+            if (result.Successful)
+            {
+                LoadSelectedChapter(menu.currentSelectedChapter);
+            }
+            else
+            {
+                string[] errors = ((LoginFailure)result).Errors;
+
+                for (int i = 0; i < errors.Length; i++)
+                {
+                    Singleton<ArchipelagoUI>.Instance.LogError(errors[i]);
+                }
+            }
+        }
+
+        internal static void LoadSelectedChapter(int chapter)
+        {
+            if (FinaleDeletionWindowManager.instance != null)
+            {
+                GameObject.Destroy(FinaleDeletionWindowManager.instance.gameObject);
+            }
+
+            bool newGameGBC = false;
+
+            switch (chapter)
+            {
+                case 1:
+                    SaveManager.SaveFile.currentScene = "Part1_Cabin";
+                    SaveManager.SaveFile.NewPart1Run();
+                    break;
+                case 2:
+                    SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
+                    if (!StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUsed))
+                    {
+                        newGameGBC = true;
+                    }
+                    break;
+                case 3:
+                    SaveManager.SaveFile.currentScene = "Part3_Cabin";
+                    break;
+                case 4:
+                    SaveManager.SaveFile.currentScene = "Part3_Cabin";
+                    SaveManager.SaveFile.part3Data.playerPos = new Part3SaveData.WorldPosition("!FINALE_CHAPTER_SELECT", 2, 1);
+                    break;
+                default:
+                    break;
+            }
+
+            MenuController.LoadGameFromMenu(newGameGBC);
         }
     }
 }

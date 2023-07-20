@@ -12,6 +12,8 @@ namespace Archipelago_Inscryption.Components
         private float creationTime;
         private bool fading = false;
 
+        public override bool UpdateWhenPaused => true;
+
         private void Awake()
         {
             text = GetComponent<Text>();

@@ -6,7 +6,6 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using HarmonyLib;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,12 +25,7 @@ namespace Archipelago_Inscryption.Patches
             Transform tab = __instance.transform.Find("MainPanel/Tabs/Tab_4");
             if (!tab) return true;
 
-            List<GenericUIButton> tabButtons = (List<GenericUIButton>)ReflectionInfos.TabButtonsField.GetValue(__instance);
-            if (tabButtons == null || tabButtons.Count == 0) return true;
-
-            tabButtons.Add(tab.GetComponent<GenericUIButton>());
-
-            ReflectionInfos.TabButtonsField.SetValue(__instance, tabButtons);
+            __instance.tabButtons.Add(tab.GetComponent<GenericUIButton>());
 
             tab.gameObject.SetActive(true);
 
@@ -112,7 +106,7 @@ namespace Archipelago_Inscryption.Patches
         {
             if (!ArchipelagoClient.IsConnected)
             {
-                UIHelper.ConnectFromMainMenu();
+                UIHelper.ConnectFromMenu(UIHelper.OnConnectAttemptDoneFromMainMenu);
 
                 return false;
             }
@@ -132,6 +126,76 @@ namespace Archipelago_Inscryption.Patches
         static bool PreventKeyUpdateIfInputFieldSelected()
         {
             return !Components.InputField.IsAnySelected;
+        }
+
+        [HarmonyPatch(typeof(DeckBuildingUI), "Start")]
+        [HarmonyPostfix]
+        static void CreateCardPackButton(DeckBuildingUI __instance)
+        {
+            GameObject newButtonObject = Object.Instantiate(__instance.autoCompleteButton.gameObject);
+            newButtonObject.name = "OpenCardPackButton";
+            newButtonObject.transform.SetParent(__instance.transform);
+            newButtonObject.transform.localPosition = new Vector3(-1.66f, 0.66f, 0f);
+            newButtonObject.GetComponent<BoxCollider2D>().size = new Vector2(0.49f, 0.68f);
+
+            GenericUIButton newButton = newButtonObject.GetComponent<GenericUIButton>();
+            newButton.defaultSprite = AssetsManager.packButtonSprites[0];
+            newButton.hoveringSprite = AssetsManager.packButtonSprites[1];
+            newButton.downSprite = AssetsManager.packButtonSprites[2];
+            newButton.disabledSprite = AssetsManager.packButtonSprites[3];
+
+            newButtonObject.GetComponent<SpriteRenderer>().sprite = newButton.defaultSprite;
+
+            Object.Destroy(newButtonObject.transform.GetChild(0).gameObject);
+
+            newButton.CursorSelectEnded = (x => CustomCoroutine.instance.StartCoroutine(RandomizerHelper.OnPackButtonPressed(x)));
+
+            RandomizerHelper.packButton = newButton;
+            RandomizerHelper.UpdatePackButtonEnabled();
+        }
+
+        [HarmonyPatch(typeof(ChapterSelectMenu), "OnChapterConfirmed")]
+        [HarmonyPrefix]
+        static bool ChooseChapterWithSameSaveFile(ChapterSelectMenu __instance)
+        {
+            __instance.confirmPrompt.SetActive(true);
+
+            if (!ArchipelagoClient.IsConnected)
+            {
+                UIHelper.ConnectFromMenu(result => UIHelper.OnConnectAttemptDoneFromChapterSelect(result, __instance));
+            }
+            else
+            {
+                UIHelper.LoadSelectedChapter(__instance.currentSelectedChapter);
+            }
+
+            return false;
+        }
+
+        [HarmonyPatch(typeof(ChapterSelectMenu), "OnChapterSelected")]
+        [HarmonyPrefix]
+        static bool ReplaceChapterSelectPromptText(ChapterSelectMenu __instance, int chapter)
+        {
+            if (chapter == 1)
+                __instance.confirmPromptText.text = "Start a new act 1 run?";
+            else
+                __instance.confirmPromptText.text = $"Continue act {chapter}?";
+
+            return true;
+        }
+
+        [HarmonyPatch(typeof(ChapterSelectMenu), "Start")]
+        [HarmonyPostfix]
+        static void DisableCertainButtonsFromChapterSelect(ChapterSelectMenu __instance)
+        {
+            __instance.transform.Find("Clips_Row").gameObject.SetActive(false);
+            __instance.transform.Find("Chapter_Row/ChapterSelectItemUI").gameObject.SetActive(false);
+            if (!StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked))
+                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject.SetActive(false);
+            if (!StoryEventsData.EventCompleted(StoryEvent.Part2Completed))
+                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
+            if (!StoryEventsData.EventCompleted(StoryEvent.Part3Completed))
+                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (4)").gameObject.SetActive(false);
         }
     }
 }

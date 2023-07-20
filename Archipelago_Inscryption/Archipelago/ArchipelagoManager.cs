@@ -2,6 +2,7 @@
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago_Inscryption.Components;
+using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using GBC;
 using InscryptionAPI.Saves;
@@ -16,8 +17,8 @@ namespace Archipelago_Inscryption.Archipelago
     {
         internal static Action<APItem> onItemReceived;
 
-        private const int CHECK_ID_OFFSET = 147000;
-        private const int ITEM_ID_OFFSET = 147000;
+        internal const int CHECK_ID_OFFSET = 147000;
+        internal const int ITEM_ID_OFFSET = 147000;
 
         // When one of the following events is completed, send the associated check.
         private static readonly Dictionary<StoryEvent, APCheck> storyCheckPairs = new Dictionary<StoryEvent, APCheck>()
@@ -25,11 +26,7 @@ namespace Archipelago_Inscryption.Archipelago
             { StoryEvent.ProspectorDefeated,            APCheck.CabinBossProspector },
             { StoryEvent.AnglerDefeated,                APCheck.CabinBossAngler },
             { StoryEvent.TrapperTraderDefeated,         APCheck.CabinBossTrapper },
-            { StoryEvent.LeshyDefeated,                 APCheck.CabinBossLeshy },
-            { StoryEvent.GBCLeshyDefeated,              APCheck.GBCBossLeshy },
-            { StoryEvent.GBCGrimoraDefeated,            APCheck.GBCBossGrimora },
-            { StoryEvent.GBCMagnificusDefeated,         APCheck.GBCBossMagnificus },
-            { StoryEvent.GBCPoeDefeated,                APCheck.GBCBossP03 }
+            { StoryEvent.LeshyDefeated,                 APCheck.CabinBossLeshy }
         };
 
         // When one of the following items is received, set the associated story event as completed.
@@ -43,7 +40,7 @@ namespace Archipelago_Inscryption.Archipelago
             { APItem.CagedWolfCard,                     StoryEvent.CageCardDiscovered },
             { APItem.SquirrelTotemHead,                 StoryEvent.SquirrelHeadDiscovered },
             { APItem.Dagger,                            StoryEvent.SpecialDaggerDiscovered },
-            { APItem.CloverPlant,                       StoryEvent.CloverFound },
+            { APItem.CabinCloverPlant,                  StoryEvent.CloverFound },
             { APItem.ExtraCandle,                       StoryEvent.CandleArmFound },
             { APItem.BeeFigurine,                       StoryEvent.BeeFigurineFound },
             { APItem.GreaterSmoke,                      StoryEvent.ImprovedSmokeCardDiscovered },
@@ -54,7 +51,8 @@ namespace Archipelago_Inscryption.Archipelago
             { APItem.AncientObol,                       StoryEvent.GBCObolFound },
             { APItem.MycologistsHoloKey,                StoryEvent.MycologistHutKeyFound },
             { APItem.BoneLordHoloKey,                   StoryEvent.BonelordHoloKeyFound },
-            { APItem.BoneLordFemur,                     StoryEvent.GBCBoneFound }
+            { APItem.BoneLordFemur,                     StoryEvent.GBCBoneFound },
+            { APItem.GBCCloverPlant,                    StoryEvent.GBCCloverFound }
         };
 
         // When one of the following items is received, add the associated card(s) to the deck.
@@ -67,12 +65,35 @@ namespace Archipelago_Inscryption.Archipelago
             { APItem.CagedWolfCard,                     new UnlockableCardInfo(new string[1] { "CagedWolf" }) },
         };
 
+        // When one of the following items is received, add the associated card(s) to the act 2 deck.
+        private static readonly Dictionary<APItem, string> itemPixelCardPair = new Dictionary<APItem, string>()
+        {
+            { APItem.BoneLordHorn,                      "BonelordHorn" },
+            { APItem.GreatKrakenCard,                   "Kraken" },
+            { APItem.DrownedSoulCard,                   "DrownedSoul" },
+            { APItem.SalmonCard,                        "Salmon" }
+        };
+
         private static Dictionary<APCheck, CheckInfo> checkInfos = new Dictionary<APCheck, CheckInfo>();
+
+        private static int availableCardPacks = 0;
+
+        internal static int AvailableCardPacks
+        {
+            get { return availableCardPacks; }
+            set
+            {
+                availableCardPacks = value;
+                ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "AvailableCardPacks", value);
+            }
+        }
 
         internal static void Init()
         {
             ArchipelagoClient.onConnectAttemptDone += OnConnectAttempt;
-            ArchipelagoClient.onItemReceived += OnItemReceived;
+            ArchipelagoClient.onNewItemReceived += OnItemReceived;
+
+            availableCardPacks = ModdedSaveManager.SaveData.GetValueAsInt(ArchipelagoModPlugin.PluginGuid, "AvailableCardPacks");
         }
 
         private static void OnItemReceived(NetworkItem item)
@@ -88,7 +109,14 @@ namespace Archipelago_Inscryption.Archipelago
             Singleton<ArchipelagoUI>.Instance.LogImportant(message);
             ArchipelagoModPlugin.Log.LogMessage(message);
 
-            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", ArchipelagoClient.serverData.receivedItems);
+            List<string> encodedItems = new List<string>();
+
+            foreach (NetworkItem networkItem in ArchipelagoClient.serverData.receivedItems)
+            {
+                encodedItems.Add(ArchipelagoClient.EncodeItemToString(networkItem));
+            }
+
+            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", encodedItems);
 
             APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
 
@@ -116,12 +144,23 @@ namespace Archipelago_Inscryption.Archipelago
                 }
             }
 
+            if (itemPixelCardPair.TryGetValue(receivedItem, out string cardName))
+            {
+                SaveManager.SaveFile.CollectGBCCard(CardLoader.GetCardByName(cardName));
+            }
+
             if (receivedItem == APItem.Currency)
             {
                 if (SaveManager.SaveFile.IsPart2)
-                    SaveData.Data.currency += 3;
+                    SaveData.Data.currency++;
                 else
-                    RunState.Run.currency += 3;
+                    RunState.Run.currency++;
+            }
+
+            if (receivedItem == APItem.CardPack)
+            {
+                AvailableCardPacks++;
+                RandomizerHelper.UpdatePackButtonEnabled();
             }
 
             if (receivedItem == APItem.SquirrelTotemHead && !RunState.Run.totemTops.Contains(Tribe.Squirrel))
@@ -196,6 +235,21 @@ namespace Archipelago_Inscryption.Archipelago
                 RunState.Run.consumables.Add("FishHook");
                 if (Singleton<ItemsManager>.Instance)
                     Singleton<ItemsManager>.Instance.UpdateItems(false);
+            }
+
+            if (receivedItem.ToString().Contains("Epitaph"))
+            {
+                SaveData.Data.undeadTemple.epitaphPieces[(int)receivedItem - (int)APItem.EpitaphPiece1].found = true;
+            }
+
+            if (receivedItem == APItem.Monocle && Singleton<WizardMonocleEffect>.Instance)
+            {
+                Singleton<WizardMonocleEffect>.Instance.ShowLayer();
+            }
+
+            if (receivedItem == APItem.CameraReplica)
+            {
+                SaveData.Data.natureTemple.hasCamera = true;
             }
 
             if (Singleton<GameFlowManager>.Instance != null)
