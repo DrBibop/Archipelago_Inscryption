@@ -4,6 +4,7 @@ using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using EasyFeedback;
+using GBC;
 using InscryptionAPI.Saves;
 using System;
 using System.ComponentModel.Design;
@@ -90,12 +91,12 @@ namespace Archipelago_Inscryption.Helpers
 
         internal static void LoadSelectedChapter(int chapter)
         {
+            SaveManager.LoadFromFile();
+
             if (FinaleDeletionWindowManager.instance != null)
             {
                 GameObject.Destroy(FinaleDeletionWindowManager.instance.gameObject);
             }
-
-            bool newGameGBC = false;
 
             switch (chapter)
             {
@@ -104,10 +105,14 @@ namespace Archipelago_Inscryption.Helpers
                     SaveManager.SaveFile.NewPart1Run();
                     break;
                 case 2:
-                    SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
-                    if (!StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUsed))
+                    if (StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUsed))
                     {
-                        newGameGBC = true;
+                        SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
+                        SaveData.Data.overworldNode = "StartingIsland";
+                    }
+                    else
+                    {
+                        SaveManager.SaveFile.currentScene = "GBC_Intro";
                     }
                     break;
                 case 3:
@@ -121,7 +126,7 @@ namespace Archipelago_Inscryption.Helpers
                     break;
             }
 
-            MenuController.LoadGameFromMenu(newGameGBC);
+            LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
         }
     }
 }
