@@ -106,7 +106,7 @@ namespace Archipelago_Inscryption.Patches
         {
             if (!ArchipelagoClient.IsConnected)
             {
-                UIHelper.ConnectFromMainMenu();
+                UIHelper.ConnectFromMenu(UIHelper.OnConnectAttemptDoneFromMainMenu);
 
                 return false;
             }
@@ -152,6 +152,50 @@ namespace Archipelago_Inscryption.Patches
 
             RandomizerHelper.packButton = newButton;
             RandomizerHelper.UpdatePackButtonEnabled();
+        }
+
+        [HarmonyPatch(typeof(ChapterSelectMenu), "OnChapterConfirmed")]
+        [HarmonyPrefix]
+        static bool ChooseChapterWithSameSaveFile(ChapterSelectMenu __instance)
+        {
+            __instance.confirmPrompt.SetActive(true);
+
+            if (!ArchipelagoClient.IsConnected)
+            {
+                UIHelper.ConnectFromMenu(result => UIHelper.OnConnectAttemptDoneFromChapterSelect(result, __instance));
+            }
+            else
+            {
+                UIHelper.LoadSelectedChapter(__instance.currentSelectedChapter);
+            }
+
+            return false;
+        }
+
+        [HarmonyPatch(typeof(ChapterSelectMenu), "OnChapterSelected")]
+        [HarmonyPrefix]
+        static bool ReplaceChapterSelectPromptText(ChapterSelectMenu __instance, int chapter)
+        {
+            if (chapter == 1)
+                __instance.confirmPromptText.text = "Start a new act 1 run?";
+            else
+                __instance.confirmPromptText.text = $"Continue act {chapter}?";
+
+            return true;
+        }
+
+        [HarmonyPatch(typeof(ChapterSelectMenu), "Start")]
+        [HarmonyPostfix]
+        static void DisableCertainButtonsFromChapterSelect(ChapterSelectMenu __instance)
+        {
+            __instance.transform.Find("Clips_Row").gameObject.SetActive(false);
+            __instance.transform.Find("Chapter_Row/ChapterSelectItemUI").gameObject.SetActive(false);
+            if (!StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked))
+                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject.SetActive(false);
+            if (!StoryEventsData.EventCompleted(StoryEvent.Part2Completed))
+                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
+            if (!StoryEventsData.EventCompleted(StoryEvent.Part3Completed))
+                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (4)").gameObject.SetActive(false);
         }
     }
 }

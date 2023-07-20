@@ -17,18 +17,36 @@ namespace Archipelago_Inscryption.Components
 
         public override void OnCursorEnter()
         {
+            if (pileTop == null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             if (!opening && isActiveAndEnabled)
                 Tween.LocalPosition(pileTop.transform, topPackBasePosition + new Vector3(-0.6f, 0.4f, 0), 0.1f, 0, Tween.EaseOut);
         }
 
         public override void OnCursorExit()
         {
+            if (pileTop == null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             if (!opening && isActiveAndEnabled)
                 Tween.LocalPosition(pileTop.transform, topPackBasePosition, 0.1f, 0, Tween.EaseOut);
         }
 
         public override void OnCursorSelectEnd()
         {
+            if (pileTop == null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             if (!opening && isActiveAndEnabled)
                 StartCoroutine(OpenPack());
         }

@@ -28,7 +28,7 @@ namespace Archipelago_Inscryption.Archipelago
 
         private const string ArchipelagoVersion = "0.4.1";
 
-        private delegate void OnConnectAttempt(LoginResult result);
+        private delegate void OnConnectAttempt(LoginResult result, Action<LoginResult> oneOffCallback);
 
         private static bool isConnecting = false;
         private static bool isConnected = false;
@@ -52,7 +52,7 @@ namespace Archipelago_Inscryption.Archipelago
             }
         }
 
-        internal static bool ConnectAsync(string hostName, int port, string slotName, string password)
+        internal static bool ConnectAsync(string hostName, int port, string slotName, string password, Action<LoginResult> oneOffCallback = null)
         {
             if (isConnecting || isConnected) return false;
 
@@ -65,7 +65,7 @@ namespace Archipelago_Inscryption.Archipelago
 
             ArchipelagoModPlugin.Log.LogInfo($"Connecting to {serverData.hostName}:{serverData.port} as {serverData.slotName}...");
 
-            ThreadPool.QueueUserWorkItem(_ => Connect(OnConnected));
+            ThreadPool.QueueUserWorkItem(_ => Connect(OnConnected, oneOffCallback));
 
             return true;
         }
@@ -111,7 +111,7 @@ namespace Archipelago_Inscryption.Archipelago
             return session;
         }
 
-        private static void Connect(OnConnectAttempt attempt)
+        private static void Connect(OnConnectAttempt attempt, Action<LoginResult> oneOffCallback)
         {
             if (isConnected) return;
 
@@ -152,10 +152,10 @@ namespace Archipelago_Inscryption.Archipelago
                 Disconnect();
             }
 
-            attempt(result);
+            attempt(result, oneOffCallback);
         }
 
-        private static void OnConnected(LoginResult result)
+        private static void OnConnected(LoginResult result, Action<LoginResult> oneOffCallback)
         {
             Singleton<ArchipelagoUI>.Instance.UpdateConnectionStatus(result.Successful);
             SendChecksToServerAsync();
@@ -163,6 +163,11 @@ namespace Archipelago_Inscryption.Archipelago
             if (onConnectAttemptDone != null)
             {
                 onConnectAttemptDone(result);
+            }
+
+            if (oneOffCallback != null)
+            {
+                oneOffCallback(result);
             }
         }
 

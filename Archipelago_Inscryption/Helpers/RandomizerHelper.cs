@@ -350,7 +350,7 @@ namespace Archipelago_Inscryption.Helpers
             int i = 0;
             foreach (GameObject pack in packs)
             {
-                Tween.LocalPosition(pack.transform, new Vector3(-10, 0.1f * i, 0), 0.20f, 0.02f * (ArchipelagoManager.AvailableCardPacks - i - 1), Tween.EaseIn);
+                Tween.LocalPosition(pack.transform, new Vector3(-10, 0.1f * i, 0), 0.20f, 0.02f * (ArchipelagoManager.AvailableCardPacks - i - 1), Tween.EaseIn, Tween.LoopType.None, null, () => Object.Destroy(pack));
 
                 i++;
             }

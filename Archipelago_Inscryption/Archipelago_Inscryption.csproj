@@ -60,6 +60,9 @@
     <Reference Include="Sirenix.Serialization">
       <HintPath>..\Dependencies\Sirenix.Serialization.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\Dependencies\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\Dependencies\UnityEngine.dll</HintPath>
     </Reference>
