@@ -1,4 +1,5 @@
-﻿using Archipelago_Inscryption.Archipelago;
+﻿using Archipelago.MultiClient.Net.Models;
+using Archipelago_Inscryption.Archipelago;
 using Archipelago_Inscryption.Assets;
 using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
@@ -23,6 +24,26 @@ namespace Archipelago_Inscryption.Patches
             if (ArchipelagoManager.HasItem(APItem.MagnificusEye))
             {
                 __instance.eyeState = EyeballState.Wizard;
+            }
+        }
+
+        [HarmonyPatch(typeof(SaveData), "Initialize")]
+        [HarmonyPostfix]
+        static void InitializeItemNewGame(SaveData __instance)
+        {
+            List<NetworkItem> receivedItem = ArchipelagoClient.serverData.receivedItems;
+            int countCurrency = receivedItem.Count(item => item.Item == (ArchipelagoManager.ITEM_ID_OFFSET + (long)APItem.Currency));
+            __instance.currency = countCurrency;
+            for (APItem i = APItem.EpitaphPiece1; i <= APItem.EpitaphPiece9; i++)
+            {
+                if (ArchipelagoManager.HasItem(i))
+                {
+                    __instance.undeadTemple.epitaphPieces[(int)(i - APItem.EpitaphPiece1)].found = true;
+                }
+            }
+            if (ArchipelagoManager.HasItem(APItem.CameraReplica))
+            {
+                __instance.natureTemple.hasCamera = true;
             }
         }
 
@@ -107,3 +128,4 @@ namespace Archipelago_Inscryption.Patches
         }
     }
 }
+

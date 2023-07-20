@@ -17,8 +17,8 @@ namespace Archipelago_Inscryption.Archipelago
     {
         internal static Action<APItem> onItemReceived;
 
-        private const int CHECK_ID_OFFSET = 147000;
-        private const int ITEM_ID_OFFSET = 147000;
+        internal const int CHECK_ID_OFFSET = 147000;
+        internal const int ITEM_ID_OFFSET = 147000;
 
         // When one of the following events is completed, send the associated check.
         private static readonly Dictionary<StoryEvent, APCheck> storyCheckPairs = new Dictionary<StoryEvent, APCheck>()
