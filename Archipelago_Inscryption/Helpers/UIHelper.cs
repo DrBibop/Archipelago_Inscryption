@@ -7,6 +7,7 @@ using EasyFeedback;
 using GBC;
 using InscryptionAPI.Saves;
 using System;
+using System.Collections;
 using System.ComponentModel.Design;
 using UnityEngine;
 
@@ -132,7 +133,7 @@ namespace Archipelago_Inscryption.Helpers
         internal static void GoToChapterSelect()
         {
             Singleton<MenuController>.Instance.ResetToDefaultState();
-            Singleton<VideoCameraRig>.Instance.SwitchToState(VideoCameraRig.State.ChapterSelect);
+            Singleton<VideoCameraRig>.Instance.EnterChapterSelect();
         }
     }
 }
