@@ -128,5 +128,11 @@ namespace Archipelago_Inscryption.Helpers
 
             LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
         }
+
+        internal static void GoToChapterSelect()
+        {
+            Singleton<MenuController>.Instance.ResetToDefaultState();
+            Singleton<VideoCameraRig>.Instance.SwitchToState(VideoCameraRig.State.ChapterSelect);
+        }
     }
 }

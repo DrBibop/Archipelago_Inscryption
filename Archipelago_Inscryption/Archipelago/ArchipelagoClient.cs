@@ -5,13 +5,11 @@ using Archipelago.MultiClient.Net.MessageLog.Messages;
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago_Inscryption.Components;
-using DiskCardGame;
 using InscryptionAPI.Saves;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 // Most of this class is based on the Messenger Archipelago Mod: https://github.com/alwaysintreble/TheMessengerRandomizerModAP/blob/archipelago/Archipelago/ArchipelagoClient.cs
 namespace Archipelago_Inscryption.Archipelago
@@ -41,6 +39,7 @@ namespace Archipelago_Inscryption.Archipelago
 
             List<long> storedCompletedChecks = ModdedSaveManager.SaveData.GetValueAsObject<List<long>>(ArchipelagoModPlugin.PluginGuid, "CompletedChecks");
             List<string> storedReceivedItems = ModdedSaveManager.SaveData.GetValueAsObject<List<string>>(ArchipelagoModPlugin.PluginGuid, "ReceivedItems");
+            string storedSeed = ModdedSaveManager.SaveData.GetValueAsObject<string>(ArchipelagoModPlugin.PluginGuid, "Seed");
 
             if (storedCompletedChecks != null) serverData.completedChecks = storedCompletedChecks;
             if (storedReceivedItems != null)
@@ -49,6 +48,10 @@ namespace Archipelago_Inscryption.Archipelago
                 {
                     serverData.receivedItems.Add(DecodeItemFromString(encodedItem));
                 }
+            }
+            if (storedSeed != null)
+            {
+                serverData.seed = storedSeed;
             }
         }
 
@@ -136,9 +139,21 @@ namespace Archipelago_Inscryption.Archipelago
 
             if (result.Successful)
             {
+                if (serverData.seed != session.RoomState.Seed && (serverData.receivedItems.Count > 0 || serverData.completedChecks.Count > 0))
+                {
+                    string resetMessage = "New MultiWorld detected! Reset your save file properly before starting.";
+                    ArchipelagoModPlugin.Log.LogWarning(resetMessage);
+                    Singleton<ArchipelagoUI>.Instance.LogImportant(resetMessage);
+                    serverData.receivedItems.Clear();
+                    serverData.completedChecks.Clear();
+                    ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", new List<string>());
+                    ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", new List<long>());
+                }
                 LoginSuccessful successfulResult = (LoginSuccessful)result;
                 serverData.slotData = successfulResult.SlotData;
                 serverData.seed = session.RoomState.Seed;
+                ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Seed", serverData.seed);
+                SaveManager.SaveToFile(false);
                 isConnected = true;
             }
             else
@@ -181,7 +196,6 @@ namespace Archipelago_Inscryption.Archipelago
         private static void SessionErrorReceived(Exception e, string message)
         {
             ArchipelagoModPlugin.Log.LogError($"Archipelago error: {message}");
-            ArchipelagoModPlugin.Log.LogError(e.Message);
         }
 
         private static void OnMessageReceived(LogMessage message)

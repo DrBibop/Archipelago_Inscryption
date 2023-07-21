@@ -6,6 +6,10 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using HarmonyLib;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -196,6 +200,40 @@ namespace Archipelago_Inscryption.Patches
                 __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
             if (!StoryEventsData.EventCompleted(StoryEvent.Part3Completed))
                 __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (4)").gameObject.SetActive(false);
+        }
+
+        [HarmonyPatch(typeof(MenuController), "OnCardReachedSlot")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceNewGameWithChapterSelect(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(StoryEventsData), "EventCompleted")));
+
+            codes.RemoveRange(index, 49);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Pop),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(UIHelper), "GoToChapterSelect"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+
+        [HarmonyPatch(typeof(MenuCard), "Awake")]
+        [HarmonyPostfix]
+        static void ReplaceNewGameText(MenuCard __instance)
+        {
+            if (__instance.MenuAction == MenuAction.NewGame)
+            {
+                __instance.titleSprite = null;
+                __instance.lockedTitleSprite = null;
+                __instance.titleLocId = "";
+                __instance.titleText = "CHAPTER SELECT";
+            }
         }
     }
 }
