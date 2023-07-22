@@ -110,6 +110,7 @@ namespace Archipelago_Inscryption.Helpers
                     {
                         SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
                         SaveData.Data.overworldNode = "StartingIsland";
+                        SaveData.Data.overworldIndoorPosition = -Vector3.up;
                     }
                     else
                     {

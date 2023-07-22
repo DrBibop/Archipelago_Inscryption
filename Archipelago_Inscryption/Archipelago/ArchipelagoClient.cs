@@ -137,6 +137,15 @@ namespace Archipelago_Inscryption.Archipelago
                 result = new LoginFailure(e.Message);
             }
 
+            attempt(result, oneOffCallback);
+
+            
+        }
+
+        private static void OnConnected(LoginResult result, Action<LoginResult> oneOffCallback)
+        {
+            isConnecting = false;
+
             if (result.Successful)
             {
                 if (serverData.seed != session.RoomState.Seed && (serverData.receivedItems.Count > 0 || serverData.completedChecks.Count > 0))
@@ -155,6 +164,7 @@ namespace Archipelago_Inscryption.Archipelago
                 ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Seed", serverData.seed);
                 SaveManager.SaveToFile(false);
                 isConnected = true;
+                SendChecksToServerAsync();
             }
             else
             {
@@ -167,23 +177,8 @@ namespace Archipelago_Inscryption.Archipelago
                 Disconnect();
             }
 
-            attempt(result, oneOffCallback);
-        }
-
-        private static void OnConnected(LoginResult result, Action<LoginResult> oneOffCallback)
-        {
-            Singleton<ArchipelagoUI>.Instance.UpdateConnectionStatus(result.Successful);
-            SendChecksToServerAsync();
-
-            if (onConnectAttemptDone != null)
-            {
-                onConnectAttemptDone(result);
-            }
-
-            if (oneOffCallback != null)
-            {
-                oneOffCallback(result);
-            }
+            onConnectAttemptDone?.Invoke(result);
+            oneOffCallback?.Invoke(result);
         }
 
         private static void SessionSocketClosed(string reason)
