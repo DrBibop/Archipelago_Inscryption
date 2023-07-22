@@ -289,6 +289,7 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void OnConnectAttempt(LoginResult result)
         {
+            Singleton<ArchipelagoUI>.Instance.UpdateConnectionStatus(result.Successful);
             if (result.Successful)
             {
                 AudioController.Instance.PlaySound2D("creepy_rattle_glassy", MixerGroup.None, 0.5f);
