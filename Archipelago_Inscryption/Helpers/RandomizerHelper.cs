@@ -367,6 +367,7 @@ namespace Archipelago_Inscryption.Helpers
 
         internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
         {
+            ArchipelagoManager
             ArchipelagoModPlugin.Log.LogMessage("Rip bozo");
             yield return Singleton<TextDisplayer>.Instance.ShowUntilInput("Choose if you want to create a new deathcard");
             CardChoicesNodeData choice = new CardChoicesNodeData();
@@ -391,8 +392,10 @@ namespace Archipelago_Inscryption.Helpers
             if (doDeathCard)
                 SceneLoader.Load("Part1_Sanctum");
             else
+            {
                 SaveManager.SaveFile.NewPart1Run();
                 SceneLoader.Load("Part1_Cabin");
+            }
         }
     }
 }

@@ -78,6 +78,9 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static int availableCardPacks = 0;
 
+        private static bool deathCardChooserEnable = true;
+        private static bool deathCardChooserDeathLinkDisable = true;
+
         internal static int AvailableCardPacks
         {
             get { return availableCardPacks; }
