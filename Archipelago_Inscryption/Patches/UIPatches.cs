@@ -6,7 +6,6 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using HarmonyLib;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -152,7 +151,7 @@ namespace Archipelago_Inscryption.Patches
 
             Object.Destroy(newButtonObject.transform.GetChild(0).gameObject);
 
-            newButton.CursorSelectEnded = (x => CustomCoroutine.instance.StartCoroutine(RandomizerHelper.OnPackButtonPressed(x)));
+            newButton.CursorSelectEnded = (x => CustomCoroutine.instance.StartCoroutine(RandomizerHelper.OnPackButtonPressed()));
 
             RandomizerHelper.packButton = newButton;
             RandomizerHelper.UpdatePackButtonEnabled();
@@ -198,8 +197,8 @@ namespace Archipelago_Inscryption.Patches
             __instance.transform.Find("Chapter_Row/ChapterSelectItemUI").gameObject.SetActive(false);
             if (!StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked))
                 __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject.SetActive(false);
-            if (!StoryEventsData.EventCompleted(StoryEvent.Part2Completed))
-                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
+            //if (!StoryEventsData.EventCompleted(StoryEvent.Part2Completed))
+            //    __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
             if (!StoryEventsData.EventCompleted(StoryEvent.Part3Completed))
                 __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (4)").gameObject.SetActive(false);
         }

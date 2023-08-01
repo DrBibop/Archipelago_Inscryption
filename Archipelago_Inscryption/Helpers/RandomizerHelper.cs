@@ -34,13 +34,13 @@ namespace Archipelago_Inscryption.Helpers
 
         private static readonly string[] checkCardP03Dialog =
         {
-            "Huh? I didn't code that one in.",
+            "Huh? What even is this?.",
             "How did that end up there?",
             "Wait, this doesn't belong in Botopia...",
             "I don't remember printing that.",
             "That's not mine...",
-            "Did you print this one yourself?",
-            "I'm sure this could be of use to someone, right?",
+            "I'd be embarassed to give that to anybody.",
+            "This looks completely useless.",
             "That's weird... Don't let it distract you, though."
         };
 
@@ -140,11 +140,10 @@ namespace Archipelago_Inscryption.Helpers
                 newCardInteractable.closeUpDistance = closeUpDistance;
                 newCardInteractable.closeUpEulers = closeUpEulers;
                 newCardInteractable.closeUpVerticalOffset = closeUpVerticalOffset;
-                string[] discoverTextDialogs = SaveManager.SaveFile.IsPart1 ? checkCardLeshyDialog : checkCardP03Dialog;
-                newCardInteractable.onDiscoverText = discoverTextDialogs[Random.Range(0, discoverTextDialogs.Length)];
+                newCardInteractable.onDiscoverText = info.description;
                 newCardInteractable.storyEvent = StoryEvent.NUM_EVENTS;
                 newCardInteractable.requireStoryEventToAddToDeck = false;
-                GameObject newCard = Object.Instantiate(AssetsManager.selectableCardPrefab, newCheckCard.transform);
+                GameObject newCard = Object.Instantiate(SaveManager.SaveFile.IsPart3 ? AssetsManager.selectableDiskCardPrefab : AssetsManager.selectableCardPrefab, newCheckCard.transform);
                 newCard.name = "ArchipelagoCheckCard_" + check.ToString();
                 newCard.transform.ResetTransform();
                 newCardInteractable.card = newCard.GetComponent<SelectableCard>();
@@ -172,6 +171,60 @@ namespace Archipelago_Inscryption.Helpers
                 return null;
             }
             
+        }
+
+        internal static bool CreateHoloMapNodeCheck(GameObject originalNodeObject, APCheck check)
+        {
+            HoloMapNode originalNode = originalNodeObject.GetComponent<HoloMapNode>();
+
+            bool nodeCreated = false;
+
+            if (!ArchipelagoManager.HasCompletedCheck(check))
+            {
+                GameObject newNodeObject = Object.Instantiate(AssetsManager.cardChoiceHoloNodePrefab, originalNodeObject.transform.parent);
+                newNodeObject.transform.localPosition = originalNodeObject.transform.localPosition;
+                newNodeObject.transform.localRotation = originalNodeObject.transform.localRotation;
+
+                HoloMapNode newNode = newNodeObject.GetComponent<HoloMapNode>();
+                newNode.nodeId = originalNode.nodeId;
+                newNode.fixedChoices = new List<CardInfo>() { GenerateCardInfo(check) };
+                newNodeObject.transform.Find("RendererParent/Renderer").GetComponent<MeshFilter>().sharedMesh = AssetsManager.checkCardHoloNodeMesh;
+                Renderer rendererToDelete = newNode.nodeRenderers[1];
+                newNode.nodeRenderers.RemoveAt(1);
+                Object.Destroy(rendererToDelete.gameObject);
+                newNode.AssignNodeData();
+
+                if (!originalNodeObject.activeSelf)
+                    newNodeObject.SetActive(false);
+
+                Singleton<MapNodeManager>.Instance.nodes.Add(newNode);
+
+                HoloMapShopNode shopNode = originalNode.GetComponentInParent<HoloMapShopNode>();
+
+                if (shopNode)
+                {
+                    shopNode.nodeToBuy = newNode;
+                    newNode.defaultColor = new Color(1f, 0.5725f, 0.149f);
+                    foreach (Renderer renderer in newNode.nodeRenderers)
+                    {
+                        renderer.material.SetColor("_MainColor", newNode.defaultColor);
+                    }
+                }
+
+                HoloMapPeltMinigame peltMinigame = originalNodeObject.GetComponentInParent<HoloMapPeltMinigame>();
+
+                if (peltMinigame)
+                    peltMinigame.rewardNode = newNode;
+
+                nodeCreated = true;
+            }
+
+            if (Singleton<MapNodeManager>.Instance.nodes.Contains(originalNode))
+                Singleton<MapNodeManager>.Instance.nodes.Remove(originalNode);
+
+            Object.Destroy(originalNodeObject);
+
+            return nodeCreated;
         }
 
         internal static void CreateWizardEyeCheck(EyeballInteractable wizardEye)
@@ -206,11 +259,8 @@ namespace Archipelago_Inscryption.Helpers
             string modPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             info.SetPortrait(modPath + "\\CardPortraits\\archi_portrait.png");
             info.SetPixelPortrait(modPath + "\\CardPortraits\\archi_portrait_gbc.png");
-            string description =
-                checkInfo.recipientName == ArchipelagoClient.serverData.slotName ?
-                $"A misplaced item from your world. Collect this card to receive {checkInfo.itemName}." :
-                $"An item from another world. Collecting this card will send {checkInfo.itemName} to {checkInfo.recipientName}.";
-            info.description = description;
+            string[] discoverTextDialogs = SaveManager.SaveFile.IsPart3 ? checkCardP03Dialog : checkCardLeshyDialog;
+            info.description = discoverTextDialogs[Random.Range(0, discoverTextDialogs.Length)];
             return info;
         }
 
@@ -292,7 +342,7 @@ namespace Archipelago_Inscryption.Helpers
                 return "The card was added to your collection.";
         }
 
-        internal static IEnumerator OnPackButtonPressed(MainInputInteractable button)
+        internal static IEnumerator OnPackButtonPressed()
         {
             PauseMenu.instance.SetPaused(false);
             PauseMenu.pausingDisabled = true;
@@ -356,6 +406,7 @@ namespace Archipelago_Inscryption.Helpers
             }
             packs.Clear();
             Object.Destroy(packPile, 1);
+            packPile = null;
         }
     }
 }

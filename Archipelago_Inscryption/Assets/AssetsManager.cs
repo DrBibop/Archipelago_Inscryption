@@ -12,7 +12,11 @@ namespace Archipelago_Inscryption.Assets
 
         internal static GameObject cardPackPrefab;
         internal static GameObject selectableCardPrefab;
+        internal static GameObject selectableDiskCardPrefab;
         internal static GameObject archipelagoUIPrefab;
+        internal static GameObject cardChoiceHoloNodePrefab;
+
+        internal static Mesh checkCardHoloNodeMesh;
 
         internal static void LoadAssets()
         {
@@ -33,10 +37,14 @@ namespace Archipelago_Inscryption.Assets
 
             packButtonSprites = assetBundle.LoadAssetWithSubAssets<Sprite>("GBCCardPackButton");
 
-            cardPackPrefab = ResourceBank.Get<GameObject>("Prefabs/Cards/SpecificCardModels/CardPack");
+            cardPackPrefab = ResourceBank.Get<GameObject>("prefabs/cards/specificcardmodels/CardPack");
             selectableCardPrefab = ResourceBank.Get<GameObject>("prefabs/cards/SelectableCard");
+            selectableDiskCardPrefab = ResourceBank.Get<GameObject>("prefabs/cards/SelectableCard_Part3");
+            cardChoiceHoloNodePrefab = ResourceBank.Get<GameObject>("prefabs/map/mapnodespart3/CardChoiceNode3D");
 
             archipelagoUIPrefab = assetBundle.LoadAsset<GameObject>("ArchipelagoUI");
+
+            checkCardHoloNodeMesh = assetBundle.LoadAsset<Mesh>("CheckCard_mesh");
         }
 
         private static Sprite GenerateSprite(Texture2D tex)

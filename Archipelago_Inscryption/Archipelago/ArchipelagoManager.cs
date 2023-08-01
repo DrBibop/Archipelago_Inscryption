@@ -26,7 +26,12 @@ namespace Archipelago_Inscryption.Archipelago
             { StoryEvent.ProspectorDefeated,            APCheck.CabinBossProspector },
             { StoryEvent.AnglerDefeated,                APCheck.CabinBossAngler },
             { StoryEvent.TrapperTraderDefeated,         APCheck.CabinBossTrapper },
-            { StoryEvent.LeshyDefeated,                 APCheck.CabinBossLeshy }
+            { StoryEvent.LeshyDefeated,                 APCheck.CabinBossLeshy },
+            { StoryEvent.PhotographerDefeated,          APCheck.FactoryBossPhotographer },
+            { StoryEvent.ArchivistDefeated,             APCheck.FactoryBossArchivist },
+            { StoryEvent.CanvasDefeated,                APCheck.FactoryBossUnfinished },
+            { StoryEvent.TelegrapherDefeated,           APCheck.FactoryBossG0lly },
+            { StoryEvent.Part3Completed,                APCheck.FactoryGreatTranscendence },
         };
 
         // When one of the following items is received, set the associated story event as completed.
@@ -52,17 +57,21 @@ namespace Archipelago_Inscryption.Archipelago
             { APItem.MycologistsHoloKey,                StoryEvent.MycologistHutKeyFound },
             { APItem.BoneLordHoloKey,                   StoryEvent.BonelordHoloKeyFound },
             { APItem.BoneLordFemur,                     StoryEvent.GBCBoneFound },
-            { APItem.GBCCloverPlant,                    StoryEvent.GBCCloverFound }
+            { APItem.GBCCloverPlant,                    StoryEvent.GBCCloverFound },
+            { APItem.FishbotCard,                       StoryEvent.TalkingAnglerCardDiscovered },
+            { APItem.LonelyWizbotCard,                  StoryEvent.TalkingBlueMageCardDiscovered },
         };
 
         // When one of the following items is received, add the associated card(s) to the deck.
         private static readonly Dictionary<APItem, UnlockableCardInfo> itemCardPair = new Dictionary<APItem, UnlockableCardInfo>()
         {
-            { APItem.StinkbugCard,                      new UnlockableCardInfo(new string[1] { "Stinkbug_Talking" }, new string[2] { "Stinkbug_Talking", "Stoat_Talking" }) },
-            { APItem.StuntedWolfCard,                   new UnlockableCardInfo(new string[1] { "Wolf_Talking" }, new string[2] { "Wolf_Talking", "Stoat_Talking" }) },
-            { APItem.SkinkCard,                         new UnlockableCardInfo(new string[1] { "Skink" }) },
-            { APItem.AntCards,                          new UnlockableCardInfo(new string[2] { "Ant", "AntQueen" }) },
-            { APItem.CagedWolfCard,                     new UnlockableCardInfo(new string[1] { "CagedWolf" }) },
+            { APItem.StinkbugCard,                      new UnlockableCardInfo(false, new string[1] { "Stinkbug_Talking" }, new string[2] { "Stinkbug_Talking", "Stoat_Talking" }) },
+            { APItem.StuntedWolfCard,                   new UnlockableCardInfo(false, new string[1] { "Wolf_Talking" }, new string[2] { "Wolf_Talking", "Stoat_Talking" }) },
+            { APItem.SkinkCard,                         new UnlockableCardInfo(false, new string[1] { "Skink" }) },
+            { APItem.AntCards,                          new UnlockableCardInfo(false, new string[2] { "Ant", "AntQueen" }) },
+            { APItem.CagedWolfCard,                     new UnlockableCardInfo(false, new string[1] { "CagedWolf" }) },
+            { APItem.LonelyWizbotCard,                  new UnlockableCardInfo(true, new string[1] { "BlueMage_Talking" }) },
+            { APItem.FishbotCard,                       new UnlockableCardInfo(true, new string[1] { "Angler_Talking" }) },
         };
 
         // When one of the following items is received, add the associated card(s) to the act 2 deck.
@@ -134,7 +143,7 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 for (int i = 0; i < info.cardsToUnlock.Length; i++)
                 {
-                    SaveManager.SaveFile.CurrentDeck.AddCard(CardLoader.GetCardByName(info.cardsToUnlock[i]));
+                    (info.isPart3 ? SaveManager.SaveFile.part3Data.deck : RunState.Run.playerDeck).AddCard(CardLoader.GetCardByName(info.cardsToUnlock[i]));
                 }
 
                 for (int i = 0; i < info.rigDraws.Length; i++)
@@ -143,8 +152,7 @@ namespace Archipelago_Inscryption.Archipelago
                         SaveManager.SaveFile.RiggedDraws.Add(info.rigDraws[i]);
                 }
             }
-
-            if (itemPixelCardPair.TryGetValue(receivedItem, out string cardName))
+            else if (itemPixelCardPair.TryGetValue(receivedItem, out string cardName))
             {
                 SaveManager.SaveFile.CollectGBCCard(CardLoader.GetCardByName(cardName));
             }
@@ -155,35 +163,29 @@ namespace Archipelago_Inscryption.Archipelago
                     SaveData.Data.currency++;
                 else
                     RunState.Run.currency++;
-            }
-
-            if (receivedItem == APItem.CardPack)
+            } 
+            else if (receivedItem == APItem.CardPack)
             {
                 AvailableCardPacks++;
                 RandomizerHelper.UpdatePackButtonEnabled();
             }
-
-            if (receivedItem == APItem.SquirrelTotemHead && !RunState.Run.totemTops.Contains(Tribe.Squirrel))
+            else if (receivedItem == APItem.SquirrelTotemHead && !RunState.Run.totemTops.Contains(Tribe.Squirrel))
             {
                 RunState.Run.totemTops.Add(Tribe.Squirrel);
             }
-
-            if (receivedItem == APItem.BeeFigurine && !RunState.Run.totemTops.Contains(Tribe.Insect))
+            else if (receivedItem == APItem.BeeFigurine && !RunState.Run.totemTops.Contains(Tribe.Insect))
             {
                 RunState.Run.totemTops.Add(Tribe.Insect);
             }
-
-            if (receivedItem == APItem.MagnificusEye)
+            else if (receivedItem == APItem.MagnificusEye)
             {
                 RunState.Run.eyeState = EyeballState.Wizard;
             }
-
-            if (receivedItem == APItem.ExtraCandle)
+            else if (receivedItem == APItem.ExtraCandle)
             {
                 RunState.Run.maxPlayerLives = 3;
             }
-
-            if (receivedItem == APItem.Dagger && SaveManager.SaveFile.IsPart1)
+            else if (receivedItem == APItem.Dagger && SaveManager.SaveFile.IsPart1)
             {
                 if (RunState.Run.consumables.Count >= 3)
                 {
@@ -212,8 +214,7 @@ namespace Archipelago_Inscryption.Archipelago
                 if (Singleton<ItemsManager>.Instance)
                     Singleton<ItemsManager>.Instance.UpdateItems(false);
             }
-
-            if (receivedItem == APItem.AnglerHook && SaveManager.SaveFile.IsPart1)
+            else if (receivedItem == APItem.AnglerHook && SaveManager.SaveFile.IsPart1)
             {
                 if (RunState.Run.consumables.Count >= 3)
                 {
@@ -236,23 +237,45 @@ namespace Archipelago_Inscryption.Archipelago
                 if (Singleton<ItemsManager>.Instance)
                     Singleton<ItemsManager>.Instance.UpdateItems(false);
             }
-
-            if (receivedItem.ToString().Contains("Epitaph"))
+            else if (receivedItem.ToString().Contains("Epitaph"))
             {
                 SaveData.Data.undeadTemple.epitaphPieces[(int)receivedItem - (int)APItem.EpitaphPiece1].found = true;
             }
-
-            if (receivedItem == APItem.Monocle && Singleton<WizardMonocleEffect>.Instance)
+            else if (receivedItem == APItem.Monocle && Singleton<WizardMonocleEffect>.Instance)
             {
                 Singleton<WizardMonocleEffect>.Instance.ShowLayer();
             }
-
-            if (receivedItem == APItem.CameraReplica)
+            else if (receivedItem == APItem.CameraReplica)
             {
                 SaveData.Data.natureTemple.hasCamera = true;
             }
+            else if (receivedItem == APItem.MrsBombRemote && !Part3SaveData.Data.unlockedItems.Contains(Part3SaveData.ItemUnlock.BombRemote))
+            {
+                Part3SaveData.Data.unlockedItems.Add(Part3SaveData.ItemUnlock.BombRemote);
+                Part3SaveData.Data.items.Add(Part3SaveData.ItemUnlock.BombRemote.ToString());
+                if (Singleton<ItemsManager>.Instance && SaveManager.SaveFile.IsPart3)
+                    Singleton<ItemsManager>.Instance.UpdateItems(false);
+            }
+            else if (receivedItem == APItem.ExtraBattery && !Part3SaveData.Data.unlockedItems.Contains(Part3SaveData.ItemUnlock.Battery))
+            {
+                Part3SaveData.Data.unlockedItems.Add(Part3SaveData.ItemUnlock.Battery);
+                Part3SaveData.Data.items.Add(Part3SaveData.ItemUnlock.Battery.ToString());
+                if (Singleton<ItemsManager>.Instance && SaveManager.SaveFile.IsPart3)
+                    Singleton<ItemsManager>.Instance.UpdateItems(false);
+            }
+            else if (receivedItem == APItem.NanoArmorGenerator && !Part3SaveData.Data.unlockedItems.Contains(Part3SaveData.ItemUnlock.ShieldGenerator))
+            {
+                Part3SaveData.Data.unlockedItems.Add(Part3SaveData.ItemUnlock.ShieldGenerator);
+                Part3SaveData.Data.items.Add(Part3SaveData.ItemUnlock.ShieldGenerator.ToString());
+                if (Singleton<ItemsManager>.Instance && SaveManager.SaveFile.IsPart3)
+                    Singleton<ItemsManager>.Instance.UpdateItems(false);
+            }
+            else if (receivedItem == APItem.HoloPelt)
+            {
+                Part3SaveData.Data.pelts++;
+            }
 
-            if (Singleton<GameFlowManager>.Instance != null)
+            if (Singleton<GameFlowManager>.Instance != null && SaveManager.SaveFile.IsPart1)
             {
                 if (receivedItem == APItem.MagnificusEye && Singleton<GameFlowManager>.Instance is Part1GameFlowManager)
                 {
@@ -396,17 +419,20 @@ namespace Archipelago_Inscryption.Archipelago
     {
         internal string[] cardsToUnlock;
         internal string[] rigDraws;
+        internal bool isPart3;
 
-        public UnlockableCardInfo(string[] cardsToUnlock)
+        public UnlockableCardInfo(bool isPart3, string[] cardsToUnlock)
         {
             this.cardsToUnlock = cardsToUnlock;
             this.rigDraws = new string[0];
+            this.isPart3 = isPart3;
         }
 
-        public UnlockableCardInfo(string[] cardsToUnlock, string[] rigDraws)
+        public UnlockableCardInfo(bool isPart3, string[] cardsToUnlock, string[] rigDraws)
         {
             this.cardsToUnlock = cardsToUnlock;
             this.rigDraws = rigDraws;
+            this.isPart3 = isPart3;
         }
     }
 }

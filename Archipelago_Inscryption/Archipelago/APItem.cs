@@ -41,6 +41,14 @@
         DrownedSoulCard,
         SalmonCard,
         GBCCloverPlant,
+        ExtraBattery,
+        NanoArmorGenerator,
+        MrsBombRemote,
+        InspectometerBattery,
+        GemDrone,
+        LonelyWizbotCard,
+        FishbotCard,
+        HoloPelt,
         COUNT
     }
 }

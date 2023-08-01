@@ -34,7 +34,18 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool DontAddIfCheckCard(CardSingleChoicesSequencer __instance)
         {
-            if (__instance.chosenReward.name.Contains("Archipelago")) return false;
+            if (__instance.chosenReward.Info.name.Contains("Archipelago"))
+            {
+                if (__instance.chosenReward.Info.name.Contains("ArchipelagoCheck"))
+                {
+                    string cardName = __instance.chosenReward.Info.name;
+                    string checkName = cardName.Substring(cardName.IndexOf('_') + 1);
+                    APCheck check = Enum.GetValues(typeof(APCheck)).Cast<APCheck>().FirstOrDefault(c => c.ToString() == checkName);
+                    ArchipelagoManager.SendCheck(check);
+                }
+                
+                return false;
+            }
 
             return true;
         }
@@ -91,6 +102,7 @@ namespace Archipelago_Inscryption.Patches
         {
             APCheck check;
             StoryEvent storyEvent;
+
             if (__instance.name.Contains("1"))
             {
                 check = APCheck.CabinDrawer1;
@@ -106,7 +118,7 @@ namespace Archipelago_Inscryption.Patches
                 check = APCheck.CabinDrawer3;
                 storyEvent = StoryEvent.WardrobeDrawer3Opened;
             }
-            else
+            else if (__instance.name.Contains("4"))
             {
                 check = APCheck.CabinDrawer4;
                 storyEvent = StoryEvent.WardrobeDrawer4Opened;
@@ -114,6 +126,16 @@ namespace Archipelago_Inscryption.Patches
                 Transform squirrelHead = __instance.drawerContents[0].transform;
                 squirrelHead.eulerAngles = new Vector3(90, 114, 0);
                 squirrelHead.localScale = Vector3.one * 0.7114f;
+            }
+            else if (__instance.drawerContents[0].name.Contains("Card"))
+            {
+                check = APCheck.FactoryDrawer2;
+                storyEvent = StoryEvent.FactoryWardrobe2Opened;
+            }
+            else
+            {
+                check = APCheck.FactoryDrawer1;
+                storyEvent = StoryEvent.FactoryWardrobe1Opened;
             }
 
             DiscoverableCheckInteractable checkCard = RandomizerHelper.CreateDiscoverableCardCheck(__instance.drawerContents[0].gameObject, check, true, storyEvent);
@@ -520,6 +542,103 @@ namespace Archipelago_Inscryption.Patches
             RandomizerHelper.GiveGBCCheck(APCheck.GBCMonocle);
 
             return false;
+        }
+
+        [HarmonyPatch(typeof(CubeChestInteractable), "Start")]
+        [HarmonyPostfix]
+        static void ReplaceAnglerCardWithCheck(CubeChestInteractable __instance)
+        {
+            GameObject card = __instance.GetComponentInChildren<DiscoverableTalkingCardInteractable>(true).gameObject;
+            RandomizerHelper.CreateDiscoverableCardCheck(card, APCheck.FactoryChest, true);
+        }
+
+        [HarmonyPatch(typeof(HoloMapArea), "Start")]
+        [HarmonyPrefix]
+        static void ReplaceMapNodesWithChecks(HoloMapArea __instance)
+        {
+            switch (__instance.name)
+            {
+                case "HoloMapArea_StartingIslandBattery(Clone)":
+                    RandomizerHelper.CreateHoloMapNodeCheck(__instance.transform.Find("Nodes/UnlockItemNode3D_Battery").gameObject, APCheck.FactoryExtraBattery);
+                    break;
+                case "HoloMapArea_Shop(Clone)":
+                    RandomizerHelper.CreateHoloMapNodeCheck(__instance.transform.Find("Nodes/ShopNode3D_ShieldGenItem/UnlockItemNode3D_ShieldGenerator").gameObject, APCheck.FactoryNanoArmorGenerator);
+                    RandomizerHelper.CreateHoloMapNodeCheck(__instance.transform.Find("Nodes/ShopNode3D_PickupPelt/PickupPeltNode3D").gameObject, APCheck.FactoryHoloPelt1);
+                    break;
+            }
+        }
+
+        [HarmonyPatch(typeof(InspectionMachineInteractable), "Start")]
+        [HarmonyPrefix]
+        static void CreateBatteryCheck(InspectionMachineInteractable __instance)
+        {
+            GameObject reference = new GameObject();
+            reference.transform.position = new Vector3(90.3f, 5f, 5f);
+            reference.transform.eulerAngles = new Vector3(0, 90, 0);
+            reference.transform.localScale = Vector3.one * 0.7114f;
+            reference.AddComponent<BoxCollider>().size = new Vector3(1.2f, 1.8f, 0.2f);
+
+            RandomizerHelper.CreateDiscoverableCardCheck(reference, APCheck.FactoryInspectometerBattery, true);
+
+            HoldableBattery battery = __instance.GetComponentInChildren<HoldableBattery>();
+
+            if (battery)
+            {
+                if (!ArchipelagoManager.HasItem(APItem.InspectometerBattery))
+                {
+                    battery.transform.parent.gameObject.SetActive(false);
+                    __instance.gameObject.AddComponent<ActivateOnItemReceived>().Init(battery.transform.parent.gameObject, APItem.InspectometerBattery);
+                }
+                else
+                {
+                    battery.transform.parent.gameObject.SetActive(true);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(HoloMapPeltMinigame), "Start")]
+        [HarmonyPrefix]
+        static bool ReplacePeltWithCheck(HoloMapPeltMinigame __instance)
+        {
+            APCheck check = APCheck.FactoryHoloPelt1;
+
+            switch (__instance.GetComponentInParent<HoloMapArea>().gameObject.name)
+            {
+                case "HoloMapArea_NeutralWest_Secret(Clone)":
+                    check = APCheck.FactoryHoloPelt2;
+                    break;
+                case "HoloMapArea_NatureSecret(Clone)":
+                    check = APCheck.FactoryHoloPelt3;
+                    break;
+                case "HoloMapArea_TempleUndeadShop(Clone)":
+                    check = APCheck.FactoryHoloPelt4;
+                    break;
+                case "HoloMapArea_WizardSecret(Clone)":
+                    check = APCheck.FactoryHoloPelt5;
+                    break;
+            }
+
+            if (RandomizerHelper.CreateHoloMapNodeCheck(__instance.rewardNode.gameObject, check))
+            {
+                return true;
+            }
+
+            if (__instance.trapInteractable.Completed)
+            {
+                __instance.rabbitAnim.gameObject.SetActive(false);
+                __instance.trapAnim.Play("shut", 0, 1f);
+            }
+
+            return false;
+        }
+
+        [HarmonyPatch(typeof(HoloMapLukeFile), "OnInteracted")]
+        [HarmonyPostfix]
+        static void GiveLukeFileCheck()
+        {
+            APCheck check = APCheck.FactoryLukeFileEntry1 + (Mathf.Clamp(Singleton<HoloMapAreaManager>.Instance.CurrentArea.SaveData.lukeFileIndex, 0, HoloMapLukeFile.FILE_NAMES.Length) - 1);
+
+            ArchipelagoManager.SendCheck(check);
         }
     }
 

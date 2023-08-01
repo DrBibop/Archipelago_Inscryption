@@ -91,8 +91,13 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPostfix]
         static void DestroyCardPackPile(DeckReviewSequencer __instance)
         {
-            if (ArchipelagoManager.AvailableCardPacks <= 0 || Singleton<GameFlowManager>.Instance.CurrentGameState != GameState.Map) return;
+            RandomizerHelper.DestroyPackPile();
+        }
 
+        [HarmonyPatch(typeof(Part3DeckReviewSequencer), "OnExitDeckView")]
+        [HarmonyPostfix]
+        static void DestroyPart3CardPackPile(Part3DeckReviewSequencer __instance)
+        {
             RandomizerHelper.DestroyPackPile();
         }
     }
