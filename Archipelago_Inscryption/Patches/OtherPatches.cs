@@ -1,6 +1,8 @@
-﻿using Archipelago_Inscryption.Helpers;
+﻿using Archipelago_Inscryption.Archipelago;
+using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using HarmonyLib;
+using InscryptionAPI.Saves;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -50,6 +52,17 @@ namespace Archipelago_Inscryption.Patches
         {
             if (__instance.IsPart1 || __instance.IsPart3)
                 __result += __instance.gbcData.packsOpened * 2;
+        }
+
+        [HarmonyPatch(typeof(SaveManager), "CreateNewSaveFile")]
+        [HarmonyPrefix]
+        static bool EraseArchipelagoData()
+        {
+            ArchipelagoClient.serverData.completedChecks.Clear();
+            ArchipelagoClient.serverData.receivedItems.Clear();
+            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", new List<long>());
+            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", new List<string>());
+            return true;
         }
     }
     

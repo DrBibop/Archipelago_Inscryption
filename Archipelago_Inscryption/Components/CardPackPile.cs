@@ -1,4 +1,5 @@
 ﻿using Archipelago_Inscryption.Archipelago;
+using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using GBC;
 using Pixelplacement;
@@ -61,9 +62,9 @@ namespace Archipelago_Inscryption.Components
 
             yield return new WaitForSeconds(0.5f);
 
-            GameObject cardPileObject = Instantiate(ResourceBank.Get<GameObject>("Prefabs/Cards/CardPile"), pileTop.transform);
+            GameObject cardPileObject = Instantiate(ResourceBank.Get<GameObject>(SaveManager.SaveFile.IsPart3 ? "Prefabs/Cards/CardPile_Part3" : "Prefabs/Cards/CardPile"), pileTop.transform);
             CardPile pile = cardPileObject.GetComponent<CardPile>();
-            pile.transform.position = pileTop.transform.position + new Vector3(0, 0.1f, 0);
+            pile.transform.position = pileTop.transform.position + new Vector3(0, SaveManager.SaveFile.IsPart3 ? -0.05f : 0.1f, 0);
             pile.SetEnabled(false);
             pile.CreateCards(3, 0f);
             pileTop.GetComponentInChildren<Animator>().Play("open", 0, 0f);
@@ -78,15 +79,16 @@ namespace Archipelago_Inscryption.Components
 
             Singleton<InteractionCursor>.Instance.InteractionDisabled = false;
 
+            SaveManager.SaveFile.gbcData.packsOpened++;
+            ArchipelagoManager.AvailableCardPacks--;
+
+            RandomizerHelper.DestroyPackPile();
+
             CardChoicesNodeData nodeData = new CardChoicesNodeData();
             nodeData.choicesType = CardChoicesType.Random;
             Singleton<GameFlowManager>.Instance.TransitionToGameState(GameState.SpecialCardSequence, nodeData);
 
-            SaveManager.SaveFile.gbcData.packsOpened++;
-
             yield return new WaitForSeconds(0.25f);
-
-            ArchipelagoManager.AvailableCardPacks--;
         }
     }
 }

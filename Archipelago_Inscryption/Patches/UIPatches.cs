@@ -6,6 +6,9 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using HarmonyLib;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -148,7 +151,7 @@ namespace Archipelago_Inscryption.Patches
 
             Object.Destroy(newButtonObject.transform.GetChild(0).gameObject);
 
-            newButton.CursorSelectEnded = (x => CustomCoroutine.instance.StartCoroutine(RandomizerHelper.OnPackButtonPressed(x)));
+            newButton.CursorSelectEnded = (x => CustomCoroutine.instance.StartCoroutine(RandomizerHelper.OnPackButtonPressed()));
 
             RandomizerHelper.packButton = newButton;
             RandomizerHelper.UpdatePackButtonEnabled();
@@ -178,8 +181,10 @@ namespace Archipelago_Inscryption.Patches
         {
             if (chapter == 1)
                 __instance.confirmPromptText.text = "Start a new act 1 run?";
-            else
-                __instance.confirmPromptText.text = $"Continue act {chapter}?";
+            else if (chapter == 2)
+                __instance.confirmPromptText.text = StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUsed) ? "Continue act 2?" : "Start act 2?";
+            else if (chapter == 3)
+                __instance.confirmPromptText.text = $"Continue act 3?";
 
             return true;
         }
@@ -192,10 +197,44 @@ namespace Archipelago_Inscryption.Patches
             __instance.transform.Find("Chapter_Row/ChapterSelectItemUI").gameObject.SetActive(false);
             if (!StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked))
                 __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject.SetActive(false);
-            if (!StoryEventsData.EventCompleted(StoryEvent.Part2Completed))
-                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
+            //if (!StoryEventsData.EventCompleted(StoryEvent.Part2Completed))
+            //    __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
             if (!StoryEventsData.EventCompleted(StoryEvent.Part3Completed))
                 __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (4)").gameObject.SetActive(false);
+        }
+
+        [HarmonyPatch(typeof(MenuController), "OnCardReachedSlot")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceNewGameWithChapterSelect(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(StoryEventsData), "EventCompleted")));
+
+            codes.RemoveRange(index, 49);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Pop),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(UIHelper), "GoToChapterSelect"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+
+        [HarmonyPatch(typeof(MenuCard), "Awake")]
+        [HarmonyPostfix]
+        static void ReplaceNewGameText(MenuCard __instance)
+        {
+            if (__instance.MenuAction == MenuAction.NewGame)
+            {
+                __instance.titleSprite = null;
+                __instance.lockedTitleSprite = null;
+                __instance.titleLocId = "";
+                __instance.titleText = "CHAPTER SELECT";
+            }
         }
     }
 }
