@@ -6,6 +6,7 @@ using DiskCardGame;
 using GBC;
 using InscryptionAPI.Card;
 using Pixelplacement;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +35,7 @@ namespace Archipelago_Inscryption.Helpers
 
         private static readonly string[] checkCardP03Dialog =
         {
-            "Huh? What even is this?.",
+            "Huh? What even is this?",
             "How did that end up there?",
             "Wait, this doesn't belong in Botopia...",
             "I don't remember printing that.",
@@ -43,6 +44,15 @@ namespace Archipelago_Inscryption.Helpers
             "This looks completely useless.",
             "That's weird... Don't let it distract you, though."
         };
+        /*
+        private static readonly string[] checkCardTraderDialog =
+        {
+            "A fine reward for your first pelt, don't you think?",
+            "Quite mysterious, but surely worth the pelt.",
+            "Here's another strange one. Do you know what this is?",
+            "I am still unsure where these cards come from.",
+            "This is the last one I found."
+        };*/
 
         private static readonly Dictionary<Character, APCheck> npcCheckPairs = new Dictionary<Character, APCheck>()
         {
@@ -144,7 +154,7 @@ namespace Archipelago_Inscryption.Helpers
                 newCardInteractable.onDiscoverText = info.description;
                 newCardInteractable.storyEvent = StoryEvent.NUM_EVENTS;
                 newCardInteractable.requireStoryEventToAddToDeck = false;
-                GameObject newCard = Object.Instantiate(SaveManager.SaveFile.IsPart3 ? AssetsManager.selectableDiskCardPrefab : AssetsManager.selectableCardPrefab, newCheckCard.transform);
+                GameObject newCard = GameObject.Instantiate(SaveManager.SaveFile.IsPart3 ? AssetsManager.selectableDiskCardPrefab : AssetsManager.selectableCardPrefab, newCheckCard.transform);
                 newCard.name = "ArchipelagoCheckCard_" + check.ToString();
                 newCard.transform.ResetTransform();
                 newCardInteractable.card = newCard.GetComponent<SelectableCard>();
@@ -160,39 +170,39 @@ namespace Archipelago_Inscryption.Helpers
                 }
 
                 if (destroyOriginal)
-                    Object.Destroy(originalObject);
+                    GameObject.Destroy(originalObject);
 
                 return newCardInteractable;
             }
             else
             {
                 if (destroyOriginal)
-                    Object.Destroy(originalObject);
+                    GameObject.Destroy(originalObject);
 
                 return null;
             }
             
         }
 
-        internal static bool CreateHoloMapNodeCheck(GameObject originalNodeObject, APCheck check)
+        internal static HoloMapNode CreateHoloMapNodeCheck(GameObject originalNodeObject, APCheck check)
         {
             HoloMapNode originalNode = originalNodeObject.GetComponent<HoloMapNode>();
 
-            bool nodeCreated = false;
+            HoloMapNode newNode = null;
 
             if (!ArchipelagoManager.HasCompletedCheck(check))
             {
-                GameObject newNodeObject = Object.Instantiate(AssetsManager.cardChoiceHoloNodePrefab, originalNodeObject.transform.parent);
+                GameObject newNodeObject = GameObject.Instantiate(AssetsManager.cardChoiceHoloNodePrefab, originalNodeObject.transform.parent);
                 newNodeObject.transform.localPosition = originalNodeObject.transform.localPosition;
                 newNodeObject.transform.localRotation = originalNodeObject.transform.localRotation;
 
-                HoloMapNode newNode = newNodeObject.GetComponent<HoloMapNode>();
+                newNode = newNodeObject.GetComponent<HoloMapNode>();
                 newNode.nodeId = originalNode.nodeId;
                 newNode.fixedChoices = new List<CardInfo>() { GenerateCardInfo(check) };
                 newNodeObject.transform.Find("RendererParent/Renderer").GetComponent<MeshFilter>().sharedMesh = AssetsManager.checkCardHoloNodeMesh;
                 Renderer rendererToDelete = newNode.nodeRenderers[1];
                 newNode.nodeRenderers.RemoveAt(1);
-                Object.Destroy(rendererToDelete.gameObject);
+                GameObject.Destroy(rendererToDelete.gameObject);
                 newNode.AssignNodeData();
 
                 if (!originalNodeObject.activeSelf)
@@ -210,22 +220,16 @@ namespace Archipelago_Inscryption.Helpers
                     {
                         renderer.material.SetColor("_MainColor", newNode.defaultColor);
                     }
+                    GameObject.Destroy(newNodeObject.GetComponent<BoxCollider>());
                 }
-
-                HoloMapPeltMinigame peltMinigame = originalNodeObject.GetComponentInParent<HoloMapPeltMinigame>();
-
-                if (peltMinigame)
-                    peltMinigame.rewardNode = newNode;
-
-                nodeCreated = true;
             }
 
             if (Singleton<MapNodeManager>.Instance.nodes.Contains(originalNode))
                 Singleton<MapNodeManager>.Instance.nodes.Remove(originalNode);
 
-            Object.Destroy(originalNodeObject);
+            GameObject.Destroy(originalNodeObject);
 
-            return nodeCreated;
+            return newNode;
         }
 
         internal static void CreateWizardEyeCheck(EyeballInteractable wizardEye)
@@ -261,7 +265,7 @@ namespace Archipelago_Inscryption.Helpers
             info.SetPortrait(modPath + "\\CardPortraits\\archi_portrait.png");
             info.SetPixelPortrait(modPath + "\\CardPortraits\\archi_portrait_gbc.png");
             string[] discoverTextDialogs = SaveManager.SaveFile.IsPart3 ? checkCardP03Dialog : checkCardLeshyDialog;
-            info.description = discoverTextDialogs[Random.Range(0, discoverTextDialogs.Length)];
+            info.description = discoverTextDialogs[UnityEngine.Random.Range(0, discoverTextDialogs.Length)];
             return info;
         }
 
@@ -361,7 +365,7 @@ namespace Archipelago_Inscryption.Helpers
             if (result)
             {
                 ArchipelagoManager.AvailableCardPacks--;
-                yield return PackOpeningUI.instance.OpenPack((CardTemple)Random.Range(0, (int)CardTemple.NUM_TEMPLES));
+                yield return PackOpeningUI.instance.OpenPack((CardTemple)UnityEngine.Random.Range(0, (int)CardTemple.NUM_TEMPLES));
                 SaveManager.SaveToFile();
             }
             yield return new WaitForSeconds(0.25f);
@@ -389,7 +393,7 @@ namespace Archipelago_Inscryption.Helpers
 
             for (int i = 0; i < ArchipelagoManager.AvailableCardPacks; i++)
             {
-                GameObject pack = Object.Instantiate(AssetsManager.cardPackPrefab, packPile.transform);
+                GameObject pack = GameObject.Instantiate(AssetsManager.cardPackPrefab, packPile.transform);
                 pack.transform.localPosition = new Vector3(-10, 0.1f * i, 0);
                 Tween.LocalPosition(pack.transform, new Vector3(0, 0.1f * i, 0), 0.20f, 0.02f * i, Tween.EaseOut);
                 packs.Add(pack);
@@ -407,12 +411,12 @@ namespace Archipelago_Inscryption.Helpers
             int i = 0;
             foreach (GameObject pack in packs)
             {
-                Tween.LocalPosition(pack.transform, new Vector3(-10, 0.1f * i, 0), 0.20f, 0.02f * (ArchipelagoManager.AvailableCardPacks - i - 1), Tween.EaseIn, Tween.LoopType.None, null, () => Object.Destroy(pack));
+                Tween.LocalPosition(pack.transform, new Vector3(-10, 0.1f * i, 0), 0.20f, 0.02f * (ArchipelagoManager.AvailableCardPacks - i - 1), Tween.EaseIn, Tween.LoopType.None, null, () => GameObject.Destroy(pack));
 
                 i++;
             }
             packs.Clear();
-            Object.Destroy(packPile, 1);
+            GameObject.Destroy(packPile, 1);
             packPile = null;
         }
 
@@ -446,6 +450,49 @@ namespace Archipelago_Inscryption.Helpers
                 SaveManager.SaveFile.NewPart1Run();
                 SceneLoader.Load("Part1_Cabin");
             }
+        }
+
+        internal static IEnumerator TraderPeltRewardCheckSequence(TraderMaskInteractable instance)
+        {
+            APCheck check = APCheck.FactoryTrader1 + Part3SaveData.Data.collectedTarots.Count;
+            if (ArchipelagoManager.HasCompletedCheck(check))
+            {
+                Part3SaveData.Data.collectedTarots.Add(instance.GetAvailableTarotTypes().First());
+                yield break; 
+            }
+
+            Singleton<InteractionCursor>.Instance.InteractionDisabled = false;
+            Singleton<ViewManager>.Instance.OffsetPosition(new Vector3(0f, -2f, 8f), 0.25f);
+            Singleton<ViewManager>.Instance.OffsetRotation(new Vector3(50f, 0f, 0f), 0.25f);
+
+            yield return new WaitForSeconds(0.1f);
+
+            GameObject reference = new GameObject("Ref");
+            reference.transform.SetParent(instance.cardsParent);
+            reference.transform.ResetTransform();
+            reference.transform.localScale = Vector3.one * 0.5f;
+            reference.AddComponent<BoxCollider>().size = new Vector3(1.2f, 1.8f, 0.4f);
+
+            DiscoverableCheckInteractable checkCard = CreateDiscoverableCardCheck(reference, check, true);
+            checkCard.closeUpDistance *= 1.5f;
+            Vector3 targetPos = checkCard.transform.position;
+            checkCard.transform.position += new Vector3(0, 3, 1);
+            Tween.Position(checkCard.transform, targetPos, 0.25f, 0f, Tween.EaseIn);
+            checkCard.SetEnabled(false);
+
+            yield return new WaitForSeconds(0.25f);
+
+            checkCard.SetEnabled(true);
+
+            yield return new WaitUntil(() => checkCard.Discovering);
+            yield return new WaitUntil(() => !checkCard.Discovering);
+
+            Part3SaveData.Data.collectedTarots.Add(instance.GetAvailableTarotTypes().First());
+
+            yield return new WaitForSeconds(0.75f);
+
+            Singleton<ViewManager>.Instance.OffsetPosition(Vector3.zero, 0.25f);
+            Singleton<ViewManager>.Instance.OffsetRotation(new Vector3(10f, 0f, 0f), 0.25f);
         }
     }
 }

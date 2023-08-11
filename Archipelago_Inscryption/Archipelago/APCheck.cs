@@ -99,8 +99,9 @@
         FactoryLukeFileEntry3,
         FactoryLukeFileEntry4,
         FactoryInspectometerBattery,
-        FactoryGemDrone,
+        FactoryGemsDrone,
         FactoryGreatTranscendence,
+        FactoryWell,
         COUNT
     }
 }

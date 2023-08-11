@@ -149,39 +149,59 @@ namespace Archipelago_Inscryption.Patches
 
         [HarmonyPatch(typeof(CuckooClock), "Start")]
         [HarmonyPrefix]
-        static bool ReplaceStuntedWolfAndRingWithChecks(CuckooClock __instance)
+        static bool ReplaceClockContentsWithChecks(CuckooClock __instance)
         {
-            GameObject stuntedWolfCard = __instance.largeCompartmentContents[0].gameObject;
-            GameObject ring = __instance.smallCompartmentContents[0].gameObject;
-            ring.transform.eulerAngles = new Vector3(0, 180, 0);
-            ring.transform.localScale = Vector3.one * 0.7114f;
-
-            DiscoverableCheckInteractable checkCard1 = RandomizerHelper.CreateDiscoverableCardCheck(stuntedWolfCard, APCheck.CabinClock1, true, StoryEvent.ClockCompartmentOpened);
-            DiscoverableCheckInteractable checkCard2 = RandomizerHelper.CreateDiscoverableCardCheck(ring, APCheck.CabinClock2, true, StoryEvent.ClockSmallCompartmentOpened);
-            GameObject.Destroy(__instance.largeCompartmentContents[1].gameObject);
-            __instance.largeCompartmentContents.Clear();
-            __instance.smallCompartmentContents.Clear();
-
-            int fplLayer = LayerMask.NameToLayer("FirstPersonLighting");
-
-            if (checkCard1)
+            if (SaveManager.SaveFile.IsPart3)
             {
-                __instance.largeCompartmentContents.Add(checkCard1);
-                checkCard1.gameObject.SetLayerRecursive(fplLayer);
-                if (!StoryEventsData.EventCompleted(StoryEvent.ClockCompartmentOpened))
-                    checkCard1.SetEnabled(false);
+                GameObject ourobotCard = __instance.largeCompartmentContents[0].gameObject;
+                __instance.largeCompartmentContents.Clear();
+
+                DiscoverableCheckInteractable checkCard = RandomizerHelper.CreateDiscoverableCardCheck(ourobotCard, APCheck.FactoryClock, true, StoryEvent.FactoryCuckooClockOpenedLarge);
+
+                int fplLayer = LayerMask.NameToLayer("FirstPersonLighting");
+
+                if (checkCard)
+                {
+                    __instance.largeCompartmentContents.Add(checkCard);
+                    checkCard.gameObject.SetLayerRecursive(fplLayer);
+                    if (!StoryEventsData.EventCompleted(StoryEvent.FactoryCuckooClockOpenedLarge))
+                        checkCard.SetEnabled(false);
+                }
             }
-
-            if (checkCard2)
+            else
             {
-                checkCard2.closeUpEulers = Vector3.zero;
-                checkCard2.closeUpDistance = 2.2f;
-                checkCard2.GetComponent<BoxCollider>().size = new Vector3(1.2f, 1.8f, 0.4f);
+                GameObject stuntedWolfCard = __instance.largeCompartmentContents[0].gameObject;
+                GameObject ring = __instance.smallCompartmentContents[0].gameObject;
+                ring.transform.eulerAngles = new Vector3(0, 180, 0);
+                ring.transform.localScale = Vector3.one * 0.7114f;
 
-                __instance.smallCompartmentContents.Add(checkCard2);
-                checkCard2.gameObject.SetLayerRecursive(fplLayer);
-                if (!StoryEventsData.EventCompleted(StoryEvent.ClockCompartmentOpened))
-                    checkCard2.SetEnabled(false);
+                DiscoverableCheckInteractable checkCard1 = RandomizerHelper.CreateDiscoverableCardCheck(stuntedWolfCard, APCheck.CabinClock1, true, StoryEvent.ClockCompartmentOpened);
+                DiscoverableCheckInteractable checkCard2 = RandomizerHelper.CreateDiscoverableCardCheck(ring, APCheck.CabinClock2, true, StoryEvent.ClockSmallCompartmentOpened);
+                GameObject.Destroy(__instance.largeCompartmentContents[1].gameObject);
+                __instance.largeCompartmentContents.Clear();
+                __instance.smallCompartmentContents.Clear();
+
+                int fplLayer = LayerMask.NameToLayer("FirstPersonLighting");
+
+                if (checkCard1)
+                {
+                    __instance.largeCompartmentContents.Add(checkCard1);
+                    checkCard1.gameObject.SetLayerRecursive(fplLayer);
+                    if (!StoryEventsData.EventCompleted(StoryEvent.ClockCompartmentOpened))
+                        checkCard1.SetEnabled(false);
+                }
+
+                if (checkCard2)
+                {
+                    checkCard2.closeUpEulers = Vector3.zero;
+                    checkCard2.closeUpDistance = 2.2f;
+                    checkCard2.GetComponent<BoxCollider>().size = new Vector3(1.2f, 1.8f, 0.4f);
+
+                    __instance.smallCompartmentContents.Add(checkCard2);
+                    checkCard2.gameObject.SetLayerRecursive(fplLayer);
+                    if (!StoryEventsData.EventCompleted(StoryEvent.ClockCompartmentOpened))
+                        checkCard2.SetEnabled(false);
+                }
             }
 
             return true;
@@ -618,8 +638,11 @@ namespace Archipelago_Inscryption.Patches
                     break;
             }
 
-            if (RandomizerHelper.CreateHoloMapNodeCheck(__instance.rewardNode.gameObject, check))
+            HoloMapNode checknode = RandomizerHelper.CreateHoloMapNodeCheck(__instance.rewardNode.gameObject, check);
+
+            if (checknode)
             {
+                __instance.rewardNode = checknode;
                 return true;
             }
 
@@ -632,13 +655,91 @@ namespace Archipelago_Inscryption.Patches
             return false;
         }
 
-        [HarmonyPatch(typeof(HoloMapLukeFile), "OnInteracted")]
+        [HarmonyPatch(typeof(HoloMapLukeFile), "OnFolderHitMapKeyframe")]
         [HarmonyPostfix]
         static void GiveLukeFileCheck()
         {
-            APCheck check = APCheck.FactoryLukeFileEntry1 + (Mathf.Clamp(Singleton<HoloMapAreaManager>.Instance.CurrentArea.SaveData.lukeFileIndex, 0, HoloMapLukeFile.FILE_NAMES.Length) - 1);
+            APCheck check = APCheck.FactoryLukeFileEntry1 + (Mathf.Clamp(Part3SaveData.Data.lukeFileIndex, 0, HoloMapLukeFile.FILE_NAMES.Length) - 1);
 
             ArchipelagoManager.SendCheck(check);
+        }
+
+        [HarmonyPatch(typeof(HoloMapWell), "Start")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ChangeDredgedCondition(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.LoadsField(AccessTools.Field(typeof(Part3SaveData), "foundUndeadTempleQuill")));
+
+            index--;
+
+            codes.RemoveRange(index, 2);
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldc_I4, (int)APCheck.FactoryWell),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ArchipelagoManager), "HasCompletedCheck"))
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+
+        [HarmonyPatch(typeof(HoloMapWell), "Start")]
+        [HarmonyPostfix]
+        static void ReplaceQuillWithCheck(HoloMapWell __instance)
+        {
+            HoloMapNode checkNode = RandomizerHelper.CreateHoloMapNodeCheck(__instance.itemNodes[0].gameObject, APCheck.FactoryWell);
+
+            if (checkNode)
+            {
+                __instance.itemNodes[0] = checkNode;
+            }
+        }
+
+        [HarmonyPatch(typeof(FactoryGemsDrone), "Start")]
+        [HarmonyPostfix]
+        static void CreateGemsDroneCheck(FactoryGemsDrone __instance)
+        {
+            GameObject reference = new GameObject();
+            reference.transform.SetParent(__instance.transform.Find("Anim"));
+            reference.transform.localPosition = new Vector3(0.0109f, 0.2764f, 1.6309f);
+            reference.transform.localEulerAngles = new Vector3(90, 0, 0);
+            reference.transform.localScale = Vector3.one * 0.7114f;
+            reference.AddComponent<BoxCollider>().size = new Vector3(1.2f, 1.8f, 0.2f);
+
+            RandomizerHelper.CreateDiscoverableCardCheck(reference, APCheck.FactoryGemsDrone, true);
+
+            if (__instance.shelf.CurrentHoldable && !ArchipelagoManager.HasItem(APItem.GemsModule))
+            {
+                __instance.shelf.gameObject.SetActive(false);
+                __instance.gameObject.AddComponent<ActivateOnItemReceived>().Init(__instance.shelf.gameObject, APItem.GemsModule);
+            }
+        }
+
+        [HarmonyPatch(typeof(FactoryGemsDrone), "OnGemsTaken")]
+        [HarmonyPrefix]
+        static bool SendDroneCheckIfNotCompleted(FactoryGemsDrone __instance)
+        {
+            if (!__instance.shelf.gameObject.activeSelf) return false;
+
+            if (!ArchipelagoManager.HasCompletedCheck(APCheck.FactoryGemsDrone))
+            {
+                DiscoverableCheckInteractable checkCard = __instance.GetComponentInChildren<DiscoverableCheckInteractable>();
+
+                if (checkCard)
+                {
+                    checkCard.Discover();
+                }
+                else
+                {
+                    ArchipelagoManager.SendCheck(APCheck.FactoryGemsDrone);
+                }
+            }
+
+            return true;
         }
     }
 
@@ -968,6 +1069,29 @@ namespace Archipelago_Inscryption.Patches
             };
 
             codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class TarotCardsPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(TraderMaskInteractable).GetNestedType("<DialogueSequence>d__11", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ReplaceTarotCardsWithCheck(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(TraderMaskInteractable), "ChooseTarotSequence")));
+
+            codes.RemoveAt(index);
+
+            codes.Insert(index, new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "TraderPeltRewardCheckSequence")));
 
             return codes.AsEnumerable();
         }

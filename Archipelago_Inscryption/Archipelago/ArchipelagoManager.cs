@@ -31,7 +31,10 @@ namespace Archipelago_Inscryption.Archipelago
             { StoryEvent.ArchivistDefeated,             APCheck.FactoryBossArchivist },
             { StoryEvent.CanvasDefeated,                APCheck.FactoryBossUnfinished },
             { StoryEvent.TelegrapherDefeated,           APCheck.FactoryBossG0lly },
+            { StoryEvent.MycologistsBossDefeated,       APCheck.FactoryBossMycologists },
             { StoryEvent.Part3Completed,                APCheck.FactoryGreatTranscendence },
+            { StoryEvent.Part3MetBonelord,              APCheck.FactoryBoneLordRoom },
+            { StoryEvent.GooPlaneGoobertRevealed,       APCheck.FactoryGoobertPainting }
         };
 
         // When one of the following items is received, set the associated story event as completed.
@@ -59,7 +62,7 @@ namespace Archipelago_Inscryption.Archipelago
             { APItem.BoneLordFemur,                     StoryEvent.GBCBoneFound },
             { APItem.GBCCloverPlant,                    StoryEvent.GBCCloverFound },
             { APItem.FishbotCard,                       StoryEvent.TalkingAnglerCardDiscovered },
-            { APItem.LonelyWizbotCard,                  StoryEvent.TalkingBlueMageCardDiscovered },
+            { APItem.LonelyWizbotCard,                  StoryEvent.TalkingBlueMageCardDiscovered }
         };
 
         // When one of the following items is received, add the associated card(s) to the deck.
@@ -273,6 +276,10 @@ namespace Archipelago_Inscryption.Archipelago
             else if (receivedItem == APItem.HoloPelt)
             {
                 Part3SaveData.Data.pelts++;
+            }
+            else if (receivedItem == APItem.Quill)
+            {
+                Part3SaveData.Data.foundUndeadTempleQuill = true;
             }
 
             if (Singleton<GameFlowManager>.Instance != null && SaveManager.SaveFile.IsPart1)
