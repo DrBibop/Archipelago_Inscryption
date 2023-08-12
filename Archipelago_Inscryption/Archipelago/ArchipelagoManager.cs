@@ -87,8 +87,10 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static int availableCardPacks = 0;
 
-        private static bool deathCardChooserEnable = true;
-        private static bool deathCardChooserDeathLinkDisable = true;
+        internal static OptionalDeathCard optionalDeathCard = OptionalDeathCard.Disable;
+        internal static bool RandomizeCodes = false;
+        internal static bool RandomizeDeck = false;
+        internal static bool Trap = false;
 
         internal static int AvailableCardPacks
         {
@@ -135,7 +137,12 @@ namespace Archipelago_Inscryption.Archipelago
             ApplyItemReceived(receivedItem);
         }
 
-        private static void ApplyItemReceived(APItem receivedItem)
+        private static void OnDeathLinkReceived(NetworkItem item)
+        {
+
+        }
+
+            private static void ApplyItemReceived(APItem receivedItem)
         {
             if (itemStoryPairs.TryGetValue(receivedItem, out StoryEvent storyEvent))
             {
