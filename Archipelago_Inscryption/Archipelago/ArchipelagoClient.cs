@@ -32,7 +32,7 @@ namespace Archipelago_Inscryption.Archipelago
         private static bool isConnecting = false;
         private static bool isConnected = false;
 
-        private static ArchipelagoSession session;
+        internal static ArchipelagoSession session;
 
         internal static void Init()
         {

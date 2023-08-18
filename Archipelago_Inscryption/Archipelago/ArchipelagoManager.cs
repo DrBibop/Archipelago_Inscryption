@@ -137,12 +137,7 @@ namespace Archipelago_Inscryption.Archipelago
             ApplyItemReceived(receivedItem);
         }
 
-        private static void OnDeathLinkReceived(NetworkItem item)
-        {
-
-        }
-
-            private static void ApplyItemReceived(APItem receivedItem)
+        private static void ApplyItemReceived(APItem receivedItem)
         {
             if (itemStoryPairs.TryGetValue(receivedItem, out StoryEvent storyEvent))
             {
@@ -173,7 +168,7 @@ namespace Archipelago_Inscryption.Archipelago
                     SaveData.Data.currency++;
                 else
                     RunState.Run.currency++;
-            } 
+            }
             else if (receivedItem == APItem.CardPack)
             {
                 AvailableCardPacks++;
@@ -342,7 +337,7 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void OnScoutDone(LocationInfoPacket packet)
         {
-            for (int i = 0;  i < packet.Locations.Length; i++)
+            for (int i = 0; i < packet.Locations.Length; i++)
             {
                 NetworkItem location = packet.Locations[i];
 
@@ -350,10 +345,10 @@ namespace Archipelago_Inscryption.Archipelago
                 string itemName = ArchipelagoClient.GetItemName(location.Item);
 
                 checkInfos.Add((APCheck)(location.Location - CHECK_ID_OFFSET), new CheckInfo(
-                    location.Location, 
-                    location.Player, 
-                    recipientName, 
-                    location.Item, 
+                    location.Location,
+                    location.Player,
+                    recipientName,
+                    location.Item,
                     itemName)
                 );
             }
@@ -392,6 +387,11 @@ namespace Archipelago_Inscryption.Archipelago
             long itemID = ITEM_ID_OFFSET + (long)item;
 
             return ArchipelagoClient.serverData.receivedItems.Any(x => x.Item == itemID);
+        }
+
+        internal static void KillPlayer()
+        {
+
         }
 
         internal static CheckInfo GetCheckInfo(APCheck check)
