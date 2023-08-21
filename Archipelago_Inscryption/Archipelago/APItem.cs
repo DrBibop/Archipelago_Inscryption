@@ -45,10 +45,11 @@
         NanoArmorGenerator,
         MrsBombRemote,
         InspectometerBattery,
-        GemDrone,
+        GemsModule,
         LonelyWizbotCard,
         FishbotCard,
         HoloPelt,
+        Quill,
         COUNT
     }
 }
