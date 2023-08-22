@@ -194,11 +194,10 @@ namespace Archipelago_Inscryption.Archipelago
                         do
                         {
                             int number = SeededRandom.Range(0, 9, seed++);
-                            ArchipelagoModPlugin.Log.LogWarning(number);
                             if (!ArchipelagoManager.cabinSafeCode.Contains(number))
                                 ArchipelagoManager.cabinSafeCode.Add(number);
                         } while (ArchipelagoManager.cabinSafeCode.Count < 3);
-                        ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode", ArchipelagoManager.cabinSafeCode);
+                        ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode", ArchipelagoManager.cabinSafeCode);
                     }
                 }
 
