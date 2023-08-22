@@ -95,7 +95,7 @@ namespace Archipelago_Inscryption.Patches
 
             if (ArchipelagoManager.randomizeCodes)
             {
-                __instance.correctLockPositions = ArchipelagoManager.cabinSafeCode;
+                __instance.correctLockPositions = ArchipelagoManager.cabinSafeCode.Select(digit => (10 - digit) % 10).ToList();
             }
 
             return true;

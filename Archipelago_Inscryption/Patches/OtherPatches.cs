@@ -79,12 +79,12 @@ namespace Archipelago_Inscryption.Patches
 
                 for (int i = 0; i < texts.Length; i++)
                 {
-                    if (texts[i].text == "2")
-                        texts[i].text = ArchipelagoManager.cabinSafeCode[0].ToString();
-                    if (texts[i].text == "7")
+                    if (texts[i].gameObject.name.Contains("(1)"))
                         texts[i].text = ArchipelagoManager.cabinSafeCode[1].ToString();
-                    if (texts[i].text == "3")
+                    else if (texts[i].gameObject.name.Contains("(2)"))
                         texts[i].text = ArchipelagoManager.cabinSafeCode[2].ToString();
+                    else
+                        texts[i].text = ArchipelagoManager.cabinSafeCode[0].ToString();
                 }
             }
         }
