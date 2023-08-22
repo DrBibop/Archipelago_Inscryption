@@ -1,4 +1,5 @@
 ﻿using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
+using Archipelago_Inscryption.Helpers;
 using BepInEx;
 using DiskCardGame;
 using GBC;
@@ -48,6 +49,7 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 while (RunState.Run.playerLives > 0)
                     yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
+                RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
 
             }
             else if (SaveManager.saveFile.IsPart2)
