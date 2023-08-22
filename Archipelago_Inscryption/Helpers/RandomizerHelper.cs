@@ -420,12 +420,12 @@ namespace Archipelago_Inscryption.Helpers
             packPile = null;
         }
 
-        internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager, bool deathlinkDeath = false)
+        internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
         {
-            if (!deathlinkDeath)
+            if (!DeathLinkManager.receivedDeath)
                 DeathLinkManager.SendDeathLink();
             ArchipelagoModPlugin.Log.LogMessage("Rip bozo 1");
-            if ((deathlinkDeath && ArchipelagoManager.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
+            if ((DeathLinkManager.receivedDeath && ArchipelagoManager.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
                 || ArchipelagoManager.optionalDeathCard == OptionalDeathCard.Disable)
             {
                 Singleton<ViewManager>.Instance.SwitchToView(View.Default, false, true);
