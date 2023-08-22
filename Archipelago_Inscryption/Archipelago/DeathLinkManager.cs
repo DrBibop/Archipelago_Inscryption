@@ -45,7 +45,11 @@ namespace Archipelago_Inscryption.Archipelago
         {
             yield return new WaitUntil(() => Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.Map);
             if (SaveManager.saveFile.IsPart1)
-                yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
+            {
+                while (RunState.Run.playerLives > 0)
+                    yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
+
+            }
             else if (SaveManager.saveFile.IsPart2)
             {
                 SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
