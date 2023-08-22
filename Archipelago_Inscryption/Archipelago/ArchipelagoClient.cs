@@ -170,7 +170,7 @@ namespace Archipelago_Inscryption.Archipelago
                     serverData.deathlink = Convert.ToInt32(DeathLink) == 1;
                 serverData.seed = session.RoomState.Seed;
                 ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Seed", serverData.seed);
-                if (serverData.slotData.TryGetValue("optional_death_card", out var ptionalDeathCard))
+                if (serverData.slotData.TryGetValue("optional_death_card", out var optionalDeathCard))
                 {
                     string optionalDeathCardValue = (string)(optionalDeathCard);
                     if (optionalDeathCardValue == "option_disable") 
