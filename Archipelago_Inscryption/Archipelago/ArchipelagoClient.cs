@@ -190,7 +190,7 @@ namespace Archipelago_Inscryption.Archipelago
                     }
                     else
                     {
-                        int seed = int.Parse(serverData.seed.Substring(serverData.seed.Length - 6));
+                        int seed = int.Parse(serverData.seed.Substring(serverData.seed.Length - 6)) + 20 * session.Players.AllPlayers.First(x => x.Name == serverData.slotName).Slot;
                         do
                         {
                             int number = SeededRandom.Range(0, 9, seed++);
