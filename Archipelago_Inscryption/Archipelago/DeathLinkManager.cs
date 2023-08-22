@@ -35,15 +35,19 @@ namespace Archipelago_Inscryption.Archipelago
             receivedDeath = true;
             deathLinks.Add(deathLink);
             Console.WriteLine($"Received DeathLink from: {deathLink.Source} due to {deathLink.Cause}");
-            if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
-                Singleton<TurnManager>.Instance.GameEnded = true;
-            else
-                CustomCoroutine.Instance.StartCoroutine(ReceiveDeathLinkNotInCombatCoroutine());
+            CustomCoroutine.Instance.StartCoroutine(ReceiveDeathLinkNotInCombatCoroutine());
             receivedDeath = false;
         }
 
         static IEnumerator ReceiveDeathLinkNotInCombatCoroutine()
         {
+            if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
+            {
+                yield return Singleton<TurnManager>.Instance.CleanupPhase();
+                while (RunState.Run.playerLives > 0)
+                    yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
+                yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
+            }
             yield return new WaitUntil(() => Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.Map);
             if (SaveManager.saveFile.IsPart1)
             {
