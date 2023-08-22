@@ -49,7 +49,7 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 while (RunState.Run.playerLives > 0)
                     yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
-                RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
+                yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
 
             }
             else if (SaveManager.saveFile.IsPart2)
