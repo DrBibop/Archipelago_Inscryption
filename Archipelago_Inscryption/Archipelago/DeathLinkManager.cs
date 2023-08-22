@@ -37,30 +37,25 @@ namespace Archipelago_Inscryption.Archipelago
             if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
                 Singleton<TurnManager>.Instance.GameEnded = true;
             else
-            {
-                CustomCoroutine.Instance.StartCoroutine("ReceiveDeathLinkCoroutine");
-                if (SaveManager.saveFile.IsPart1)
-                {
-                    CustomCoroutine.Instance.StartCoroutine("BlowOutCandleSequence");
-                }
-                if (SaveManager.saveFile.IsPart2)
-                {
-                    SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
-                    SaveData.Data.overworldNode = "StartingIsland";
-                    SaveData.Data.overworldIndoorPosition = -Vector3.up;
-                    LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
-                }
-                if (SaveManager.saveFile.IsPart3)
-                {
-                    CustomCoroutine.Instance.StartCoroutine("PlayerRespawnSequence");
-                }
-            }
+                CustomCoroutine.Instance.StartCoroutine(ReceiveDeathLinkNotInCombatCoroutine());
             receivedDeath = false;
         }
 
         static IEnumerator ReceiveDeathLinkNotInCombatCoroutine()
         {
             yield return new WaitUntil(() => Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.Map);
+            if (SaveManager.saveFile.IsPart1)
+                yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
+            else if (SaveManager.saveFile.IsPart2)
+            {
+                SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
+                SaveData.Data.overworldNode = "StartingIsland";
+                SaveData.Data.overworldIndoorPosition = -Vector3.up;
+                LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
+            }
+            else if (SaveManager.saveFile.IsPart3)
+                yield return Singleton<Part3GameFlowManager>.Instance.PlayerRespawnSequence();
+            
         }
 
         static public void SendDeathLink()
