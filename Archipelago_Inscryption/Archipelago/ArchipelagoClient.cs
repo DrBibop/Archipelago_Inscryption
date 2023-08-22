@@ -156,25 +156,49 @@ namespace Archipelago_Inscryption.Archipelago
                     string resetMessage = "New MultiWorld detected! Reset your save file properly before starting.";
                     ArchipelagoModPlugin.Log.LogWarning(resetMessage);
                     Singleton<ArchipelagoUI>.Instance.LogImportant(resetMessage);
+
                     serverData.receivedItems.Clear();
                     serverData.completedChecks.Clear();
+
                     ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", new List<string>());
                     ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", new List<long>());
                 }
+
                 LoginSuccessful successfulResult = (LoginSuccessful)result;
                 serverData.slotData = successfulResult.SlotData;
                 if (serverData.slotData.TryGetValue("deathlink", out var DeathLink))
                     serverData.deathlink = Convert.ToInt32(DeathLink) == 1;
+                if (serverData.slotData.TryGetValue("optional_death_card", out var optionalDeathCard))
+                    ArchipelagoManager.optionalDeathCard = (OptionalDeathCard)optionalDeathCard;
+                if (serverData.slotData.TryGetValue("trap", out var trap))
+                    ArchipelagoManager.trap = (bool)trap;
+                if (serverData.slotData.TryGetValue("randomize_codes", out var randomizeCodes))
+                    ArchipelagoManager.randomizeCodes = (bool)randomizeCodes;
+                if (serverData.slotData.TryGetValue("randomize_deck", out var randomizeDeck))
+                    ArchipelagoManager.randomizeDeck = (bool)randomizeDeck;
                 serverData.seed = session.RoomState.Seed;
                 ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Seed", serverData.seed);
-                serverData.slotData.TryGetValue("optional_death_card", out var OptionalDeathCard);
-                ArchipelagoManager.optionalDeathCard = (OptionalDeathCard)(OptionalDeathCard);
-                serverData.slotData.TryGetValue("trap", out var Trap);
-                ArchipelagoManager.Trap = (bool)(Trap);
-                serverData.slotData.TryGetValue("randomize_codes", out var RandomizeCodes);
-                ArchipelagoManager.Trap = (bool)(RandomizeCodes);
-                serverData.slotData.TryGetValue("randomize_deck", out var RandomizeDeck);
-                ArchipelagoManager.Trap = (bool)(RandomizeDeck);
+
+                if (ArchipelagoManager.randomizeCodes)
+                {
+                    List<int> cabinSafeCode = ModdedSaveManager.SaveData.GetValueAsObject<List<int>>(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode");
+                    if (cabinSafeCode != null && cabinSafeCode.Count > 0) 
+                    {
+                        ArchipelagoManager.cabinSafeCode = cabinSafeCode;
+                    }
+                    else
+                    {
+                        do
+                        {
+                            int number = UnityEngine.Random.Range(0, 9);
+                            if (!ArchipelagoManager.cabinClockCode.Contains(number))
+                                ArchipelagoManager.cabinClockCode.Add(number);
+                        } 
+                        while (ArchipelagoManager.cabinSafeCode.Count < 3);
+
+                        ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode", ArchipelagoManager.cabinSafeCode);
+                    }
+                }
                 SaveManager.SaveToFile(false);
                 isConnected = true;
                 SendChecksToServerAsync();
@@ -189,7 +213,6 @@ namespace Archipelago_Inscryption.Archipelago
 
                 Disconnect();
             }
-
             onConnectAttemptDone?.Invoke(result);
             oneOffCallback?.Invoke(result);
         }

@@ -91,9 +91,12 @@ namespace Archipelago_Inscryption.Archipelago
         private static int availableCardPacks = 0;
 
         internal static OptionalDeathCard optionalDeathCard = OptionalDeathCard.Disable;
-        internal static bool RandomizeCodes = false;
-        internal static bool RandomizeDeck = false;
-        internal static bool Trap = false;
+        internal static bool randomizeCodes = false;
+        internal static bool randomizeDeck = false;
+        internal static bool trap = false;
+
+        internal static List<int> cabinSafeCode = new List<int>();
+        internal static List<int> cabinClockCode = new List<int>();
 
         internal static int AvailableCardPacks
         {
