@@ -156,31 +156,55 @@ namespace Archipelago_Inscryption.Archipelago
                     string resetMessage = "New MultiWorld detected! Reset your save file properly before starting.";
                     ArchipelagoModPlugin.Log.LogWarning(resetMessage);
                     Singleton<ArchipelagoUI>.Instance.LogImportant(resetMessage);
+
                     serverData.receivedItems.Clear();
                     serverData.completedChecks.Clear();
+
                     ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", new List<string>());
                     ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", new List<long>());
                 }
+
                 LoginSuccessful successfulResult = (LoginSuccessful)result;
                 serverData.slotData = successfulResult.SlotData;
                 if (serverData.slotData.TryGetValue("deathlink", out var DeathLink))
                     serverData.deathlink = Convert.ToInt32(DeathLink) == 1;
                 serverData.seed = session.RoomState.Seed;
                 ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Seed", serverData.seed);
-                if (serverData.slotData.TryGetValue("optional_death_card", out var OptionalDeathCard))
+                if (serverData.slotData.TryGetValue("optional_death_card", out var ptionalDeathCard))
                 {
-                    var optionalDeathCard = (string)(OptionalDeathCard);
-                    if (optionalDeathCard == "option_disable") 
+                    string optionalDeathCardValue = (string)(optionalDeathCard);
+                    if (optionalDeathCardValue == "option_disable") 
                         ArchipelagoManager.optionalDeathCard = Archipelago.OptionalDeathCard.Disable;
-                    else if (optionalDeathCard == "option_always_on")
+                    else if (optionalDeathCardValue == "option_always_on")
                         ArchipelagoManager.optionalDeathCard = Archipelago.OptionalDeathCard.Enable;
                     else
                         ArchipelagoManager.optionalDeathCard = Archipelago.OptionalDeathCard.EnableOnlyOnDeathLink;
                 }
-                if (serverData.slotData.TryGetValue("randomize_codes", out var RandomizeCodes))
-                    ArchipelagoManager.randomizeCodes = Convert.ToInt32(RandomizeCodes) == 1;
-                if (serverData.slotData.TryGetValue("randomize_codes", out var RandomizeDeck))
-                    ArchipelagoManager.randomizeDeck = Convert.ToInt32(RandomizeDeck) == 1;
+                if (serverData.slotData.TryGetValue("randomize_codes", out var randomizeCodes))
+                    ArchipelagoManager.randomizeCodes = Convert.ToInt32(randomizeCodes) == 1;
+                if (serverData.slotData.TryGetValue("randomize_codes", out var randomizeDeck))
+                    ArchipelagoManager.randomizeDeck = Convert.ToInt32(randomizeDeck) == 1;
+
+                if (ArchipelagoManager.randomizeCodes)
+                {
+                    List<int> cabinSafeCode = ModdedSaveManager.SaveData.GetValueAsObject<List<int>>(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode");
+                    if (cabinSafeCode != null && cabinSafeCode.Count > 0) 
+                    {
+                        ArchipelagoManager.cabinSafeCode = cabinSafeCode;
+                    }
+                    else
+                    {
+                        do
+                        {
+                            int number = UnityEngine.Random.Range(0, 9);
+                            if (!ArchipelagoManager.cabinClockCode.Contains(number))
+                                ArchipelagoManager.cabinClockCode.Add(number);
+                        } 
+                        while (ArchipelagoManager.cabinSafeCode.Count < 3);
+
+                        ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode", ArchipelagoManager.cabinSafeCode);
+                    }
+                }
                 SaveManager.SaveToFile(false);
                 isConnected = true;
                 SendChecksToServerAsync();
@@ -195,7 +219,6 @@ namespace Archipelago_Inscryption.Archipelago
 
                 Disconnect();
             }
-
             onConnectAttemptDone?.Invoke(result);
             oneOffCallback?.Invoke(result);
         }

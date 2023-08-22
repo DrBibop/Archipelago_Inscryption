@@ -93,6 +93,11 @@ namespace Archipelago_Inscryption.Patches
                 checkCard.SetEnabled(false);
             }
 
+            if (ArchipelagoManager.randomizeCodes)
+            {
+                __instance.correctLockPositions = ArchipelagoManager.cabinSafeCode;
+            }
+
             return true;
         }
 

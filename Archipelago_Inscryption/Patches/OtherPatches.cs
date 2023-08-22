@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using TMPro;
+using UnityEngine;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -64,6 +66,27 @@ namespace Archipelago_Inscryption.Patches
             ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", new List<long>());
             ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", new List<string>());
             return true;
+        }
+
+        [HarmonyPatch(typeof(PageContentLoader), "LoadPage")]
+        [HarmonyPostfix]
+        static void ChangeRulebookPassword(PageContentLoader __instance)
+        {
+            if (ArchipelagoManager.randomizeCodes && __instance.currentAdditiveObjects.Count > 0 && __instance.currentAdditiveObjects.First().name.Contains("SafePassword"))
+            {
+                GameObject passwordObject = __instance.currentAdditiveObjects.First();
+                TextMeshPro[] texts = passwordObject.GetComponentsInChildren<TextMeshPro>(true);
+
+                for (int i = 0; i < texts.Length; i++)
+                {
+                    if (texts[i].text == "2")
+                        texts[i].text = ArchipelagoManager.cabinSafeCode[0].ToString();
+                    if (texts[i].text == "7")
+                        texts[i].text = ArchipelagoManager.cabinSafeCode[1].ToString();
+                    if (texts[i].text == "3")
+                        texts[i].text = ArchipelagoManager.cabinSafeCode[2].ToString();
+                }
+            }
         }
     }
 
