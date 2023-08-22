@@ -6,6 +6,7 @@ using Archipelago.MultiClient.Net.MessageLog.Messages;
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago_Inscryption.Components;
+using DiskCardGame;
 using InscryptionAPI.Saves;
 using System;
 using System.Collections.Generic;
@@ -165,25 +166,20 @@ namespace Archipelago_Inscryption.Archipelago
                 }
 
                 LoginSuccessful successfulResult = (LoginSuccessful)result;
+
                 serverData.slotData = successfulResult.SlotData;
+
                 if (serverData.slotData.TryGetValue("deathlink", out var DeathLink))
                     serverData.deathlink = Convert.ToInt32(DeathLink) == 1;
-                serverData.seed = session.RoomState.Seed;
-                ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Seed", serverData.seed);
                 if (serverData.slotData.TryGetValue("optional_death_card", out var optionalDeathCard))
-                {
-                    string optionalDeathCardValue = (string)(optionalDeathCard);
-                    if (optionalDeathCardValue == "option_disable") 
-                        ArchipelagoManager.optionalDeathCard = Archipelago.OptionalDeathCard.Disable;
-                    else if (optionalDeathCardValue == "option_always_on")
-                        ArchipelagoManager.optionalDeathCard = Archipelago.OptionalDeathCard.Enable;
-                    else
-                        ArchipelagoManager.optionalDeathCard = Archipelago.OptionalDeathCard.EnableOnlyOnDeathLink;
-                }
+                    ArchipelagoManager.optionalDeathCard = (OptionalDeathCard)Convert.ToInt32(optionalDeathCard);
                 if (serverData.slotData.TryGetValue("randomize_codes", out var randomizeCodes))
                     ArchipelagoManager.randomizeCodes = Convert.ToInt32(randomizeCodes) == 1;
-                if (serverData.slotData.TryGetValue("randomize_codes", out var randomizeDeck))
+                if (serverData.slotData.TryGetValue("randomize_deck", out var randomizeDeck))
                     ArchipelagoManager.randomizeDeck = Convert.ToInt32(randomizeDeck) == 1;
+
+                serverData.seed = session.RoomState.Seed;
+                ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Seed", serverData.seed);
 
                 if (ArchipelagoManager.randomizeCodes)
                 {
@@ -194,17 +190,18 @@ namespace Archipelago_Inscryption.Archipelago
                     }
                     else
                     {
+                        int seed = int.Parse(serverData.seed.Substring(serverData.seed.Length - 6));
                         do
                         {
-                            int number = UnityEngine.Random.Range(0, 9);
-                            if (!ArchipelagoManager.cabinClockCode.Contains(number))
-                                ArchipelagoManager.cabinClockCode.Add(number);
-                        } 
-                        while (ArchipelagoManager.cabinSafeCode.Count < 3);
-
+                            int number = SeededRandom.Range(0, 9, seed++);
+                            ArchipelagoModPlugin.Log.LogWarning(number);
+                            if (!ArchipelagoManager.cabinSafeCode.Contains(number))
+                                ArchipelagoManager.cabinSafeCode.Add(number);
+                        } while (ArchipelagoManager.cabinSafeCode.Count < 3);
                         ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode", ArchipelagoManager.cabinSafeCode);
                     }
                 }
+
                 SaveManager.SaveToFile(false);
                 isConnected = true;
                 SendChecksToServerAsync();
