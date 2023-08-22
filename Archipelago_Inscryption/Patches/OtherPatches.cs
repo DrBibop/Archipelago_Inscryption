@@ -1,6 +1,7 @@
 ﻿using Archipelago_Inscryption.Archipelago;
 using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
+using GBC;
 using HarmonyLib;
 using InscryptionAPI.Saves;
 using System.Collections.Generic;
@@ -65,7 +66,7 @@ namespace Archipelago_Inscryption.Patches
             return true;
         }
     }
-    
+
     [HarmonyPatch]
     class DeathPatch
     {
@@ -125,6 +126,36 @@ namespace Archipelago_Inscryption.Patches
             codes.InsertRange(index, newCodes);
 
             return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    [HarmonyDebug]
+    class DeathLinkPatch
+    {
+        [HarmonyPatch(typeof(CardBattleNPC), "PostCombatEncounterSequence")]
+        [HarmonyPrefix]
+        static bool SendDeathLinkOnPart2(bool playerDefeated)
+        {
+            if (DeathLinkManager.receivedDeath) 
+                return true;
+            if (playerDefeated)
+            {
+                DeathLinkManager.SendDeathLink();
+                ArchipelagoModPlugin.Log.LogMessage("Rip bozo 2");
+            }
+            return true;
+        }
+
+        [HarmonyPatch(typeof(Part3GameFlowManager), "PlayerRespawnSequence")]
+        [HarmonyPrefix]
+        static bool SendDeathLinkOnPart3()
+        {
+            if (DeathLinkManager.receivedDeath)
+                return true;
+            DeathLinkManager.SendDeathLink();
+            ArchipelagoModPlugin.Log.LogMessage("Rip bozo 3");
+            return true;
         }
     }
 }

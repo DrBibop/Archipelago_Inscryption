@@ -6,8 +6,8 @@ namespace Archipelago_Inscryption.Archipelago
 {
     internal enum OptionalDeathCard
     {
-        Enable,
         Disable,
+        Enable,
         EnableOnlyOnDeathLink
     }
 }

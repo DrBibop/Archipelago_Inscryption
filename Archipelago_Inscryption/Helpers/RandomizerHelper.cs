@@ -423,7 +423,7 @@ namespace Archipelago_Inscryption.Helpers
         internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
         {
             DeathLinkManager.SendDeathLink();
-            ArchipelagoModPlugin.Log.LogMessage("Rip bozo");
+            ArchipelagoModPlugin.Log.LogMessage("Rip bozo 1");
             yield return Singleton<TextDisplayer>.Instance.ShowUntilInput("Choose if you want to create a new deathcard");
             CardChoicesNodeData choice = new CardChoicesNodeData();
             choice.gemifyChoices = true;

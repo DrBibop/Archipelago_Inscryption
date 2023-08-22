@@ -167,14 +167,20 @@ namespace Archipelago_Inscryption.Archipelago
                     serverData.deathlink = Convert.ToInt32(DeathLink) == 1;
                 serverData.seed = session.RoomState.Seed;
                 ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Seed", serverData.seed);
-                serverData.slotData.TryGetValue("optional_death_card", out var OptionalDeathCard);
-                ArchipelagoManager.optionalDeathCard = (OptionalDeathCard)(OptionalDeathCard);
-                serverData.slotData.TryGetValue("trap", out var Trap);
-                ArchipelagoManager.Trap = (bool)(Trap);
-                serverData.slotData.TryGetValue("randomize_codes", out var RandomizeCodes);
-                ArchipelagoManager.Trap = (bool)(RandomizeCodes);
-                serverData.slotData.TryGetValue("randomize_deck", out var RandomizeDeck);
-                ArchipelagoManager.Trap = (bool)(RandomizeDeck);
+                if (serverData.slotData.TryGetValue("optional_death_card", out var OptionalDeathCard))
+                {
+                    var optionalDeathCard = (string)(OptionalDeathCard);
+                    if (optionalDeathCard == "option_disable") 
+                        ArchipelagoManager.optionalDeathCard = Archipelago.OptionalDeathCard.Disable;
+                    else if (optionalDeathCard == "option_always_on")
+                        ArchipelagoManager.optionalDeathCard = Archipelago.OptionalDeathCard.Enable;
+                    else
+                        ArchipelagoManager.optionalDeathCard = Archipelago.OptionalDeathCard.EnableOnlyOnDeathLink;
+                }
+                if (serverData.slotData.TryGetValue("randomize_codes", out var RandomizeCodes))
+                    ArchipelagoManager.randomizeCodes = Convert.ToInt32(RandomizeCodes) == 1;
+                if (serverData.slotData.TryGetValue("randomize_codes", out var RandomizeDeck))
+                    ArchipelagoManager.randomizeDeck = Convert.ToInt32(RandomizeDeck) == 1;
                 SaveManager.SaveToFile(false);
                 isConnected = true;
                 SendChecksToServerAsync();

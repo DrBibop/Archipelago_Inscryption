@@ -1,7 +1,9 @@
 ﻿using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using BepInEx;
 using DiskCardGame;
+using GBC;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,7 +14,7 @@ namespace Archipelago_Inscryption.Archipelago
         public static DeathLinkService DeathLinkService;
         private static readonly List<DeathLink> deathLinks = new List<DeathLink>();
         private static System.Random random;
-        private static bool receivedDeath;
+        internal static bool receivedDeath;
         private static int nbDeathsSent;
 
         static void Init()
@@ -26,14 +28,44 @@ namespace Archipelago_Inscryption.Archipelago
         }
         static void ReceiveDeathLink(DeathLink deathLink)
         {
+            if (receivedDeath == true)
+                return;
             receivedDeath = true;
             deathLinks.Add(deathLink);
             Console.WriteLine($"Received DeathLink from: {deathLink.Source} due to {deathLink.Cause}");
+            if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
+                Singleton<TurnManager>.Instance.GameEnded = true;
+            else
+            {
+                CustomCoroutine.Instance.StartCoroutine("ReceiveDeathLinkCoroutine");
+                if (SaveManager.saveFile.IsPart1)
+                {
+                    CustomCoroutine.Instance.StartCoroutine("BlowOutCandleSequence");
+                }
+                if (SaveManager.saveFile.IsPart2)
+                {
+                    SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
+                    SaveData.Data.overworldNode = "StartingIsland";
+                    SaveData.Data.overworldIndoorPosition = -Vector3.up;
+                    LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
+                }
+                if (SaveManager.saveFile.IsPart3)
+                {
+                    CustomCoroutine.Instance.StartCoroutine("PlayerRespawnSequence");
+                }
+            }
+
+            receivedDeath = false;
+        }
+
+        static IEnumerator ReceiveDeathLinkNotInCombatCoroutine()
+        {
+            yield return new WaitUntil(() => Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.Map);
         }
 
         static public void SendDeathLink()
         {
-            if (!ArchipelagoClient.serverData.deathlink || receivedDeath) 
+            if (!ArchipelagoClient.serverData.deathlink || receivedDeath)
                 return;
             nbDeathsSent++;
             Console.WriteLine("Sharing death with your friends...");
@@ -52,9 +84,9 @@ namespace Archipelago_Inscryption.Archipelago
 
         static public void KillPlayer()
         {
-            if (deathLinks.Count > 0) 
+            if (deathLinks.Count > 0)
                 receivedDeath = true;
-            if (!receivedDeath) 
+            if (!receivedDeath)
                 return;
             string cause = deathLinks[0].Cause;
             if (cause.IsNullOrWhiteSpace())
@@ -64,7 +96,9 @@ namespace Archipelago_Inscryption.Archipelago
             ArchipelagoManager.KillPlayer();
             ArchipelagoModPlugin.Log.LogMessage(deathLinks[0].Source + cause);
             deathLinks.RemoveAt(0);
-            receivedDeath = false;         
+            receivedDeath = false;
         }
+
+
     }
 }
