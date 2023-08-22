@@ -13,19 +13,20 @@ namespace Archipelago_Inscryption.Archipelago
     {
         public static DeathLinkService DeathLinkService;
         private static readonly List<DeathLink> deathLinks = new List<DeathLink>();
-        private static System.Random random;
         internal static bool receivedDeath;
         private static int nbDeathsSent;
 
-        static void Init()
+        internal static void Init()
         {
-            DeathLinkService = ArchipelagoClient.session.CreateDeathLinkService();
+            Console.WriteLine($"DeathLink is set to ");
+            Console.WriteLine(ArchipelagoClient.serverData.deathlink);
             DeathLinkService.OnDeathLinkReceived += ReceiveDeathLink;
             if (ArchipelagoClient.serverData.deathlink)
                 DeathLinkService.EnableDeathLink();
             else
                 DeathLinkService.DisableDeathLink();
         }
+
         static void ReceiveDeathLink(DeathLink deathLink)
         {
             if (receivedDeath == true)
@@ -54,7 +55,6 @@ namespace Archipelago_Inscryption.Archipelago
                     CustomCoroutine.Instance.StartCoroutine("PlayerRespawnSequence");
                 }
             }
-
             receivedDeath = false;
         }
 
@@ -70,7 +70,7 @@ namespace Archipelago_Inscryption.Archipelago
             nbDeathsSent++;
             Console.WriteLine("Sharing death with your friends...");
             var alias = ArchipelagoClient.session.Players.GetPlayerAliasAndName(ArchipelagoClient.session.ConnectionInfo.Slot);
-            int i = random.Next(0, 3);
+            int i = UnityEngine.Random.Range(0, 2);
             string cause;
             if (i == 0)
                 cause = " died because of skill issue";
@@ -78,7 +78,6 @@ namespace Archipelago_Inscryption.Archipelago
                 cause = " is not good enough";
             else
                 cause = " tried their hardest but ultimately failed";
-
             DeathLinkService.SendDeathLink(new DeathLink(ArchipelagoClient.serverData.slotName, alias + cause));
         }
 
@@ -98,7 +97,6 @@ namespace Archipelago_Inscryption.Archipelago
             deathLinks.RemoveAt(0);
             receivedDeath = false;
         }
-
-
     }
 }
+

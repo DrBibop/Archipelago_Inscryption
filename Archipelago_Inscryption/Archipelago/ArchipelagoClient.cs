@@ -178,6 +178,9 @@ namespace Archipelago_Inscryption.Archipelago
                 if (serverData.slotData.TryGetValue("randomize_deck", out var randomizeDeck))
                     ArchipelagoManager.randomizeDeck = Convert.ToInt32(randomizeDeck) == 1;
 
+                DeathLinkManager.DeathLinkService = session.CreateDeathLinkService();
+                DeathLinkManager.Init();
+
                 serverData.seed = session.RoomState.Seed;
                 ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Seed", serverData.seed);
 
