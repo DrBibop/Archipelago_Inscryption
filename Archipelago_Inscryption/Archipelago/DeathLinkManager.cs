@@ -35,6 +35,7 @@ namespace Archipelago_Inscryption.Archipelago
             receivedDeath = true;
             deathLinks.Add(deathLink);
             Console.WriteLine($"Received DeathLink from: {deathLink.Source} due to {deathLink.Cause}");
+            RandomizerHelper.LeshySaysMessage(deathLink.Source + deathLink.Cause);
             CustomCoroutine.Instance.StartCoroutine(ReceiveDeathLinkNotInCombatCoroutine());
             receivedDeath = false;
         }
@@ -54,7 +55,6 @@ namespace Archipelago_Inscryption.Archipelago
                 while (RunState.Run.playerLives > 0)
                     yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
                 yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
-
             }
             else if (SaveManager.saveFile.IsPart2)
             {
@@ -65,7 +65,6 @@ namespace Archipelago_Inscryption.Archipelago
             }
             else if (SaveManager.saveFile.IsPart3)
                 yield return Singleton<Part3GameFlowManager>.Instance.PlayerRespawnSequence();
-            
         }
 
         static public void SendDeathLink()

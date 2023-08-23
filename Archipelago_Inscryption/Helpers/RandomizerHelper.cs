@@ -422,9 +422,10 @@ namespace Archipelago_Inscryption.Helpers
 
         internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
         {
+            if (Singleton<GameMap>.Instance.FullyUnrolled)
+                Singleton<GameMap>.Instance.HideMapImmediate();
             if (!DeathLinkManager.receivedDeath)
                 DeathLinkManager.SendDeathLink();
-            ArchipelagoModPlugin.Log.LogMessage("Rip bozo 1");
             if ((DeathLinkManager.receivedDeath && ArchipelagoManager.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
                 || ArchipelagoManager.optionalDeathCard == OptionalDeathCard.Disable)
             {
@@ -447,6 +448,17 @@ namespace Archipelago_Inscryption.Helpers
             else
                 doDeathCard = false;
             yield return manager.KillPlayerSequence();
+        }
+
+        internal static IEnumerator LeshySaysMessage(string message)
+        {
+            yield return Singleton<TextDisplayer>.Instance.ShowMessage(message);
+        }
+
+        internal static void DrawRandomizeCard()
+        {
+            int i = UnityEngine.Random.Range(0, 2);
+            CardLoader.GetRandomUnlockedRareCard(SaveManager.SaveFile.GetCurrentRandomSeed());
         }
 
         internal static void AfterPlayerDeathSequence()

@@ -5,11 +5,13 @@ using GBC;
 using HarmonyLib;
 using InscryptionAPI.Saves;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using TMPro;
 using UnityEngine;
+using Unity;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -55,6 +57,12 @@ namespace Archipelago_Inscryption.Patches
         {
             if (__instance.IsPart1 || __instance.IsPart3)
                 __result += __instance.gbcData.packsOpened * 2;
+            if (__instance.IsPart1)
+                __result += Part1S.Data.nodesActivated * 100;
+            if (__instance.IsPart2)
+                __result += Part3SaveData.Data.nodesActivated * 100;
+            if (__instance.IsPart3)
+                __result += Part3SaveData.Data.nodesActivated * 100;
         }
 
         [HarmonyPatch(typeof(SaveManager), "CreateNewSaveFile")]
@@ -160,7 +168,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool SendDeathLinkOnPart2(bool playerDefeated)
         {
-            if (DeathLinkManager.receivedDeath) 
+            if (DeathLinkManager.receivedDeath)
                 return true;
             if (playerDefeated)
             {
@@ -179,6 +187,18 @@ namespace Archipelago_Inscryption.Patches
             DeathLinkManager.SendDeathLink();
             ArchipelagoModPlugin.Log.LogMessage("Rip bozo 3");
             return true;
+        }
+    }
+
+    [HarmonyPatch]
+    [HarmonyDebug]
+    class RandomizeDeckPatch
+    {
+        [HarmonyPatch(typeof(CardDrawPiles), "DrawCardFromDeck")]
+        [HarmonyPrefix]
+        static bool DrawRandomizeCard(bool playerDefeated)
+        
+            return false;
         }
     }
 }
