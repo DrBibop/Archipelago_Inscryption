@@ -96,6 +96,7 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static List<int> cabinSafeCode = new List<int>();
         internal static List<int> cabinClockCode = new List<int>();
+        internal static List<int> cabinSmallClockCode = new List<int>();
 
         internal static int AvailableCardPacks
         {

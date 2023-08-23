@@ -1,4 +1,5 @@
 ﻿using Archipelago_Inscryption.Archipelago;
+using Archipelago_Inscryption.Assets;
 using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using GBC;
@@ -63,8 +64,16 @@ namespace Archipelago_Inscryption.Patches
         {
             ArchipelagoClient.serverData.completedChecks.Clear();
             ArchipelagoClient.serverData.receivedItems.Clear();
+            ArchipelagoManager.cabinSafeCode.Clear();
+            ArchipelagoManager.cabinClockCode.Clear();
+            ArchipelagoManager.cabinSmallClockCode.Clear();
             ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", new List<long>());
             ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", new List<string>());
+            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode", new List<int>());
+            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinClockCode", new List<int>());
+            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSmallClockCode", new List<int>());
+            if (ArchipelagoClient.IsConnected)
+                ArchipelagoClient.Disconnect();
             return true;
         }
 
@@ -87,6 +96,23 @@ namespace Archipelago_Inscryption.Patches
                         texts[i].text = ArchipelagoManager.cabinSafeCode[0].ToString();
                 }
             }
+        }
+
+        [HarmonyPatch(typeof(Part1FinaleSceneSequencer), "ShowArm")]
+        [HarmonyPostfix]
+        static void ChangeSmallClockPassword(Part1FinaleSceneSequencer __instance)
+        {
+            if (!ArchipelagoManager.randomizeCodes || __instance.deckTrialSequencer.transform.parent.Find("SmallClockClue(Clone)") != null) return;
+
+            GameObject table = __instance.deckTrialSequencer.transform.parent.Find("Cube").gameObject;
+            table.GetComponent<MeshRenderer>().material.mainTexture = AssetsManager.boonTableTex;
+
+            GameObject clue = Object.Instantiate(AssetsManager.smallClockCluePrefab, table.transform.parent);
+            clue.GetComponent<MeshRenderer>().material.mainTexture = AssetsManager.smallClockClueTexs[ArchipelagoManager.cabinSmallClockCode[2]];
+            clue.transform.localPosition = new Vector3(-1.6744f, 1.6f, -0.9f);
+            clue.transform.localEulerAngles = new Vector3(90, 90, 0);
+            clue.transform.localScale = new Vector3(0.7f, 0.5f, 0.7f);
+
         }
     }
 
