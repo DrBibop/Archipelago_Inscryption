@@ -173,6 +173,12 @@ namespace Archipelago_Inscryption.Patches
                     if (!StoryEventsData.EventCompleted(StoryEvent.FactoryCuckooClockOpenedLarge))
                         checkCard.SetEnabled(false);
                 }
+
+                if (ArchipelagoManager.randomizeCodes)
+                {
+                    __instance.solutionPositionsLarge = ArchipelagoManager.factoryClockCode.ToArray();
+                    __instance.solutionPositionsSmall = ArchipelagoManager.cabinSmallClockCode.ToArray();
+                }
             }
             else
             {
@@ -623,6 +629,10 @@ namespace Archipelago_Inscryption.Patches
                 case "HoloMapArea_Shop(Clone)":
                     RandomizerHelper.CreateHoloMapNodeCheck(__instance.transform.Find("Nodes/ShopNode3D_ShieldGenItem/UnlockItemNode3D_ShieldGenerator").gameObject, APCheck.FactoryNanoArmorGenerator);
                     RandomizerHelper.CreateHoloMapNodeCheck(__instance.transform.Find("Nodes/ShopNode3D_PickupPelt/PickupPeltNode3D").gameObject, APCheck.FactoryHoloPelt1);
+                    break;
+                case "HoloMapArea_TempleWizardSide(Clone)":
+                    Transform clue = __instance.transform.Find("Splatter/clue");
+                    clue.GetComponent<MeshRenderer>().material.mainTexture = AssetsManager.factoryClockClueTexs[ArchipelagoManager.factoryClockCode[2]];
                     break;
             }
         }

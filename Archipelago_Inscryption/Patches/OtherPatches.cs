@@ -114,6 +114,44 @@ namespace Archipelago_Inscryption.Patches
             clue.transform.localScale = new Vector3(0.7f, 0.5f, 0.7f);
 
         }
+
+        [HarmonyPatch(typeof(DogFoodBowlVolume), "Start")]
+        [HarmonyPostfix]
+        static void ReplaceGBCSafeCodeClue(DogFoodBowlVolume __instance)
+        {
+            if (!ArchipelagoManager.randomizeCodes) return;
+
+            SpriteRenderer floor = __instance.transform.root.Find("OutdoorsCentral/Floor").GetComponent<SpriteRenderer>();
+
+            floor.sprite = AssetsManager.editedNatureFloorSprite;
+
+            GameObject codeClue = GameObject.Instantiate(AssetsManager.gbcSafeCluePrefab, floor.transform);
+            codeClue.layer = LayerMask.NameToLayer("GBCPixel");
+            string codeText = "";
+            foreach (int digit in ArchipelagoManager.cabinSafeCode)
+            {
+                codeText += digit.ToString();
+            }
+            codeClue.GetComponent<TextMesh>().text = codeText;
+            codeClue.GetComponent<MeshRenderer>().sortingOrder = -9;
+            codeClue.transform.localPosition = new Vector3(-0.56f, 0.1f, 0f);
+        }
+
+        [HarmonyPatch(typeof(SafeVolume), "IsSolved")]
+        [HarmonyPrefix]
+        static bool ReplaceGBCSafeCode(SafeVolume __instance, ref bool __result)
+        {
+            if (ArchipelagoManager.randomizeCodes)
+            {
+                __result = SaveData.Data.natureTemple.safeState.sliderPositions[0] == ArchipelagoManager.cabinSafeCode[0] 
+                    && SaveData.Data.natureTemple.safeState.sliderPositions[1] == ArchipelagoManager.cabinSafeCode[1]
+                    && SaveData.Data.natureTemple.safeState.sliderPositions[2] == ArchipelagoManager.cabinSafeCode[2];
+
+                return false;
+            }
+
+            return true;
+        }
     }
 
     [HarmonyPatch]

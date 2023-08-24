@@ -234,6 +234,17 @@ namespace Archipelago_Inscryption.Archipelago
                         ArchipelagoManager.cabinSmallClockCode = new List<int> { 0, 0, SeededRandom.Range(0, 11, seed++) };
                         ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSmallClockCode", ArchipelagoManager.cabinSmallClockCode);
                     }
+
+                    List<int> factoryClockCode = ModdedSaveManager.SaveData.GetValueAsObject<List<int>>(ArchipelagoModPlugin.PluginGuid, "FactoryClockCode");
+                    if (factoryClockCode != null && factoryClockCode.Count > 0)
+                    {
+                        ArchipelagoManager.factoryClockCode = factoryClockCode;
+                    }
+                    else
+                    {
+                        ArchipelagoManager.factoryClockCode = new List<int> { 0, 0, SeededRandom.Range(0, 11, seed++) };
+                        ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "FactoryClockCode", ArchipelagoManager.factoryClockCode);
+                    }
                 }
 
                 SaveManager.SaveToFile(false);
