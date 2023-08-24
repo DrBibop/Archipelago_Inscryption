@@ -58,11 +58,11 @@ namespace Archipelago_Inscryption.Patches
             if (__instance.IsPart1 || __instance.IsPart3)
                 __result += __instance.gbcData.packsOpened * 2;
             if (__instance.IsPart1)
-                __result += Part1S.Data.nodesActivated * 100;
+                __result += RunState.Run.currentNodeId * 25;
             if (__instance.IsPart2)
-                __result += Part3SaveData.Data.nodesActivated * 100;
+                __result += SaveManager.saveFile.gbcData.collection.Cards.Count * 25;
             if (__instance.IsPart3)
-                __result += Part3SaveData.Data.nodesActivated * 100;
+                __result += Part3SaveData.Data.nodesActivated * 25;
         }
 
         [HarmonyPatch(typeof(SaveManager), "CreateNewSaveFile")]
