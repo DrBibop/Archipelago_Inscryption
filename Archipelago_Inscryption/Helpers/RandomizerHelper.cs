@@ -6,6 +6,7 @@ using DiskCardGame;
 using GBC;
 using InscryptionAPI.Card;
 using Pixelplacement;
+using Steamworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace Archipelago_Inscryption.Helpers
     internal static class RandomizerHelper
     {
         private static DiscoverableCheckInteractable[] paintingChecks;
+
+        private static int randomSeed = UnityEngine.Random.Range(1, 500);
 
         private static readonly string[] checkCardLeshyDialog =
         {
@@ -455,10 +458,10 @@ namespace Archipelago_Inscryption.Helpers
             yield return Singleton<TextDisplayer>.Instance.ShowMessage(message);
         }
 
-        internal static void DrawRandomizeCard()
+        internal static int GetCustomSeedDeckRandomization()
         {
-            int i = UnityEngine.Random.Range(0, 2);
-            CardLoader.GetRandomUnlockedRareCard(SaveManager.SaveFile.GetCurrentRandomSeed());
+            randomSeed += RunState.Run.currentNodeId;
+            return randomSeed;
         }
 
         internal static void AfterPlayerDeathSequence()

@@ -12,6 +12,7 @@ using System.Reflection.Emit;
 using TMPro;
 using UnityEngine;
 using Unity;
+using InscryptionAPI.Card;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -58,11 +59,11 @@ namespace Archipelago_Inscryption.Patches
             if (__instance.IsPart1 || __instance.IsPart3)
                 __result += __instance.gbcData.packsOpened * 2;
             if (__instance.IsPart1)
-                __result += RunState.Run.currentNodeId * 25;
+                __result += RunState.Run.currentNodeId * 8;
             if (__instance.IsPart2)
-                __result += SaveManager.saveFile.gbcData.collection.Cards.Count * 25;
+                __result += SaveManager.saveFile.gbcData.collection.Cards.Count * 8;
             if (__instance.IsPart3)
-                __result += Part3SaveData.Data.nodesActivated * 25;
+                __result += Part3SaveData.Data.nodesActivated * 8;
         }
 
         [HarmonyPatch(typeof(SaveManager), "CreateNewSaveFile")]
@@ -194,11 +195,56 @@ namespace Archipelago_Inscryption.Patches
     [HarmonyDebug]
     class RandomizeDeckPatch
     {
-        [HarmonyPatch(typeof(CardDrawPiles), "DrawCardFromDeck")]
+
+        [HarmonyPatch(typeof(MapNode), "OnArriveAtNode")]
         [HarmonyPrefix]
-        static bool DrawRandomizeCard(bool playerDefeated)
-        
-            return false;
+        static bool RandomizeDeckWhenArrivingOnNode()
+        {
+            List<CardInfo> newCards = new List<CardInfo>();
+            int i = 0;
+            foreach (CardInfo c in RunState.Run.playerDeck.Cards)
+            {
+                CardInfo card = new CardInfo();
+                if (c.HasAnyOfCardMetaCategories(CardMetaCategory.Rare))
+                    card = CardLoader.GetRandomUnlockedRareCard(RandomizerHelper.GetCustomSeedDeckRandomization() + i);
+                else
+                    card = CardLoader.GetRandomChoosableCard(RandomizerHelper.GetCustomSeedDeckRandomization() + i);
+
+                if (card.Mods.Any(x => x.deathCardInfo != null)) 
+                {
+                    card.Mods = c.Mods;
+                }
+                if (true/*Option to randomize modded ability ability*/)
+                {
+                    foreach (CardModificationInfo mod in card.Mods)
+                    {
+                        if (mod.abilities.Count > 0)
+                        {
+                            List<Ability> newAbilityMod = new List<Ability>();
+                            for (int l = 0; l < mod.abilities.Count; l++)
+                            {
+                                newAbilityMod.Add(AbilitiesUtil.GetRandomLearnedAbility(RandomizerHelper.GetCustomSeedDeckRandomization() + i, card));
+                            }
+                            mod.abilities = newAbilityMod;
+                        }
+                    }
+                }
+                if (/*Option to randomize default ability &&*/card.abilities.Count > 4) //TODO
+                {
+                    int abilityCount = card.abilities.Count;
+                    card.abilities.Clear();
+                    for (int t = 0; t < abilityCount; t++)
+                    {
+                        card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(RandomizerHelper.GetCustomSeedDeckRandomization() + i, card));
+                    }
+                }
+                card.decals = c.decals;
+                newCards.Add(card);
+                i++;
+            }
+            RunState.Run.playerDeck.CardInfos = newCards;
+            return true;
         }
+
     }
 }
