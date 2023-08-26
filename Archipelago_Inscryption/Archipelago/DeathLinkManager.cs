@@ -58,6 +58,7 @@ namespace Archipelago_Inscryption.Archipelago
                 {
                     yield return new WaitUntil(() => Singleton<TurnManager>.Instance.IsPlayerTurn);
                     Singleton<TurnManager>.Instance.PlayerSurrendered = true;
+                    yield return new WaitUntil(() => RunState.Run.playerLives == 0);
                 }
                 else
                 {
