@@ -152,6 +152,19 @@ namespace Archipelago_Inscryption.Patches
 
             return true;
         }
+
+        [HarmonyPatch(typeof(TurnManager), "PlayerIsWinner")]
+        [HarmonyPrefix]
+        static bool PlayerLostIfDeathLink(ref bool __result)
+        {
+            if (DeathLinkManager.receivedDeath)
+            {
+                __result = false;
+                return false;
+            }
+
+            return true;
+        }
     }
 
     [HarmonyPatch]
