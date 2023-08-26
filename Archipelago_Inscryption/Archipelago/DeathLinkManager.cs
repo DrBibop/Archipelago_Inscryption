@@ -69,14 +69,10 @@ namespace Archipelago_Inscryption.Archipelago
 
                 yield return new WaitUntil(() => RunState.Run.playerLives == RunState.Run.maxPlayerLives);
             }
-            else if (SaveManager.saveFile.IsPart2 && Singleton<PlayerMovementController>.Instance != null)
+            else if (SaveManager.saveFile.IsPart2)
             {
                 if (SaveManager.SaveFile.currentScene != "GBC_Starting_Island")
                 {
-                    SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
-                    SaveData.Data.overworldNode = "StartingIsland";
-                    SaveData.Data.overworldIndoorPosition = -Vector3.up;
-
                     if (GBCEncounterManager.Instance != null && GBCEncounterManager.Instance.EncounterOccurring)
                     {
                         yield return new WaitUntil(() => Singleton<TurnManager>.Instance != null && (Singleton<TurnManager>.Instance.IsPlayerTurn || Singleton<TurnManager>.Instance.GameIsOver()));
@@ -84,6 +80,9 @@ namespace Archipelago_Inscryption.Archipelago
                         yield return new WaitUntil(() => !GBCEncounterManager.Instance.EncounterOccurring);
                     }
 
+                    SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
+                    SaveData.Data.overworldNode = "StartingIsland";
+                    SaveData.Data.overworldIndoorPosition = -Vector3.up;
                     LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
                 }
             }
