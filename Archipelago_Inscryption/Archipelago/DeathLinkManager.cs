@@ -14,7 +14,6 @@ namespace Archipelago_Inscryption.Archipelago
     internal static class DeathLinkManager
     {
         public static DeathLinkService DeathLinkService;
-        private static readonly List<DeathLink> deathLinks = new List<DeathLink>();
         internal static bool receivedDeath;
         private static int nbDeathsSent;
 
@@ -33,7 +32,6 @@ namespace Archipelago_Inscryption.Archipelago
             if (receivedDeath == true)
                 return;
             receivedDeath = true;
-            deathLinks.Add(deathLink);
             string message = $"Received DeathLink from: {deathLink.Source} due to {deathLink.Cause}";
             ArchipelagoModPlugin.Log.LogMessage(message);
             Singleton<ArchipelagoUI>.Instance.LogMessage(message);
@@ -99,23 +97,6 @@ namespace Archipelago_Inscryption.Archipelago
             else
                 cause = " tried their hardest but ultimately failed";
             DeathLinkService.SendDeathLink(new DeathLink(ArchipelagoClient.serverData.slotName, alias + cause));
-        }
-
-        static public void KillPlayer()
-        {
-            if (deathLinks.Count > 0)
-                receivedDeath = true;
-            if (!receivedDeath)
-                return;
-            string cause = deathLinks[0].Cause;
-            if (cause.IsNullOrWhiteSpace())
-            {
-                cause = deathLinks[0].Source + " is dead : rip bozo";
-            }
-            ArchipelagoManager.KillPlayer();
-            ArchipelagoModPlugin.Log.LogMessage(deathLinks[0].Source + cause);
-            deathLinks.RemoveAt(0);
-            receivedDeath = false;
         }
     }
 }
