@@ -80,7 +80,7 @@ namespace Archipelago_Inscryption.Archipelago
                 {
                     yield return new WaitUntil(() => Singleton<TurnManager>.Instance.IsPlayerTurn);
                     Singleton<TurnManager>.Instance.PlayerSurrendered = true;
-
+                    yield return new WaitUntil(() => Part3SaveData.Data.playerLives < Part3SaveData.Data.playerMaxLives);
                     yield return new WaitUntil(() => Part3SaveData.Data.playerLives == Part3SaveData.Data.playerMaxLives);
                 }
                 else
