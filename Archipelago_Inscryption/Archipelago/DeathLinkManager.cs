@@ -70,6 +70,7 @@ namespace Archipelago_Inscryption.Archipelago
                 if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
                 {
                     yield return Singleton<TurnManager>.Instance.CleanupPhase();
+                    yield return new WaitUntil(() => Part3SaveData.Data.playerPos == Part3SaveData.Data.checkpointPos);
                 }
                 else
                 {
