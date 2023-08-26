@@ -502,5 +502,20 @@ namespace Archipelago_Inscryption.Helpers
             Singleton<ViewManager>.Instance.OffsetPosition(Vector3.zero, 0.25f);
             Singleton<ViewManager>.Instance.OffsetRotation(new Vector3(10f, 0f, 0f), 0.25f);
         }
+
+        internal static IEnumerator BlowOutOneOrAllCandles(bool fromBoss)
+        {
+            if (DeathLinkManager.receivedDeath)
+            {
+                while (RunState.Run.playerLives > 0)
+                {
+                    yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence(fromBoss);
+                }
+            }
+            else
+            {
+                yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence(fromBoss);
+            }
+        }
     }
 }
