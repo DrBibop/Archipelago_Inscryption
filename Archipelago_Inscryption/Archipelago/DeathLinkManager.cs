@@ -40,8 +40,14 @@ namespace Archipelago_Inscryption.Archipelago
 
         static IEnumerator ApplyDeathLink()
         {
-            if (Singleton<TextDisplayer>.Instance == null && Singleton<TextDisplayer>.Instance.PlayingEvent)
+            if (Singleton<TextDisplayer>.Instance != null && Singleton<TextDisplayer>.Instance.PlayingEvent)
                 yield return new WaitUntil(() => !Singleton<TextDisplayer>.Instance.PlayingEvent);
+
+            if (Singleton<MapNodeManager>.Instance != null && Singleton<MapNodeManager>.Instance.MovingNodes)
+                yield return new WaitUntil(() => !Singleton<MapNodeManager>.Instance.MovingNodes);
+
+            if (Singleton<InteractionCursor>.Instance != null && Singleton<InteractionCursor>.Instance.InteractionDisabled == true)
+                yield return new WaitUntil(() => !Singleton<InteractionCursor>.Instance.InteractionDisabled);
 
             if (Singleton<FirstPersonController>.Instance != null && Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.FirstPerson3D)
                 yield return Singleton<GameFlowManager>.Instance.DoTransitionSequence(GameState.Map, null);
