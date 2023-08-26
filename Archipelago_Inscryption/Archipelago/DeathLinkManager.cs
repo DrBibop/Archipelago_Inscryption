@@ -60,9 +60,12 @@ namespace Archipelago_Inscryption.Archipelago
                     Singleton<TurnManager>.Instance.PlayerSurrendered = true;
                 }
 
-                while (RunState.Run.playerLives > 0)
-                    yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
-                yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
+                if (RunState.Run.playerLives > 1)
+                {
+                    while (RunState.Run.playerLives > 0)
+                        yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
+                    yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
+                }
             }
             else if (SaveManager.saveFile.IsPart2 && Singleton<PlayerMovementController>.Instance != null)
             {
