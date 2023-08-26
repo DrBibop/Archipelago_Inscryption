@@ -55,7 +55,12 @@ namespace Archipelago_Inscryption.Archipelago
             if (SaveManager.saveFile.IsPart1 && Singleton<GameFlowManager>.Instance != null && ProgressionData.LearnedMechanic(MechanicsConcept.LosingLife))
             {
                 if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
+                {
+                    if (Singleton<TurnManager>.Instance.IsSetupPhase)
+                        yield return new WaitUntil(() => !Singleton<TurnManager>.Instance.IsSetupPhase);
+
                     yield return Singleton<TurnManager>.Instance.CleanupPhase();
+                }
 
                 while (RunState.Run.playerLives > 0)
                     yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
@@ -75,6 +80,9 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
                 {
+                    if (Singleton<TurnManager>.Instance.IsSetupPhase)
+                        yield return new WaitUntil(() => !Singleton<TurnManager>.Instance.IsSetupPhase);
+
                     yield return Singleton<TurnManager>.Instance.CleanupPhase();
                     yield return new WaitUntil(() => Part3SaveData.Data.playerPos == Part3SaveData.Data.checkpointPos);
                 }
