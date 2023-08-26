@@ -76,7 +76,15 @@ namespace Archipelago_Inscryption.Archipelago
                     SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
                     SaveData.Data.overworldNode = "StartingIsland";
                     SaveData.Data.overworldIndoorPosition = -Vector3.up;
-                    LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
+
+                    if (GBCEncounterManager.Instance != null && GBCEncounterManager.Instance.EncounterOccurring)
+                    {
+                        SceneLoader.Load(SaveManager.SaveFile.currentScene);
+                    }
+                    else
+                    {
+                        LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
+                    }
                 }
             }
             else if (SaveManager.saveFile.IsPart3 && Singleton<GameFlowManager>.Instance != null)

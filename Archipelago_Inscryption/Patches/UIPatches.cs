@@ -195,8 +195,8 @@ namespace Archipelago_Inscryption.Patches
         {
             __instance.transform.Find("Clips_Row").gameObject.SetActive(false);
             __instance.transform.Find("Chapter_Row/ChapterSelectItemUI").gameObject.SetActive(false);
-            if (!StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked))
-                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject.SetActive(false);
+            //if (!StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked))
+            //    __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject.SetActive(false);
             //if (!StoryEventsData.EventCompleted(StoryEvent.Part2Completed))
             //    __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
             if (!StoryEventsData.EventCompleted(StoryEvent.Part3Completed))
