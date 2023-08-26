@@ -1,4 +1,5 @@
 ﻿using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
+using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Helpers;
 using BepInEx;
 using DiskCardGame;
@@ -19,8 +20,7 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static void Init()
         {
-            Console.WriteLine($"DeathLink is set to ");
-            Console.WriteLine(ArchipelagoClient.serverData.deathlink);
+            ArchipelagoModPlugin.Log.LogMessage($"DeathLink is set to: " + ArchipelagoClient.serverData.deathlink.ToString());
             DeathLinkService.OnDeathLinkReceived += ReceiveDeathLink;
             if (ArchipelagoClient.serverData.deathlink)
                 DeathLinkService.EnableDeathLink();
@@ -34,38 +34,53 @@ namespace Archipelago_Inscryption.Archipelago
                 return;
             receivedDeath = true;
             deathLinks.Add(deathLink);
-            Console.WriteLine($"Received DeathLink from: {deathLink.Source} due to {deathLink.Cause}");
-            CustomCoroutine.Instance.StartCoroutine(ReceiveDeathLinkNotInCombatCoroutine());
-            receivedDeath = false;
+            string message = $"Received DeathLink from: {deathLink.Source} due to {deathLink.Cause}";
+            ArchipelagoModPlugin.Log.LogMessage(message);
+            Singleton<ArchipelagoUI>.Instance.LogMessage(message);
+            CustomCoroutine.Instance.StartCoroutine(ApplyDeathLink());
         }
 
-        static IEnumerator ReceiveDeathLinkNotInCombatCoroutine()
+        static IEnumerator ApplyDeathLink()
         {
-            if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
-            {
-                yield return Singleton<TurnManager>.Instance.CleanupPhase();
-                while (RunState.Run.playerLives > 0)
-                    yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
-                yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
-            }
-            yield return new WaitUntil(() => Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.Map);
-            if (SaveManager.saveFile.IsPart1)
-            {
-                while (RunState.Run.playerLives > 0)
-                    yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
-                yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
+            if (Singleton<TextDisplayer>.Instance == null && Singleton<TextDisplayer>.Instance.PlayingEvent)
+                yield return new WaitUntil(() => !Singleton<TextDisplayer>.Instance.PlayingEvent);
 
-            }
-            else if (SaveManager.saveFile.IsPart2)
+            if (Singleton<FirstPersonController>.Instance != null && Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.FirstPerson3D)
+                yield return Singleton<GameFlowManager>.Instance.DoTransitionSequence(GameState.Map, null);
+
+            if (SaveManager.saveFile.IsPart1 && Singleton<GameFlowManager>.Instance != null && ProgressionData.LearnedMechanic(MechanicsConcept.LosingLife))
             {
-                SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
-                SaveData.Data.overworldNode = "StartingIsland";
-                SaveData.Data.overworldIndoorPosition = -Vector3.up;
-                LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
+                if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
+                    yield return Singleton<TurnManager>.Instance.CleanupPhase();
+
+                while (RunState.Run.playerLives > 0)
+                    yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
+                yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
             }
-            else if (SaveManager.saveFile.IsPart3)
-                yield return Singleton<Part3GameFlowManager>.Instance.PlayerRespawnSequence();
-            
+            else if (SaveManager.saveFile.IsPart2 && Singleton<PlayerMovementController>.Instance != null)
+            {
+                if (SaveManager.SaveFile.currentScene != "GBC_Starting_Island")
+                {
+                    SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
+                    SaveData.Data.overworldNode = "StartingIsland";
+                    SaveData.Data.overworldIndoorPosition = -Vector3.up;
+                    LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
+                }
+            }
+            else if (SaveManager.saveFile.IsPart3 && Singleton<GameFlowManager>.Instance != null)
+            {
+                if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
+                {
+                    yield return Singleton<TurnManager>.Instance.CleanupPhase();
+                }
+                else
+                {
+                    yield return new WaitUntil(() => Singleton<GameMap>.Instance.FullyUnrolled);
+                    yield return Singleton<Part3GameFlowManager>.Instance.PlayerRespawnSequence();
+                }
+            }
+
+            receivedDeath = false;
         }
 
         static public void SendDeathLink()
@@ -73,7 +88,7 @@ namespace Archipelago_Inscryption.Archipelago
             if (!ArchipelagoClient.serverData.deathlink || receivedDeath)
                 return;
             nbDeathsSent++;
-            Console.WriteLine("Sharing death with your friends...");
+            ArchipelagoModPlugin.Log.LogMessage("Sharing death with your friends...");
             var alias = ArchipelagoClient.session.Players.GetPlayerAliasAndName(ArchipelagoClient.session.ConnectionInfo.Slot);
             int i = UnityEngine.Random.Range(0, 2);
             string cause;
