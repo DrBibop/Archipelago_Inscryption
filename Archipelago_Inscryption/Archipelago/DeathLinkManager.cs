@@ -77,6 +77,7 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
                 {
+                    yield return new WaitUntil(() => Singleton<TurnManager>.Instance.IsPlayerTurn);
                     Singleton<TurnManager>.Instance.PlayerSurrendered = true;
 
                     yield return new WaitUntil(() => Part3SaveData.Data.playerPos == Part3SaveData.Data.checkpointPos);
