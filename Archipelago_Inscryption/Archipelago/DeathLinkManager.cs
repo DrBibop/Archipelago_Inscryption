@@ -35,7 +35,7 @@ namespace Archipelago_Inscryption.Archipelago
             string message = $"Received DeathLink from: {deathLink.Source} due to {deathLink.Cause}";
             ArchipelagoModPlugin.Log.LogMessage(message);
             Singleton<ArchipelagoUI>.Instance.LogMessage(message);
-            CustomCoroutine.Instance.StartCoroutine(ApplyDeathLink());
+            Singleton<ArchipelagoUI>.Instance.StartCoroutine(ApplyDeathLink());
         }
 
         static IEnumerator ApplyDeathLink()
