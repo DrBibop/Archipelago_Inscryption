@@ -60,6 +60,7 @@ namespace Archipelago_Inscryption.Archipelago
                     if (Singleton<TurnManager>.Instance.IsSetupPhase)
                     {
                         yield return new WaitUntil(() => !Singleton<TurnManager>.Instance.IsSetupPhase);
+                        yield return new WaitForSeconds(0.5f);
                     }
 
                     yield return Singleton<TurnManager>.Instance.CleanupPhase();
@@ -87,6 +88,7 @@ namespace Archipelago_Inscryption.Archipelago
                     if (Singleton<TurnManager>.Instance.IsSetupPhase)
                     {
                         yield return new WaitUntil(() => !Singleton<TurnManager>.Instance.IsSetupPhase);
+                        yield return new WaitForSeconds(0.5f);
                     }
 
                     yield return Singleton<TurnManager>.Instance.CleanupPhase();
