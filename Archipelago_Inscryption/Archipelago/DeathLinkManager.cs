@@ -56,7 +56,7 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
                 {
-                    yield return new WaitUntil(() => Singleton<TurnManager>.Instance.IsPlayerTurn);
+                    yield return new WaitUntil(() => Singleton<TurnManager>.Instance.IsPlayerTurn || Singleton<TurnManager>.Instance.GameIsOver());
                     Singleton<TurnManager>.Instance.PlayerSurrendered = true;
                     yield return new WaitUntil(() => RunState.Run.playerLives == 0);
                 }
@@ -79,12 +79,12 @@ namespace Archipelago_Inscryption.Archipelago
 
                     if (GBCEncounterManager.Instance != null && GBCEncounterManager.Instance.EncounterOccurring)
                     {
-                        SceneLoader.Load(SaveManager.SaveFile.currentScene);
+                        yield return new WaitUntil(() => Singleton<TurnManager>.Instance != null && (Singleton<TurnManager>.Instance.IsPlayerTurn || Singleton<TurnManager>.Instance.GameIsOver()));
+                        Singleton<TurnManager>.Instance.PlayerSurrendered = true;
+                        yield return new WaitUntil(() => !GBCEncounterManager.Instance.EncounterOccurring);
                     }
-                    else
-                    {
-                        LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
-                    }
+
+                    LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
                 }
             }
             else if (SaveManager.saveFile.IsPart3 && Singleton<GameFlowManager>.Instance != null)
