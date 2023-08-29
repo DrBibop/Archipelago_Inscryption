@@ -13,6 +13,8 @@ using TMPro;
 using UnityEngine;
 using Unity;
 using InscryptionAPI.Card;
+using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
+using System;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -201,6 +203,8 @@ namespace Archipelago_Inscryption.Patches
         static bool RandomizeDeckWhenArrivingOnNode()
         {
             List<CardInfo> newCards = new List<CardInfo>();
+            List<string> newCardsIds = new List<string>();
+            Dictionary<string, List<CardModificationInfo>> newCardsMod = new Dictionary<string, List<CardModificationInfo>>();
             int i = 0;
             foreach (CardInfo c in RunState.Run.playerDeck.Cards)
             {
@@ -209,27 +213,31 @@ namespace Archipelago_Inscryption.Patches
                     card = CardLoader.GetRandomUnlockedRareCard(RandomizerHelper.GetCustomSeedDeckRandomization() + i);
                 else
                     card = CardLoader.GetRandomChoosableCard(RandomizerHelper.GetCustomSeedDeckRandomization() + i);
-
-                if (card.Mods.Any(x => x.deathCardInfo != null)) 
+                foreach (CardModificationInfo mod in c.Mods)
                 {
-                    card.Mods = c.Mods;
-                }
-                if (true/*Option to randomize modded ability ability*/)
-                {
-                    foreach (CardModificationInfo mod in card.Mods)
+                    if (mod.deathCardInfo != null)
                     {
+                        Console.WriteLine($"Name Card {c.displayedNameLocId}");
+                        Console.WriteLine($"DeathLink Card");
+                        continue;
+                    }
+                    if (mod.fromCardMerge/*Option to randomize modded ability ability*/)
+                    {
+                        List<Ability> newAbilityMod = new List<Ability>();
                         if (mod.abilities.Count > 0)
                         {
-                            List<Ability> newAbilityMod = new List<Ability>();
                             for (int l = 0; l < mod.abilities.Count; l++)
                             {
+                                Console.WriteLine($"Ability changed from {mod.abilities.First()}");
                                 newAbilityMod.Add(AbilitiesUtil.GetRandomLearnedAbility(RandomizerHelper.GetCustomSeedDeckRandomization() + i, card));
                             }
                             mod.abilities = newAbilityMod;
                         }
+            
                     }
+                    card.mods.Add(mod);
                 }
-                if (/*Option to randomize default ability &&*/card.abilities.Count > 4) //TODO
+                if (false/*Option to randomize default ability &&card.abilities.Count > 0*/) //TODO
                 {
                     int abilityCount = card.abilities.Count;
                     card.abilities.Clear();
@@ -239,10 +247,12 @@ namespace Archipelago_Inscryption.Patches
                     }
                 }
                 card.decals = c.decals;
+                newCardsIds.Add(card.name);
                 newCards.Add(card);
                 i++;
             }
             RunState.Run.playerDeck.CardInfos = newCards;
+            RunState.Run.playerDeck.cardIds = newCardsIds;
             return true;
         }
 
