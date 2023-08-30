@@ -458,12 +458,6 @@ namespace Archipelago_Inscryption.Helpers
             yield return Singleton<TextDisplayer>.Instance.ShowMessage(message);
         }
 
-        internal static int GetCustomSeedDeckRandomization()
-        {
-            randomSeed += RunState.Run.currentNodeId;
-            return randomSeed;
-        }
-
         internal static void AfterPlayerDeathSequence()
         {
             if (doDeathCard)
