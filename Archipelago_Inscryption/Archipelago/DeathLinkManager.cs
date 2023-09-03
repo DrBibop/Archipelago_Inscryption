@@ -19,8 +19,7 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static void Init()
         {
-            Console.WriteLine($"DeathLink is set to ");
-            Console.WriteLine(ArchipelagoClient.serverData.deathlink);
+            Console.WriteLine($"DeathLink is set to {ArchipelagoClient.serverData.deathlink}");
             DeathLinkService.OnDeathLinkReceived += ReceiveDeathLink;
             if (ArchipelagoClient.serverData.deathlink)
                 DeathLinkService.EnableDeathLink();
@@ -77,11 +76,11 @@ namespace Archipelago_Inscryption.Archipelago
             int i = UnityEngine.Random.Range(0, 2);
             string cause;
             if (i == 0)
-                cause = " died because of skill issue";
+                cause = " skill issue";
             if (i == 1)
-                cause = " is not good enough";
+                cause = " lack of skill";
             else
-                cause = " tried their hardest but ultimately failed";
+                cause = " ineptitude";
             DeathLinkService.SendDeathLink(new DeathLink(ArchipelagoClient.serverData.slotName, alias + cause));
         }
 

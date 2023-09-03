@@ -176,7 +176,9 @@ namespace Archipelago_Inscryption.Archipelago
                 if (serverData.slotData.TryGetValue("randomize_codes", out var randomizeCodes))
                     ArchipelagoManager.randomizeCodes = Convert.ToInt32(randomizeCodes) == 1;
                 if (serverData.slotData.TryGetValue("randomize_deck", out var randomizeDeck))
-                    ArchipelagoManager.randomizeDeck = Convert.ToInt32(randomizeDeck) == 1;
+                    ArchipelagoManager.randomizeDeck = (RandomizeDeck)Convert.ToInt32(randomizeDeck);
+                if (serverData.slotData.TryGetValue("randomize_abilities", out var randomizeAbilities))
+                    ArchipelagoManager.randomizeAbilities = (RandomizeAbilities)Convert.ToInt32(randomizeAbilities);
 
                 DeathLinkManager.DeathLinkService = session.CreateDeathLinkService();
                 DeathLinkManager.Init();
