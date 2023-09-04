@@ -93,7 +93,7 @@ namespace Archipelago_Inscryption.Archipelago
             string cause = deathLinks[0].Cause;
             if (cause.IsNullOrWhiteSpace())
             {
-                cause = deathLinks[0].Source + " is dead : rip bozo";
+                cause = deathLinks[0].Source + " is dead... rip bozo";
             }
             ArchipelagoManager.KillPlayer();
             ArchipelagoModPlugin.Log.LogMessage(deathLinks[0].Source + cause);
