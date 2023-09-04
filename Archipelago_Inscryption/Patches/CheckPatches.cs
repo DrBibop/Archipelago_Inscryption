@@ -1,4 +1,5 @@
 ﻿using Archipelago_Inscryption.Archipelago;
+using Archipelago_Inscryption.Assets;
 using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Helpers;
 using Archipelago_Inscryption.Utils;
@@ -172,6 +173,12 @@ namespace Archipelago_Inscryption.Patches
                     if (!StoryEventsData.EventCompleted(StoryEvent.FactoryCuckooClockOpenedLarge))
                         checkCard.SetEnabled(false);
                 }
+
+                if (ArchipelagoManager.randomizeCodes)
+                {
+                    __instance.solutionPositionsLarge = ArchipelagoManager.factoryClockCode.ToArray();
+                    __instance.solutionPositionsSmall = ArchipelagoManager.cabinSmallClockCode.ToArray();
+                }
             }
             else
             {
@@ -206,6 +213,39 @@ namespace Archipelago_Inscryption.Patches
                     checkCard2.gameObject.SetLayerRecursive(fplLayer);
                     if (!StoryEventsData.EventCompleted(StoryEvent.ClockCompartmentOpened))
                         checkCard2.SetEnabled(false);
+                }
+
+                if (ArchipelagoManager.randomizeCodes)
+                {
+                    __instance.solutionPositionsLarge = ArchipelagoManager.cabinClockCode.ToArray();
+                    __instance.solutionPositionsSmall = ArchipelagoManager.cabinSmallClockCode.ToArray();
+
+                    Transform clock = __instance.transform.Find("CuckooClock");
+
+                    List<Transform> children = new List<Transform>();
+                    foreach (Transform child in clock)
+                    {
+                        children.Add(child);
+                    }
+
+                    children.First(x => x.gameObject.name == "WizardMark_Tall" && x.eulerAngles.z > 270).gameObject.SetActive(false);
+                    children.First(x => x.gameObject.name == "WizardMark_Tall" && x.eulerAngles.z < 270).gameObject.SetActive(false);
+                    children.First(x => x.gameObject.name == "WizardMark_Short").gameObject.SetActive(false);
+
+                    GameObject cluesObject = GameObject.Instantiate(AssetsManager.clockCluesPrefab, clock);
+
+                    cluesObject.transform.localPosition = new Vector3(0f, 1.9459f, 0.6577f);
+                    cluesObject.transform.eulerAngles = new Vector3(0, 180, 0);
+
+                    Transform secondHandClue = cluesObject.transform.Find("SecondCluePivot");
+                    Transform minuteHandClue = cluesObject.transform.Find("MinuteCluePivot");
+                    Transform hourHandClue = cluesObject.transform.Find("HourCluePivot");
+
+                    secondHandClue.localEulerAngles = new Vector3(0, 0, 360 - 30 * ArchipelagoManager.cabinClockCode[0]);
+                    minuteHandClue.localEulerAngles = new Vector3(0, 0, 360 - 30 * ArchipelagoManager.cabinClockCode[1]);
+                    hourHandClue.localEulerAngles = new Vector3(0, 0, 360 - 30 * ArchipelagoManager.cabinClockCode[2]);
+
+                    cluesObject.SetLayerRecursive(LayerMask.NameToLayer("WizardEyeVisible"));
                 }
             }
 
@@ -589,6 +629,10 @@ namespace Archipelago_Inscryption.Patches
                 case "HoloMapArea_Shop(Clone)":
                     RandomizerHelper.CreateHoloMapNodeCheck(__instance.transform.Find("Nodes/ShopNode3D_ShieldGenItem/UnlockItemNode3D_ShieldGenerator").gameObject, APCheck.FactoryNanoArmorGenerator);
                     RandomizerHelper.CreateHoloMapNodeCheck(__instance.transform.Find("Nodes/ShopNode3D_PickupPelt/PickupPeltNode3D").gameObject, APCheck.FactoryHoloPelt1);
+                    break;
+                case "HoloMapArea_TempleWizardSide(Clone)":
+                    Transform clue = __instance.transform.Find("Splatter/clue");
+                    clue.GetComponent<MeshRenderer>().material.mainTexture = AssetsManager.factoryClockClueTexs[ArchipelagoManager.factoryClockCode[2]];
                     break;
             }
         }

@@ -9,12 +9,20 @@ namespace Archipelago_Inscryption.Assets
         internal static Sprite archiSettingsTabSprite;
         internal static Sprite inputFieldSprite;
         internal static Sprite[] packButtonSprites;
+        internal static Sprite editedNatureFloorSprite;
+
+        internal static Texture2D boonTableTex;
+        internal static Texture2D[] smallClockClueTexs;
+        internal static Texture2D[] factoryClockClueTexs;
 
         internal static GameObject cardPackPrefab;
         internal static GameObject selectableCardPrefab;
         internal static GameObject selectableDiskCardPrefab;
         internal static GameObject archipelagoUIPrefab;
         internal static GameObject cardChoiceHoloNodePrefab;
+        internal static GameObject clockCluesPrefab;
+        internal static GameObject smallClockCluePrefab;
+        internal static GameObject gbcSafeCluePrefab;
 
         internal static Mesh checkCardHoloNodeMesh;
 
@@ -31,18 +39,35 @@ namespace Archipelago_Inscryption.Assets
 
             Texture2D archipelagoTabTex = assetBundle.LoadAsset<Texture2D>("ArchipelagoTab");
             Texture2D inputFieldTex = assetBundle.LoadAsset<Texture2D>("InputFieldImage");
+            Texture2D editedNatureFloorTex = assetBundle.LoadAsset<Texture2D>("nature_temple_floor_edited");
 
             archiSettingsTabSprite = GenerateSprite(archipelagoTabTex);
             inputFieldSprite = GenerateSprite(inputFieldTex);
+            editedNatureFloorSprite = GenerateSprite(editedNatureFloorTex);
 
             packButtonSprites = assetBundle.LoadAssetWithSubAssets<Sprite>("GBCCardPackButton");
+
+            boonTableTex = assetBundle.LoadAsset<Texture2D>("BoonTableEdited");
+            smallClockClueTexs = new Texture2D[12];
+            for (int i = 0; i < 12; i++)
+            {
+                smallClockClueTexs[i] = assetBundle.LoadAsset<Texture2D>("SmallClockClue_" + i.ToString());
+            }
+            factoryClockClueTexs = new Texture2D[12];
+            for (int i = 0; i < 12; i++)
+            {
+                factoryClockClueTexs[i] = assetBundle.LoadAsset<Texture2D>("FactoryClockClue_" + i.ToString());
+            }
 
             cardPackPrefab = ResourceBank.Get<GameObject>("prefabs/cards/specificcardmodels/CardPack");
             selectableCardPrefab = ResourceBank.Get<GameObject>("prefabs/cards/SelectableCard");
             selectableDiskCardPrefab = ResourceBank.Get<GameObject>("prefabs/cards/SelectableCard_Part3");
             cardChoiceHoloNodePrefab = ResourceBank.Get<GameObject>("prefabs/map/mapnodespart3/CardChoiceNode3D");
 
+            clockCluesPrefab = assetBundle.LoadAsset<GameObject>("ClockHeadClues");
             archipelagoUIPrefab = assetBundle.LoadAsset<GameObject>("ArchipelagoUI");
+            smallClockCluePrefab = assetBundle.LoadAsset<GameObject>("SmallClockClue");
+            gbcSafeCluePrefab = assetBundle.LoadAsset<GameObject>("GBCSafeClue");
 
             checkCardHoloNodeMesh = assetBundle.LoadAsset<Mesh>("CheckCard_mesh");
         }

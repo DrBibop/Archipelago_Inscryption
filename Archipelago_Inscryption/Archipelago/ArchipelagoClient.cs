@@ -161,8 +161,12 @@ namespace Archipelago_Inscryption.Archipelago
                     serverData.receivedItems.Clear();
                     serverData.completedChecks.Clear();
 
+
                     ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", new List<string>());
                     ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", new List<long>());
+                    ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode", new List<int>());
+                    ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinClockCode", new List<int>());
+                    ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSmallClockCode", new List<int>());
                 }
 
                 LoginSuccessful successfulResult = (LoginSuccessful)result;
@@ -188,6 +192,8 @@ namespace Archipelago_Inscryption.Archipelago
 
                 if (ArchipelagoManager.randomizeCodes)
                 {
+                    int seed = int.Parse(serverData.seed.Substring(serverData.seed.Length - 6)) + 20 * session.ConnectionInfo.Slot;
+
                     List<int> cabinSafeCode = ModdedSaveManager.SaveData.GetValueAsObject<List<int>>(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode");
                     if (cabinSafeCode != null && cabinSafeCode.Count > 0) 
                     {
@@ -195,7 +201,6 @@ namespace Archipelago_Inscryption.Archipelago
                     }
                     else
                     {
-                        int seed = int.Parse(serverData.seed.Substring(serverData.seed.Length - 6)) + 20 * session.Players.AllPlayers.First(x => x.Name == serverData.slotName).Slot;
                         do
                         {
                             int number = SeededRandom.Range(0, 9, seed++);
@@ -203,6 +208,44 @@ namespace Archipelago_Inscryption.Archipelago
                                 ArchipelagoManager.cabinSafeCode.Add(number);
                         } while (ArchipelagoManager.cabinSafeCode.Count < 3);
                         ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode", ArchipelagoManager.cabinSafeCode);
+                    }
+
+                    List<int> cabinClockCode = ModdedSaveManager.SaveData.GetValueAsObject<List<int>>(ArchipelagoModPlugin.PluginGuid, "CabinClockCode");
+                    if (cabinClockCode != null && cabinClockCode.Count > 0)
+                    {
+                        ArchipelagoManager.cabinClockCode = cabinClockCode;
+                    }
+                    else
+                    {
+                        do
+                        {
+                            int number = SeededRandom.Range(0, 11, seed++);
+                            if (!ArchipelagoManager.cabinClockCode.Contains(number))
+                                ArchipelagoManager.cabinClockCode.Add(number);
+                        } while (ArchipelagoManager.cabinClockCode.Count < 3);
+                        ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinClockCode", ArchipelagoManager.cabinClockCode);
+                    }
+
+                    List<int> cabinSmallClockCode = ModdedSaveManager.SaveData.GetValueAsObject<List<int>>(ArchipelagoModPlugin.PluginGuid, "CabinSmallClockCode");
+                    if (cabinSmallClockCode != null && cabinSmallClockCode.Count > 0)
+                    {
+                        ArchipelagoManager.cabinSmallClockCode = cabinSmallClockCode;
+                    }
+                    else
+                    {
+                        ArchipelagoManager.cabinSmallClockCode = new List<int> { 0, 0, SeededRandom.Range(0, 11, seed++) };
+                        ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSmallClockCode", ArchipelagoManager.cabinSmallClockCode);
+                    }
+
+                    List<int> factoryClockCode = ModdedSaveManager.SaveData.GetValueAsObject<List<int>>(ArchipelagoModPlugin.PluginGuid, "FactoryClockCode");
+                    if (factoryClockCode != null && factoryClockCode.Count > 0)
+                    {
+                        ArchipelagoManager.factoryClockCode = factoryClockCode;
+                    }
+                    else
+                    {
+                        ArchipelagoManager.factoryClockCode = new List<int> { 0, 0, SeededRandom.Range(0, 11, seed++) };
+                        ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "FactoryClockCode", ArchipelagoManager.factoryClockCode);
                     }
                 }
 
@@ -228,7 +271,8 @@ namespace Archipelago_Inscryption.Archipelago
         {
             Singleton<ArchipelagoUI>.Instance.UpdateConnectionStatus(false);
             ArchipelagoModPlugin.Log.LogInfo($"Connection lost: {reason}");
-            Disconnect();
+            if (session != null)
+                Disconnect();
         }
 
         private static void SessionErrorReceived(Exception e, string message)
