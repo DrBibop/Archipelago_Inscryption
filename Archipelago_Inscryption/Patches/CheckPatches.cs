@@ -44,7 +44,9 @@ namespace Archipelago_Inscryption.Patches
                     APCheck check = Enum.GetValues(typeof(APCheck)).Cast<APCheck>().FirstOrDefault(c => c.ToString() == checkName);
                     ArchipelagoManager.SendCheck(check);
                 }
-                
+
+                __instance.deckPile.AddToPile(__instance.chosenReward.transform);
+
                 return false;
             }
 
