@@ -6,6 +6,7 @@ using DiskCardGame;
 using GBC;
 using InscryptionAPI.Card;
 using Pixelplacement;
+using Steamworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace Archipelago_Inscryption.Helpers
     internal static class RandomizerHelper
     {
         private static DiscoverableCheckInteractable[] paintingChecks;
+
+        private static int randomSeed = UnityEngine.Random.Range(1, 500);
 
         private static readonly string[] checkCardLeshyDialog =
         {
@@ -422,9 +425,10 @@ namespace Archipelago_Inscryption.Helpers
 
         internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
         {
+            if (Singleton<GameMap>.Instance.FullyUnrolled)
+                Singleton<GameMap>.Instance.HideMapImmediate();
             if (!DeathLinkManager.receivedDeath)
                 DeathLinkManager.SendDeathLink();
-            ArchipelagoModPlugin.Log.LogMessage("Rip bozo 1");
             if ((DeathLinkManager.receivedDeath && ArchipelagoManager.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
                 || ArchipelagoManager.optionalDeathCard == OptionalDeathCard.Disable)
             {
@@ -447,6 +451,11 @@ namespace Archipelago_Inscryption.Helpers
             else
                 doDeathCard = false;
             yield return manager.KillPlayerSequence();
+        }
+
+        internal static IEnumerator LeshySaysMessage(string message)
+        {
+            yield return Singleton<TextDisplayer>.Instance.ShowMessage(message);
         }
 
         internal static void AfterPlayerDeathSequence()

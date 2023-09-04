@@ -6,11 +6,17 @@ using GBC;
 using HarmonyLib;
 using InscryptionAPI.Saves;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using TMPro;
 using UnityEngine;
+using Unity;
+using InscryptionAPI.Card;
+using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
+using System;
+using InscryptionAPI.Nodes;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -56,6 +62,12 @@ namespace Archipelago_Inscryption.Patches
         {
             if (__instance.IsPart1 || __instance.IsPart3)
                 __result += __instance.gbcData.packsOpened * 2;
+            if (__instance.IsPart1)
+                __result += RunState.Run.currentNodeId * 100 * SaveManager.saveFile.pastRuns.Count + 1;
+            if (__instance.IsPart2)
+                __result += (SaveManager.saveFile.gbcData.npcAttempts + 1) * 50;
+            if (__instance.IsPart3)
+                __result += (Part3SaveData.Data.bounty + 1) * 50;
         }
 
         [HarmonyPatch(typeof(SaveManager), "CreateNewSaveFile")]
@@ -237,7 +249,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool SendDeathLinkOnPart2(bool playerDefeated)
         {
-            if (DeathLinkManager.receivedDeath) 
+            if (DeathLinkManager.receivedDeath)
                 return true;
             if (playerDefeated)
             {
@@ -287,6 +299,169 @@ namespace Archipelago_Inscryption.Patches
             codes.InsertRange(index, newCodes);
 
             return codes.AsEnumerable();
+        }
+    }
+}
+
+    [HarmonyPatch]
+    [HarmonyDebug]
+    class RandomizeDeckPatch
+    {
+
+        [HarmonyPatch(typeof(MapNode), "OnArriveAtNode")]
+        [HarmonyPrefix]
+        static bool RandomizeDeckWhenArrivingOnNode()
+        {
+            if (ArchipelagoManager.randomizeDeck != RandomizeDeck.Disable)
+            {
+                List<CardInfo> newCards = new List<CardInfo>();
+                List<string> newCardsIds = new List<string>();
+                Dictionary<string, List<CardModificationInfo>> newCardsMod = new Dictionary<string, List<CardModificationInfo>>();
+                int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
+                foreach (CardInfo c in RunState.Run.playerDeck.Cards)
+                {
+                    CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
+                    if (ArchipelagoManager.randomizeDeck == RandomizeDeck.RandomizeType)
+                    {
+                        if (c.HasAnyOfCardMetaCategories(CardMetaCategory.Rare))
+                            card = CardLoader.GetRandomUnlockedRareCard(seed++);
+                        else if (c.IsPelt())
+                        {
+                            card = c;
+                            continue;
+                        }
+                        else
+                            card = Singleton<Part1CardChoiceGenerator>.Instance.GenerateDirectChoices(seed++).First().info;
+                    }
+                    else if (ArchipelagoManager.randomizeDeck == RandomizeDeck.RandomizeAll)
+                    {
+                        List<CardInfo> cardsInfoRandomPool = CardLoader.GetUnlockedCards(CardMetaCategory.ChoiceNode, CardTemple.Nature);
+                        cardsInfoRandomPool.AddRange(CardLoader.GetUnlockedCards(CardMetaCategory.Rare, CardTemple.Nature));
+                        card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+                    }
+                    else
+                    {
+                        card = c.Clone() as CardInfo;
+                    }
+                    if (ArchipelagoManager.randomizeAbilities != RandomizeAbilities.Disable)
+                    {
+                        foreach (CardModificationInfo mod in c.Mods)
+                        {
+                            if (mod.deathCardInfo != null)
+                            {
+                                Console.WriteLine($"Name Card {c.displayedNameLocId}");
+                                Console.WriteLine($"DeathLink Card");
+                                continue;
+                            }
+                            if (mod.fromCardMerge)
+                            {
+                                List<Ability> newAbilityMod = new List<Ability>();
+                                if (mod.abilities.Count > 0)
+                                {
+                                    for (int l = 0; l < mod.abilities.Count; l++)
+                                    {
+                                        Ability abil = AbilitiesUtil.GetRandomLearnedAbility(seed++);
+                                        while (card.HasAbility(abil))
+                                        {
+                                            abil = AbilitiesUtil.GetRandomLearnedAbility(seed++);
+                                        }
+                                        newAbilityMod.Add(abil);
+                                    }
+                                    mod.abilities = newAbilityMod;
+                                }
+                            }
+                            card.mods.Add(mod);
+                        }
+                    }
+                    if (ArchipelagoManager.randomizeAbilities == RandomizeAbilities.RandomizeAll)
+                    {
+                        int abilityCount = card.abilities.Count;
+                        card.abilities.Clear();
+                        for (int t = 0; t < abilityCount; t++)
+                            card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++));
+                    }
+                    card.decals = c.decals;
+                    newCardsIds.Add(card.name);
+                    newCards.Add(card);
+                }
+                RunState.Run.playerDeck.CardInfos = newCards;
+                RunState.Run.playerDeck.cardIds = newCardsIds;
+                RunState.Run.playerDeck.UpdateModDictionary();
+            }
+            return true;
+        }
+        
+
+        [HarmonyPatch(typeof(GBCEncounterManager), "StartEncounter")]
+        [HarmonyPrefix]
+        static bool RandomizeDeckAct2()
+        {
+            if (ArchipelagoManager.randomizeDeck != RandomizeDeck.Disable)
+            {
+                int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
+                List<CardInfo> newCards = new List<CardInfo>();
+                List<string> newCardsIds = new List<string>();
+                List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.GBCPlayable));
+                List<AbilityInfo> abilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll((AbilityInfo x) => x.metaCategories.Contains(AbilityMetaCategory.GrimoraRulebook)
+                || x.metaCategories.Contains(AbilityMetaCategory.MagnificusRulebook) || x.metaCategories.Contains(AbilityMetaCategory.Part1Modular) 
+                || x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
+                foreach (CardInfo c in SaveData.Data.deck.Cards)
+                {
+                    CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
+                    card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+                    card.mods = c.mods;
+                    if (ArchipelagoManager.randomizeAbilities == RandomizeAbilities.RandomizeAll)
+                    {
+                        int rand = 0;
+                        int abilityCount = card.abilities.Count;
+                        card.abilities.Clear();
+                        for (int t = 0; t < abilityCount; t++)
+                        {
+                            rand = UnityEngine.Random.Range(0, 4);
+                            Console.WriteLine($"Random : {rand}");
+                            if (rand == 0)
+                                card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.MagnificusRulebook));
+                            else if (rand == 1)
+                                card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.GrimoraRulebook));
+                            else if (rand == 2)
+                                card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.Part3Modular));
+                            else
+                                card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.Part1Modular));
+                        }
+                    }
+                    card.decals = c.decals;
+                    newCardsIds.Add(card.name);
+                    newCards.Add(card);
+                }
+                SaveData.Data.deck.CardInfos = newCards;
+                SaveData.Data.deck.cardIds = newCardsIds;
+                SaveData.Data.deck.UpdateModDictionary();
+            }
+            return true;
+        }
+
+        [HarmonyPatch(typeof(HoloMapNode), "OnSelected")]
+        [HarmonyPrefix]
+        static bool RandomizeDeckAct3()
+        {
+            if (ArchipelagoManager.randomizeDeck != RandomizeDeck.Disable)
+            {
+                int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
+                List<CardInfo> newCards = new List<CardInfo>();
+                List<string> newCardsIds = new List<string>();
+                List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Part3Random) && x.temple == CardTemple.Tech);
+                foreach (CardInfo c in Part3SaveData.Data.deck.Cards)
+                {
+                    CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
+                    card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+                    newCardsIds.Add(card.name);
+                    newCards.Add(card);
+                }
+                Part3SaveData.Data.deck.CardInfos = newCards;
+                Part3SaveData.Data.deck.cardIds = newCardsIds;
+                Part3SaveData.Data.deck.UpdateModDictionary();
+            }
+            return true;
         }
     }
 }
