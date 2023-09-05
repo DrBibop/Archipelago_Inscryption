@@ -425,8 +425,6 @@ namespace Archipelago_Inscryption.Helpers
 
         internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
         {
-            if (Singleton<GameMap>.Instance.FullyUnrolled)
-                Singleton<GameMap>.Instance.HideMapImmediate();
             if (!DeathLinkManager.receivedDeath)
                 DeathLinkManager.SendDeathLink();
             if ((DeathLinkManager.receivedDeath && ArchipelagoManager.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
@@ -516,6 +514,8 @@ namespace Archipelago_Inscryption.Helpers
         {
             if (DeathLinkManager.receivedDeath)
             {
+                if (Singleton<GameMap>.Instance.FullyUnrolled)
+                    Singleton<GameMap>.Instance.HideMapImmediate();
                 while (RunState.Run.playerLives > 0)
                 {
                     yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence(fromBoss);
