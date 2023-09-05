@@ -56,6 +56,7 @@ namespace Archipelago_Inscryption.Components
         {
             opening = true;
             Singleton<InteractionCursor>.Instance.InteractionDisabled = true;
+            Singleton<ViewManager>.Instance.Controller.LockState = ViewLockState.Locked;
 
             Tween.LocalPosition(pileTop.transform, topPackBasePosition + new Vector3(-1.5f, 1f, 0), 0.2f, 0, Tween.EaseOut);
             Tween.LocalRotation(pileTop.transform, Quaternion.Euler(0, -90, 0), 0.2f, 0, Tween.EaseOut);
@@ -83,6 +84,8 @@ namespace Archipelago_Inscryption.Components
             ArchipelagoManager.AvailableCardPacks--;
 
             RandomizerHelper.DestroyPackPile();
+
+            Singleton<ViewManager>.Instance.Controller.LockState = ViewLockState.Unlocked;
 
             CardChoicesNodeData nodeData = new CardChoicesNodeData();
             nodeData.choicesType = CardChoicesType.Random;
