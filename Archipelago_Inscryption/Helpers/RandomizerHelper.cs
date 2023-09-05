@@ -432,6 +432,7 @@ namespace Archipelago_Inscryption.Helpers
             {
                 Singleton<ViewManager>.Instance.SwitchToView(View.Default, false, true);
                 yield return manager.KillPlayerSequence();
+                yield break;
             }
             yield return Singleton<TextDisplayer>.Instance.ShowUntilInput("Choose if you want to create a new deathcard");
             CardChoicesNodeData choice = new CardChoicesNodeData();

@@ -67,7 +67,9 @@ namespace Archipelago_Inscryption.Archipelago
                     yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
                 }
 
-                yield return new WaitUntil(() => RunState.Run.playerLives == RunState.Run.maxPlayerLives);
+                RunState finishedRun = RunState.Run;
+
+                yield return new WaitUntil(() => RunState.Run != finishedRun);
             }
             else if (SaveManager.saveFile.IsPart2)
             {
