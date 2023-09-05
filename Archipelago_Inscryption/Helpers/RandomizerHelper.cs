@@ -110,7 +110,7 @@ namespace Archipelago_Inscryption.Helpers
 
         private static GameObject packPile;
         private static List<GameObject> packs = new List<GameObject>();
-        private static bool doDeathCard = false;
+        private static bool doDeathCard = true;
 
         internal static DiscoverableCheckInteractable CreateDiscoverableCardCheck(GameObject originalObject, APCheck check, bool destroyOriginal, StoryEvent activeStoryFlag = StoryEvent.NUM_EVENTS)
         {
