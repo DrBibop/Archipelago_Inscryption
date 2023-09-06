@@ -236,7 +236,7 @@ namespace Archipelago_Inscryption.Patches
 
                     GameObject cluesObject = GameObject.Instantiate(AssetsManager.clockCluesPrefab, clock);
 
-                    cluesObject.transform.localPosition = new Vector3(0f, 1.9459f, 0.6577f);
+                    cluesObject.transform.localPosition = new Vector3(0f, 1.9459f, 0.6f);
                     cluesObject.transform.eulerAngles = new Vector3(0, 180, 0);
 
                     Transform secondHandClue = cluesObject.transform.Find("SecondCluePivot");
