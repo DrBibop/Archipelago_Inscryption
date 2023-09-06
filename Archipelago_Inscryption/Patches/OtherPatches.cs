@@ -318,13 +318,14 @@ class RandomizeDeckPatch
             List<string> newCardsIds = new List<string>();
             Dictionary<string, List<CardModificationInfo>> newCardsMod = new Dictionary<string, List<CardModificationInfo>>();
             int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
+            CardInfo ce = RandomizerHelper.RandomRareCardInAct1(seed);
             foreach (CardInfo c in RunState.Run.playerDeck.Cards)
             {
                 CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
                 if (ArchipelagoManager.randomizeDeck == RandomizeDeck.RandomizeType)
                 {
                     if (c.HasAnyOfCardMetaCategories(CardMetaCategory.Rare))
-                        card = CardLoader.GetRandomUnlockedRareCard(seed++);
+                        card = RandomizerHelper.RandomRareCardInAct1(seed++);
                     else if (c.IsPelt())
                     {
                         card = c;
@@ -335,8 +336,8 @@ class RandomizeDeckPatch
                 }
                 else if (ArchipelagoManager.randomizeDeck == RandomizeDeck.RandomizeAll)
                 {
-                    List<CardInfo> cardsInfoRandomPool = CardLoader.GetUnlockedCards(CardMetaCategory.ChoiceNode, CardTemple.Nature);
-                    cardsInfoRandomPool.AddRange(CardLoader.GetUnlockedCards(CardMetaCategory.Rare, CardTemple.Nature));
+                    List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature 
+                    && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock));
                     card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
                 }
                 else
@@ -462,5 +463,26 @@ class RandomizeDeckPatch
             Part3SaveData.Data.deck.UpdateModDictionary();
         }
         return true;
+    }
+
+    [HarmonyPatch(typeof(Part1RareChoiceGenerator), "GenerateChoices")]
+    [HarmonyPrefix]
+    static bool RareCardChooserAct1(ref List<CardChoice> __result, Part1RareChoiceGenerator __instance, CardChoicesNodeData data, int randomSeed)
+    {
+        int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
+        __result = new List<CardChoice>();
+        for (int i = 0; i < __instance.NUM_CHOICES; i++)
+        {
+            CardInfo card = RandomizerHelper.RandomRareCardInAct1(seed++);
+            if (CardLoader.GetUnlockedCards(CardMetaCategory.Rare, CardTemple.Nature).Count >= __instance.NUM_CHOICES)
+            {
+                while (__result.Exists((CardChoice x) => x.CardInfo.name == card.name))
+                {
+                    card = RandomizerHelper.RandomRareCardInAct1(seed++);
+                }
+            }
+            __result.Add(new CardChoice{CardInfo = card});
+        }
+        return false;
     }
 }

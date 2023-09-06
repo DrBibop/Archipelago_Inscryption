@@ -527,5 +527,12 @@ namespace Archipelago_Inscryption.Helpers
                 yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence(fromBoss);
             }
         }
+
+        internal static CardInfo RandomRareCardInAct1(int seed)
+        {
+            List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Rare)
+            && x.temple == CardTemple.Nature && x.portraitTex != null && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock));
+            return CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+        }
     }
 }
