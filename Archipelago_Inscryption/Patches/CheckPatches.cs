@@ -770,15 +770,13 @@ namespace Archipelago_Inscryption.Patches
             }
         }
 
-        [HarmonyPatch(typeof(FactoryGemsDrone), "OnGemsTaken")]
+        [HarmonyPatch(typeof(FirstPersonItemHolder), "PickUpHoldable")]
         [HarmonyPrefix]
-        static bool SendDroneCheckIfNotCompleted(FactoryGemsDrone __instance)
+        static bool SendDroneCheckIfNotCompleted(HoldableInteractable holdable)
         {
-            if (!__instance.shelf.gameObject.activeSelf) return false;
-
-            if (!ArchipelagoManager.HasCompletedCheck(APCheck.FactoryGemsDrone))
+            if (holdable is HoldableGemsModule && !ArchipelagoManager.HasCompletedCheck(APCheck.FactoryGemsDrone))
             {
-                DiscoverableCheckInteractable checkCard = __instance.GetComponentInChildren<DiscoverableCheckInteractable>();
+                DiscoverableCheckInteractable checkCard = GameObject.FindObjectsOfType<DiscoverableCheckInteractable>().FirstOrDefault(go => go.name.Contains("FactoryGemsDrone"));
 
                 if (checkCard)
                 {
