@@ -82,6 +82,15 @@ namespace Archipelago_Inscryption.Archipelago
                         yield return new WaitUntil(() => !GBCEncounterManager.Instance.EncounterOccurring);
                     }
 
+                    SaveData.Data.natureTemple.roomId = "OutdoorsCentral";
+                    SaveData.Data.natureTemple.cameraPosition = Vector2.zero;
+                    SaveData.Data.undeadTemple.roomId = "MainRoom";
+                    SaveData.Data.undeadTemple.cameraPosition = Vector2.zero;
+                    SaveData.Data.techTemple.roomId = "--- MainRoom ---";
+                    SaveData.Data.techTemple.cameraPosition = Vector2.zero;
+                    SaveData.Data.wizardTemple.roomId = "Floor_1";
+                    SaveData.Data.wizardTemple.cameraPosition = Vector2.zero;
+
                     SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
                     SaveData.Data.overworldNode = "StartingIsland";
                     SaveData.Data.overworldIndoorPosition = -Vector3.up;
