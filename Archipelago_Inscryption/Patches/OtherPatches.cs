@@ -17,6 +17,7 @@ using InscryptionAPI.Card;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using System;
 using InscryptionAPI.Nodes;
+using Archipelago.MultiClient.Net.Models;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -310,15 +311,34 @@ class RandomizeDeckPatch
 
     [HarmonyPatch(typeof(MapNode), "OnArriveAtNode")]
     [HarmonyPrefix]
-    static bool RandomizeDeckWhenArrivingOnNode()
+    static bool RandomizeDeckWhenArrivingOnNode(MapNode __instance)
     {
         if (ArchipelagoManager.randomizeDeck != RandomizeDeck.Disable)
         {
             List<CardInfo> newCards = new List<CardInfo>();
+            List<CardInfo> allUnlockedCards = new List<CardInfo>();
             List<string> newCardsIds = new List<string>();
             Dictionary<string, List<CardModificationInfo>> newCardsMod = new Dictionary<string, List<CardModificationInfo>>();
             int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
-            CardInfo ce = RandomizerHelper.RandomRareCardInAct1(seed);
+            if (ArchipelagoManager.HasItem(APItem.CagedWolfCard) && !StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && !(__instance.Data is CardRemoveNodeData))
+            {
+                allUnlockedCards.Add(CardLoader.GetCardByName("CagedWolf"));
+            }
+            if (ArchipelagoManager.HasItem(APItem.StinkbugCard))
+            {
+                allUnlockedCards.Add(CardLoader.GetCardByName("Stinkbug_Talking"));
+            }
+            if (ArchipelagoManager.HasItem(APItem.StuntedWolfCard))
+            {
+                allUnlockedCards.Add(CardLoader.GetCardByName("Wolf_Talking"));
+            }
+            //CardInfo ce = RandomizerHelper.RandomRareCardInAct1(seed);
+            if (!StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && ArchipelagoManager.HasItem(APItem.CagedWolfCard) && __instance.Data is CardRemoveNodeData)
+            {
+                CardInfo card = CardLoader.GetCardByName("CagedWolf");
+                newCardsIds.Add(card.name);
+                newCards.Add(card);
+            }
             foreach (CardInfo c in RunState.Run.playerDeck.Cards)
             {
                 CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
@@ -331,13 +351,21 @@ class RandomizeDeckPatch
                         card = c;
                         continue;
                     }
-                    else
-                        card = Singleton<Part1CardChoiceGenerator>.Instance.GenerateDirectChoices(seed++).First().info;
+                    else 
+                    {
+                        List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature
+                        && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && !x.metaCategories.Contains(CardMetaCategory.Rare));
+                        cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
+                        cardsInfoRandomPool.AddRange(allUnlockedCards);
+                        card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+                    }
                 }
                 else if (ArchipelagoManager.randomizeDeck == RandomizeDeck.RandomizeAll)
                 {
                     List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature 
                     && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock));
+                    cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
+                    cardsInfoRandomPool.AddRange(allUnlockedCards);
                     card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
                 }
                 else
