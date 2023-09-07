@@ -324,7 +324,7 @@ namespace Archipelago_Inscryption.Archipelago
             if (onItemReceived != null)
                 onItemReceived(receivedItem);
 
-            SaveManager.SaveToFile(false);
+            Singleton<ArchipelagoUI>.Instance.QueueSave();
         }
 
         private static void OnConnectAttempt(LoginResult result)
@@ -383,7 +383,7 @@ namespace Archipelago_Inscryption.Archipelago
                 ArchipelagoClient.serverData.completedChecks.Add(checkID);
                 ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", ArchipelagoClient.serverData.completedChecks);
                 ArchipelagoClient.SendChecksToServerAsync();
-                SaveManager.SaveToFile(false);
+                Singleton<ArchipelagoUI>.Instance.QueueSave();
             }
         }
 

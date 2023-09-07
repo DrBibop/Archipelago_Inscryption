@@ -249,7 +249,7 @@ namespace Archipelago_Inscryption.Archipelago
                     }
                 }
 
-                SaveManager.SaveToFile(false);
+                Singleton<ArchipelagoUI>.Instance.QueueSave();
                 isConnected = true;
                 SendChecksToServerAsync();
             }
@@ -277,7 +277,9 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void SessionErrorReceived(Exception e, string message)
         {
+            Singleton<ArchipelagoUI>.Instance.LogError(message);
             ArchipelagoModPlugin.Log.LogError($"Archipelago error: {message}");
+            Disconnect();
         }
 
         private static void OnMessageReceived(LogMessage message)

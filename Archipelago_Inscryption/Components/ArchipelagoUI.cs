@@ -14,6 +14,7 @@ namespace Archipelago_Inscryption.Components
         private VerticalLayoutGroup logParent;
         private Queue<string> messageQueue = new Queue<string>();
         private float waitTimer;
+        private float saveTimer;
 
         public override bool UpdateWhenPaused => true;
 
@@ -28,6 +29,14 @@ namespace Archipelago_Inscryption.Components
 
         public override void ManagedUpdate()
         {
+            if (saveTimer > 0)
+            {
+                saveTimer -= Time.unscaledDeltaTime;
+
+                if (saveTimer <= 0)
+                    SaveManager.SaveToFile(false);
+            }
+
             if (waitTimer > 0)
             {
                 waitTimer -= Time.unscaledDeltaTime;
@@ -39,6 +48,11 @@ namespace Archipelago_Inscryption.Components
                 NewLog(messageQueue.Dequeue());
                 waitTimer = TIME_BETWEEN_MESSAGES;
             }
+        }
+
+        internal void QueueSave()
+        {
+            saveTimer = 0.5f;
         }
 
         internal void UpdateConnectionStatus(bool connected)

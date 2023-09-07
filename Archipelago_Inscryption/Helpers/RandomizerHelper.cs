@@ -325,7 +325,7 @@ namespace Archipelago_Inscryption.Helpers
                 Singleton<PlayerMovementController>.Instance.SetEnabled(false);
                 yield return SingleCardGainUI.instance.GainCard(card, true);
                 Singleton<PlayerMovementController>.Instance.SetEnabled(true);
-                SaveManager.SaveToFile(true);
+                Singleton<ArchipelagoUI>.Instance.QueueSave();
             }
             else
             {
