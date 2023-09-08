@@ -321,18 +321,11 @@ class RandomizeDeckPatch
             Dictionary<string, List<CardModificationInfo>> newCardsMod = new Dictionary<string, List<CardModificationInfo>>();
             int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
             if (ArchipelagoManager.HasItem(APItem.CagedWolfCard) && !StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && !(__instance.Data is CardRemoveNodeData))
-            {
                 allUnlockedCards.Add(CardLoader.GetCardByName("CagedWolf"));
-            }
             if (ArchipelagoManager.HasItem(APItem.StinkbugCard))
-            {
                 allUnlockedCards.Add(CardLoader.GetCardByName("Stinkbug_Talking"));
-            }
             if (ArchipelagoManager.HasItem(APItem.StuntedWolfCard))
-            {
                 allUnlockedCards.Add(CardLoader.GetCardByName("Wolf_Talking"));
-            }
-            //CardInfo ce = RandomizerHelper.RandomRareCardInAct1(seed);
             if (!StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && ArchipelagoManager.HasItem(APItem.CagedWolfCard) && __instance.Data is CardRemoveNodeData)
             {
                 CardInfo card = CardLoader.GetCardByName("CagedWolf");
@@ -354,7 +347,8 @@ class RandomizeDeckPatch
                     else 
                     {
                         List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature
-                        && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && !x.metaCategories.Contains(CardMetaCategory.Rare));
+                        && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) 
+                        && !x.metaCategories.Contains(CardMetaCategory.Rare) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
                         cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
                         cardsInfoRandomPool.AddRange(allUnlockedCards);
                         card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
@@ -363,15 +357,13 @@ class RandomizeDeckPatch
                 else if (ArchipelagoManager.randomizeDeck == RandomizeDeck.RandomizeAll)
                 {
                     List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature 
-                    && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock));
+                    && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
                     cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
                     cardsInfoRandomPool.AddRange(allUnlockedCards);
                     card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
                 }
                 else
-                {
                     card = c.Clone() as CardInfo;
-                }
                 if (ArchipelagoManager.randomizeAbilities != RandomizeAbilities.Disable)
                 {
                     foreach (CardModificationInfo mod in c.Mods)
@@ -391,9 +383,7 @@ class RandomizeDeckPatch
                                 {
                                     Ability abil = AbilitiesUtil.GetRandomLearnedAbility(seed++);
                                     while (card.HasAbility(abil))
-                                    {
                                         abil = AbilitiesUtil.GetRandomLearnedAbility(seed++);
-                                    }
                                     newAbilityMod.Add(abil);
                                 }
                                 mod.abilities = newAbilityMod;
@@ -430,14 +420,17 @@ class RandomizeDeckPatch
             int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
             List<CardInfo> newCards = new List<CardInfo>();
             List<string> newCardsIds = new List<string>();
-            List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.GBCPlayable));
+            List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.GBCPlayable) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
             List<AbilityInfo> abilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll((AbilityInfo x) => x.metaCategories.Contains(AbilityMetaCategory.GrimoraRulebook)
             || x.metaCategories.Contains(AbilityMetaCategory.MagnificusRulebook) || x.metaCategories.Contains(AbilityMetaCategory.Part1Modular)
             || x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
             foreach (CardInfo c in SaveData.Data.deck.Cards)
             {
                 CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
-                card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+                if (StoryEventsData.EventCompleted(StoryEvent.GBCObolFound) || (!c.specialAbilities.Contains(SpecialTriggeredAbility.BrokenCoinRight) && !c.specialAbilities.Contains(SpecialTriggeredAbility.BrokenCoinLeft)))
+                    card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+                else
+                    card = c;
                 card.mods = c.mods;
                 if (ArchipelagoManager.randomizeAbilities == RandomizeAbilities.RandomizeAll)
                 {
@@ -478,7 +471,8 @@ class RandomizeDeckPatch
             int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
             List<CardInfo> newCards = new List<CardInfo>();
             List<string> newCardsIds = new List<string>();
-            List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Part3Random) && x.temple == CardTemple.Tech);
+            List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Part3Random) 
+            && x.temple == CardTemple.Tech && ConceptProgressionTree.Tree.CardUnlocked(x, false));
             foreach (CardInfo c in Part3SaveData.Data.deck.Cards)
             {
                 CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
@@ -505,9 +499,7 @@ class RandomizeDeckPatch
             if (CardLoader.GetUnlockedCards(CardMetaCategory.Rare, CardTemple.Nature).Count >= __instance.NUM_CHOICES)
             {
                 while (__result.Exists((CardChoice x) => x.CardInfo.name == card.name))
-                {
                     card = RandomizerHelper.RandomRareCardInAct1(seed++);
-                }
             }
             __result.Add(new CardChoice{CardInfo = card});
         }
