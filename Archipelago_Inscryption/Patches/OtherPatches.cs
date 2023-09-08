@@ -366,8 +366,6 @@ namespace Archipelago_Inscryption.Patches
                         {
                             if (mod.deathCardInfo != null)
                             {
-                                Console.WriteLine($"Name Card {c.displayedNameLocId}");
-                                Console.WriteLine($"DeathLink Card");
                                 continue;
                             }
                             if (mod.fromCardMerge)
@@ -416,7 +414,8 @@ namespace Archipelago_Inscryption.Patches
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
                 List<CardInfo> newCards = new List<CardInfo>();
                 List<string> newCardsIds = new List<string>();
-                List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.GBCPlayable) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
+                List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.GBCPlayable) 
+                && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null);
                 List<AbilityInfo> abilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll((AbilityInfo x) => x.metaCategories.Contains(AbilityMetaCategory.GrimoraRulebook)
                 || x.metaCategories.Contains(AbilityMetaCategory.MagnificusRulebook) || x.metaCategories.Contains(AbilityMetaCategory.Part1Modular)
                 || x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));

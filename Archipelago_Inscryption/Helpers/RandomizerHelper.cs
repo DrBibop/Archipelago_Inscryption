@@ -371,7 +371,7 @@ namespace Archipelago_Inscryption.Helpers
                 yield return PackOpeningUI.instance.OpenPack((CardTemple)UnityEngine.Random.Range(0, (int)CardTemple.NUM_TEMPLES));
                 SaveManager.SaveToFile();
             }
-            yield return new WaitForSeconds(0.25f);
+            yield return new WaitForSeconds(0.05f);
             UpdatePackButtonEnabled();
             Singleton<PlayerMovementController>.Instance.SetEnabled(true);
             PauseMenu.instance.SetPaused(true);
