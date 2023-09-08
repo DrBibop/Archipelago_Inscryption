@@ -325,7 +325,7 @@ namespace Archipelago_Inscryption.Helpers
                 Singleton<PlayerMovementController>.Instance.SetEnabled(false);
                 yield return SingleCardGainUI.instance.GainCard(card, true);
                 Singleton<PlayerMovementController>.Instance.SetEnabled(true);
-                SaveManager.SaveToFile(true);
+                Singleton<ArchipelagoUI>.Instance.QueueSave();
             }
             else
             {
@@ -533,6 +533,17 @@ namespace Archipelago_Inscryption.Helpers
             List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Rare)
             && x.temple == CardTemple.Nature && x.portraitTex != null && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
             return CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+        }
+
+        internal static void UpdateItemsWhenDoneDiscovering(DiscoverableCheckInteractable discoveringCard)
+        {
+            CustomCoroutine.Instance.StartCoroutine(UpdateItemsWhenDoneDiscoveringSequence(discoveringCard));
+        }
+
+        private static IEnumerator UpdateItemsWhenDoneDiscoveringSequence(DiscoverableCheckInteractable card)
+        {
+            yield return new WaitUntil(() => !card.Discovering);
+            Singleton<ItemsManager>.Instance.UpdateItems();
         }
     }
 }

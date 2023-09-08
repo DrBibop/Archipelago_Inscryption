@@ -225,7 +225,27 @@ namespace Archipelago_Inscryption.Archipelago
                 }
                 RunState.Run.consumables.Add("SpecialDagger");
                 if (Singleton<ItemsManager>.Instance)
-                    Singleton<ItemsManager>.Instance.UpdateItems(false);
+                {
+                    DiscoverableCheckInteractable[] allCheckCards = GameObject.FindObjectsOfType<DiscoverableCheckInteractable>();
+
+                    if (allCheckCards != null && allCheckCards.Length > 0)
+                    {
+                        DiscoverableCheckInteractable discoveringCard = allCheckCards.FirstOrDefault(card => card.Discovering);
+
+                        if (discoveringCard != null)
+                        {
+                            RandomizerHelper.UpdateItemsWhenDoneDiscovering(discoveringCard);
+                        }
+                        else
+                        {
+                            Singleton<ItemsManager>.Instance.UpdateItems(false);
+                        }
+                    }
+                    else
+                    {
+                        Singleton<ItemsManager>.Instance.UpdateItems(false);
+                    }
+                }
             }
             else if (receivedItem == APItem.AnglerHook && SaveManager.SaveFile.IsPart1)
             {
@@ -248,7 +268,27 @@ namespace Archipelago_Inscryption.Archipelago
                 }
                 RunState.Run.consumables.Add("FishHook");
                 if (Singleton<ItemsManager>.Instance)
-                    Singleton<ItemsManager>.Instance.UpdateItems(false);
+                {
+                    DiscoverableCheckInteractable[] allCheckCards = GameObject.FindObjectsOfType<DiscoverableCheckInteractable>();
+
+                    if (allCheckCards != null && allCheckCards.Length > 0)
+                    {
+                        DiscoverableCheckInteractable discoveringCard = allCheckCards.FirstOrDefault(card => card.Discovering);
+
+                        if (discoveringCard != null)
+                        {
+                            RandomizerHelper.UpdateItemsWhenDoneDiscovering(discoveringCard);
+                        }
+                        else
+                        {
+                            Singleton<ItemsManager>.Instance.UpdateItems(false);
+                        }
+                    }
+                    else
+                    {
+                        Singleton<ItemsManager>.Instance.UpdateItems(false);
+                    }
+                }
             }
             else if (receivedItem.ToString().Contains("Epitaph"))
             {
@@ -324,7 +364,7 @@ namespace Archipelago_Inscryption.Archipelago
             if (onItemReceived != null)
                 onItemReceived(receivedItem);
 
-            SaveManager.SaveToFile(false);
+            Singleton<ArchipelagoUI>.Instance.QueueSave();
         }
 
         private static void OnConnectAttempt(LoginResult result)
@@ -383,7 +423,7 @@ namespace Archipelago_Inscryption.Archipelago
                 ArchipelagoClient.serverData.completedChecks.Add(checkID);
                 ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", ArchipelagoClient.serverData.completedChecks);
                 ArchipelagoClient.SendChecksToServerAsync();
-                SaveManager.SaveToFile(false);
+                Singleton<ArchipelagoUI>.Instance.QueueSave();
             }
         }
 
