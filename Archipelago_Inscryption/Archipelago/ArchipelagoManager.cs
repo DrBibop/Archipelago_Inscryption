@@ -225,7 +225,27 @@ namespace Archipelago_Inscryption.Archipelago
                 }
                 RunState.Run.consumables.Add("SpecialDagger");
                 if (Singleton<ItemsManager>.Instance)
-                    Singleton<ItemsManager>.Instance.UpdateItems(false);
+                {
+                    DiscoverableCheckInteractable[] allCheckCards = GameObject.FindObjectsOfType<DiscoverableCheckInteractable>();
+
+                    if (allCheckCards != null && allCheckCards.Length > 0)
+                    {
+                        DiscoverableCheckInteractable discoveringCard = allCheckCards.FirstOrDefault(card => card.Discovering);
+
+                        if (discoveringCard != null)
+                        {
+                            RandomizerHelper.UpdateItemsWhenDoneDiscovering(discoveringCard);
+                        }
+                        else
+                        {
+                            Singleton<ItemsManager>.Instance.UpdateItems(false);
+                        }
+                    }
+                    else
+                    {
+                        Singleton<ItemsManager>.Instance.UpdateItems(false);
+                    }
+                }
             }
             else if (receivedItem == APItem.AnglerHook && SaveManager.SaveFile.IsPart1)
             {
@@ -248,7 +268,27 @@ namespace Archipelago_Inscryption.Archipelago
                 }
                 RunState.Run.consumables.Add("FishHook");
                 if (Singleton<ItemsManager>.Instance)
-                    Singleton<ItemsManager>.Instance.UpdateItems(false);
+                {
+                    DiscoverableCheckInteractable[] allCheckCards = GameObject.FindObjectsOfType<DiscoverableCheckInteractable>();
+
+                    if (allCheckCards != null && allCheckCards.Length > 0)
+                    {
+                        DiscoverableCheckInteractable discoveringCard = allCheckCards.FirstOrDefault(card => card.Discovering);
+
+                        if (discoveringCard != null)
+                        {
+                            RandomizerHelper.UpdateItemsWhenDoneDiscovering(discoveringCard);
+                        }
+                        else
+                        {
+                            Singleton<ItemsManager>.Instance.UpdateItems(false);
+                        }
+                    }
+                    else
+                    {
+                        Singleton<ItemsManager>.Instance.UpdateItems(false);
+                    }
+                }
             }
             else if (receivedItem.ToString().Contains("Epitaph"))
             {

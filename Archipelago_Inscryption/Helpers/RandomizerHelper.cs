@@ -527,5 +527,16 @@ namespace Archipelago_Inscryption.Helpers
                 yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence(fromBoss);
             }
         }
+
+        internal static void UpdateItemsWhenDoneDiscovering(DiscoverableCheckInteractable discoveringCard)
+        {
+            CustomCoroutine.Instance.StartCoroutine(UpdateItemsWhenDoneDiscoveringSequence(discoveringCard));
+        }
+
+        private static IEnumerator UpdateItemsWhenDoneDiscoveringSequence(DiscoverableCheckInteractable card)
+        {
+            yield return new WaitUntil(() => !card.Discovering);
+            Singleton<ItemsManager>.Instance.UpdateItems();
+        }
     }
 }
