@@ -106,11 +106,14 @@ namespace Archipelago_Inscryption.Helpers
                     SaveManager.SaveFile.NewPart1Run();
                     break;
                 case 2:
+                    StoryEventsData.EraseEvent(StoryEvent.GBCUndeadFinaleChosen);
+                    StoryEventsData.EraseEvent(StoryEvent.GBCNatureFinaleChosen);
+                    StoryEventsData.EraseEvent(StoryEvent.GBCTechFinaleChosen);
+                    StoryEventsData.EraseEvent(StoryEvent.GBCWizardFinaleChosen);
                     if (StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUsed))
                     {
-                        SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
+                        SaveManager.SaveFile.currentScene = "GBC_WorldMap";
                         SaveData.Data.overworldNode = "StartingIsland";
-                        SaveData.Data.overworldIndoorPosition = -Vector3.up;
                     }
                     else
                     {
@@ -118,6 +121,12 @@ namespace Archipelago_Inscryption.Helpers
                     }
                     break;
                 case 3:
+                    if (StoryEventsData.EventCompleted(StoryEvent.ArchivistDefeated) &&
+                        StoryEventsData.EventCompleted(StoryEvent.PhotographerDefeated) && 
+                        StoryEventsData.EventCompleted(StoryEvent.TelegrapherDefeated) && 
+                        StoryEventsData.EventCompleted(StoryEvent.CanvasDefeated) &&
+                        Part3SaveData.Data.playerPos.worldId == "StartingArea")
+                        Part3SaveData.Data.playerPos = new Part3SaveData.WorldPosition("NorthNeutralPath", 2, 1);
                     SaveManager.SaveFile.currentScene = "Part3_Cabin";
                     break;
                 case 4:
@@ -127,6 +136,9 @@ namespace Archipelago_Inscryption.Helpers
                 default:
                     break;
             }
+
+            StoryEventsData.EraseEvent(StoryEvent.FullGameCompleted);
+            StoryEventsData.EraseEvent(StoryEvent.Part3Completed);
 
             LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
         }
