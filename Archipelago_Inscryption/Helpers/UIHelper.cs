@@ -112,6 +112,16 @@ namespace Archipelago_Inscryption.Helpers
                     StoryEventsData.EraseEvent(StoryEvent.GBCWizardFinaleChosen);
                     if (StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUsed))
                     {
+                        // Reset temple rooms to default entrance
+                        SaveData.Data.natureTemple.roomId = "OutdoorsCentral";
+                        SaveData.Data.natureTemple.cameraPosition = Vector2.zero;
+                        SaveData.Data.undeadTemple.roomId = "MainRoom";
+                        SaveData.Data.undeadTemple.cameraPosition = Vector2.zero;
+                        SaveData.Data.techTemple.roomId = "--- MainRoom ---";
+                        SaveData.Data.techTemple.cameraPosition = Vector2.zero;
+                        SaveData.Data.wizardTemple.roomId = "Floor_1";
+                        SaveData.Data.wizardTemple.cameraPosition = Vector2.zero;
+
                         SaveManager.SaveFile.currentScene = "GBC_WorldMap";
                         SaveData.Data.overworldNode = "StartingIsland";
                     }
