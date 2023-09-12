@@ -360,8 +360,12 @@ namespace Archipelago_Inscryption.Helpers
         {
             PauseMenu.instance.SetPaused(false);
             PauseMenu.pausingDisabled = true;
-            Singleton<PlayerMovementController>.Instance.SetEnabled(false);
+
+            if (Singleton<PlayerMovementController>.Instance != null)
+                Singleton<PlayerMovementController>.Instance.SetEnabled(false);
+
             yield return new WaitForSeconds(0.25f);
+
             bool result = false;
             TextBox.Prompt prompt = new TextBox.Prompt("Open a pack", "Cancel", option => result = (option == 0));
             yield return Singleton<TextBox>.Instance.ShowUntilInput($"You have {ArchipelagoManager.AvailableCardPacks} card pack{(ArchipelagoManager.AvailableCardPacks > 1 ? "s" : "")} available.", TextBox.Style.Neutral, null, TextBox.ScreenPosition.ForceTop, 0, true, false, prompt);
@@ -371,9 +375,14 @@ namespace Archipelago_Inscryption.Helpers
                 yield return PackOpeningUI.instance.OpenPack((CardTemple)UnityEngine.Random.Range(0, (int)CardTemple.NUM_TEMPLES));
                 SaveManager.SaveToFile();
             }
+
             yield return new WaitForSeconds(0.05f);
+
             UpdatePackButtonEnabled();
-            Singleton<PlayerMovementController>.Instance.SetEnabled(true);
+
+            if (Singleton<PlayerMovementController>.Instance != null)
+                Singleton<PlayerMovementController>.Instance.SetEnabled(true);
+
             PauseMenu.instance.SetPaused(true);
             PauseMenu.instance.menuController.PlayMenuCardImmediate((PauseMenu.instance as GBCPauseMenu).modifyDeckCard);
             PauseMenu.pausingDisabled = false;
@@ -383,7 +392,7 @@ namespace Archipelago_Inscryption.Helpers
         {
             if (packButton == null) return;
 
-            packButton.SetEnabled(ArchipelagoManager.AvailableCardPacks > 0);
+            packButton.SetEnabled(ArchipelagoManager.AvailableCardPacks > 0 && SceneLoader.ActiveSceneName != "GBC_WorldMap");
         }
 
         internal static void SpawnPackPile(DeckReviewSequencer instance)
