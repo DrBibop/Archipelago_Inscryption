@@ -322,10 +322,6 @@ namespace Archipelago_Inscryption.Patches
                     allAddedCards.Add(CardLoader.GetCardByName("Stinkbug_Talking"));
                 if (ArchipelagoManager.HasItem(APItem.StuntedWolfCard))
                     allAddedCards.Add(CardLoader.GetCardByName("Wolf_Talking"));
-                foreach (var card in RandomizerHelper.GetAllDeathCards())
-                {
-                    Console.WriteLine($"deathcard : {card.displayedName}");
-                }
                 allAddedCards.AddRange(RandomizerHelper.GetAllDeathCards());
                 if (!StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && ArchipelagoManager.HasItem(APItem.CagedWolfCard) && __instance.Data is CardRemoveNodeData)
                 {
