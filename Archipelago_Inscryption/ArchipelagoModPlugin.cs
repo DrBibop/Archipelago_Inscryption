@@ -4,6 +4,7 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using HarmonyLib.Tools;
+using InscryptionAPI.Saves;
 using System.Reflection;
 
 namespace Archipelago_Inscryption
@@ -24,9 +25,17 @@ namespace Archipelago_Inscryption
             Harmony harmony = new Harmony(PluginGuid);
             HarmonyFileLog.Enabled = true;
             harmony.PatchAll(Assembly.GetExecutingAssembly());
+            ReplaceModdedSaveFilePath();
             AssetsManager.LoadAssets();
             ArchipelagoManager.Init();
             ArchipelagoClient.Init();
+        }
+
+        private void ReplaceModdedSaveFilePath()
+        {
+            FieldInfo pathField = typeof(ModdedSaveManager).GetField("saveFilePath", BindingFlags.NonPublic | BindingFlags.Static);
+            string oldPath = (string)pathField.GetValue(null);
+            pathField.SetValue(null, oldPath.Replace("ModdedSaveFile.gwsave", "ModdedSaveFile-Archipelago.gwsave"));
         }
     }
 }
