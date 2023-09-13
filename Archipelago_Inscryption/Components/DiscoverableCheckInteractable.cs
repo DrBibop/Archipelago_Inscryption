@@ -1,5 +1,7 @@
 ﻿using Archipelago_Inscryption.Archipelago;
 using DiskCardGame;
+using System.Collections;
+using UnityEngine;
 
 namespace Archipelago_Inscryption.Components
 {
@@ -11,7 +13,7 @@ namespace Archipelago_Inscryption.Components
 
         public override void UnlockObject()
         {
-            ArchipelagoManager.SendCheck(check);
+            StartCoroutine(UnlockAfterDiscard());
         }
 
         public override void OnCursorSelectStart()
@@ -24,6 +26,13 @@ namespace Archipelago_Inscryption.Components
             {
                 card.Anim.PlayRiffleSound();
             }
+        }
+
+        private IEnumerator UnlockAfterDiscard()
+        {
+            yield return new WaitUntil(() => Discovering);
+            yield return new WaitUntil(() => !Discovering);
+            ArchipelagoManager.SendCheck(check);
         }
     }
 }

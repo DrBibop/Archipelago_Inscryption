@@ -47,6 +47,25 @@ namespace Archipelago_Inscryption.Patches
             }
         }
 
+        [HarmonyPatch(typeof(SaveFile), "ResetGBCSaveData")]
+        [HarmonyPostfix]
+        static void InitializeStoryEventsNewGame(SaveFile __instance)
+        {
+            KeyValuePair<APItem, StoryEvent>[] itemStoryEvents = {
+                new KeyValuePair<APItem, StoryEvent>( APItem.PileOfMeat,                        StoryEvent.GBCDogFoodFound ),
+                new KeyValuePair<APItem, StoryEvent>( APItem.Monocle,                           StoryEvent.GBCMonocleFound ),
+                new KeyValuePair<APItem, StoryEvent>( APItem.AncientObol,                       StoryEvent.GBCObolFound ),
+                new KeyValuePair<APItem, StoryEvent>( APItem.BoneLordFemur,                     StoryEvent.GBCBoneFound ),
+                new KeyValuePair<APItem, StoryEvent>( APItem.GBCCloverPlant,                    StoryEvent.GBCCloverFound )
+            };
+
+            for (int i = 0; i < itemStoryEvents.Length; i++)
+            {
+                if (ArchipelagoManager.HasItem(itemStoryEvents[i].Key))
+                    StoryEventsData.SetEventCompleted(itemStoryEvents[i].Value, false, false);
+            }
+        }
+
         [HarmonyPatch(typeof(RunState), "InitializeStarterDeckAndItems")]
         [HarmonyPostfix]
         static void AddInsectTotemHeadIfNeeded(RunState __instance)

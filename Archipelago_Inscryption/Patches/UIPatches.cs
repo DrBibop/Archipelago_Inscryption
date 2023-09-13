@@ -234,6 +234,7 @@ namespace Archipelago_Inscryption.Patches
                 __instance.lockedTitleSprite = null;
                 __instance.titleLocId = "";
                 __instance.titleText = "CHAPTER SELECT";
+                __instance.lockAfterStoryEvent = false;
             }
         }
     }
