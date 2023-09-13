@@ -312,16 +312,21 @@ namespace Archipelago_Inscryption.Patches
             if (ArchipelagoManager.randomizeDeck != RandomizeDeck.Disable)
             {
                 List<CardInfo> newCards = new List<CardInfo>();
-                List<CardInfo> allUnlockedCards = new List<CardInfo>();
+                List<CardInfo> allAddedCards = new List<CardInfo>();
                 List<string> newCardsIds = new List<string>();
                 Dictionary<string, List<CardModificationInfo>> newCardsMod = new Dictionary<string, List<CardModificationInfo>>();
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
                 if (ArchipelagoManager.HasItem(APItem.CagedWolfCard) && !StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && !(__instance.Data is CardRemoveNodeData))
-                    allUnlockedCards.Add(CardLoader.GetCardByName("CagedWolf"));
+                    allAddedCards.Add(CardLoader.GetCardByName("CagedWolf"));
                 if (ArchipelagoManager.HasItem(APItem.StinkbugCard))
-                    allUnlockedCards.Add(CardLoader.GetCardByName("Stinkbug_Talking"));
+                    allAddedCards.Add(CardLoader.GetCardByName("Stinkbug_Talking"));
                 if (ArchipelagoManager.HasItem(APItem.StuntedWolfCard))
-                    allUnlockedCards.Add(CardLoader.GetCardByName("Wolf_Talking"));
+                    allAddedCards.Add(CardLoader.GetCardByName("Wolf_Talking"));
+                foreach (var card in RandomizerHelper.GetAllDeathCards())
+                {
+                    Console.WriteLine($"deathcard : {card.displayedName}");
+                }
+                allAddedCards.AddRange(RandomizerHelper.GetAllDeathCards());
                 if (!StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && ArchipelagoManager.HasItem(APItem.CagedWolfCard) && __instance.Data is CardRemoveNodeData)
                 {
                     CardInfo card = CardLoader.GetCardByName("CagedWolf");
@@ -346,7 +351,7 @@ namespace Archipelago_Inscryption.Patches
                             && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock)
                             && !x.metaCategories.Contains(CardMetaCategory.Rare) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
                             cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
-                            cardsInfoRandomPool.AddRange(allUnlockedCards);
+                            cardsInfoRandomPool.AddRange(allAddedCards);
                             card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
                         }
                     }
@@ -354,20 +359,22 @@ namespace Archipelago_Inscryption.Patches
                     {
                         List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature
                         && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
+                        cardsInfoRandomPool.AddRange(ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Rare)
+                                                     && x.temple == CardTemple.Nature && x.portraitTex != null && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false)));
                         cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
-                        cardsInfoRandomPool.AddRange(allUnlockedCards);
+                        cardsInfoRandomPool.AddRange(allAddedCards);
                         card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
                     }
                     else
                         card = c.Clone() as CardInfo;
-                    if (ArchipelagoManager.randomizeAbilities != RandomizeAbilities.Disable)
+                    foreach (CardModificationInfo mod in c.Mods)
                     {
-                        foreach (CardModificationInfo mod in c.Mods)
+                        if (mod.deathCardInfo != null)
                         {
-                            if (mod.deathCardInfo != null)
-                            {
-                                continue;
-                            }
+                            continue;
+                        }
+                        if (ArchipelagoManager.randomizeAbilities != RandomizeAbilities.Disable)
+                        {
                             if (mod.fromCardMerge)
                             {
                                 List<Ability> newAbilityMod = new List<Ability>();
@@ -383,8 +390,8 @@ namespace Archipelago_Inscryption.Patches
                                     mod.abilities = newAbilityMod;
                                 }
                             }
-                            card.mods.Add(mod);
                         }
+                        card.mods.Add(mod);
                     }
                     if (ArchipelagoManager.randomizeAbilities == RandomizeAbilities.RandomizeAll)
                     {

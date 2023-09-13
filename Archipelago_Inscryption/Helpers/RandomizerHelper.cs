@@ -528,6 +528,28 @@ namespace Archipelago_Inscryption.Helpers
             }
         }
 
+        internal static List<CardInfo> GetAllDeathCards()
+        {
+            List<CardInfo> list = new List<CardInfo>();
+            List<CardModificationInfo> choosableDeathcardMods = SaveManager.SaveFile.GetChoosableDeathcardMods();
+            if (choosableDeathcardMods.Count > 0)
+            {
+                foreach (CardModificationInfo deathcardMod in choosableDeathcardMods)
+                {
+                    list.Add(CardLoader.CreateDeathCard(deathcardMod));
+                }
+            }
+            else
+            {
+                CardModificationInfo cardModificationInfo2 = new CardModificationInfo();
+                cardModificationInfo2.nameReplacement = "Luke Carder";
+                cardModificationInfo2.deathCardInfo = new DeathCardInfo(CompositeFigurine.FigurineType.Gravedigger, 0, 0);
+                cardModificationInfo2.attackAdjustment = 4;
+                cardModificationInfo2.healthAdjustment = 4;
+                list.Add(CardLoader.CreateDeathCard(cardModificationInfo2));
+            }
+            return list;
+        }
         internal static CardInfo RandomRareCardInAct1(int seed)
         {
             List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Rare)
