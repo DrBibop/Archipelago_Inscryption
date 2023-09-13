@@ -7,6 +7,7 @@ using DiskCardGame;
 using GBC;
 using InscryptionAPI.Saves;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -122,14 +123,7 @@ namespace Archipelago_Inscryption.Archipelago
         {
             AudioController.Instance.PlaySound2D("creepy_rattle_lofi");
 
-            string message;
-            if (ArchipelagoClient.GetPlayerName(item.Player) == ArchipelagoClient.serverData.slotName)
-                message = "You have found your " + ArchipelagoClient.GetItemName(item.Item);
-            else
-                message = "Received " + ArchipelagoClient.GetItemName(item.Item) + " from " + ArchipelagoClient.GetPlayerName(item.Player);
-
-            Singleton<ArchipelagoUI>.Instance.LogImportant(message);
-            ArchipelagoModPlugin.Log.LogMessage(message);
+            Singleton<ArchipelagoUI>.Instance.StartCoroutine(ShowItemMessageOneFrameLater(item));
 
             List<string> encodedItems = new List<string>();
 
@@ -143,6 +137,20 @@ namespace Archipelago_Inscryption.Archipelago
             APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
 
             ApplyItemReceived(receivedItem);
+        }
+
+        private static IEnumerator ShowItemMessageOneFrameLater(NetworkItem item)
+        {
+            yield return null;
+
+            string message;
+            if (ArchipelagoClient.GetPlayerName(item.Player) == ArchipelagoClient.serverData.slotName)
+                message = "You have found your " + ArchipelagoClient.GetItemName(item.Item);
+            else
+                message = "Received " + ArchipelagoClient.GetItemName(item.Item) + " from " + ArchipelagoClient.GetPlayerName(item.Player);
+
+            Singleton<ArchipelagoUI>.Instance.LogImportant(message);
+            ArchipelagoModPlugin.Log.LogMessage(message);
         }
 
         private static void ApplyItemReceived(APItem receivedItem)
