@@ -82,3 +82,8 @@ If there is no fourth tab, it can be one of two issues:
 
 ### I'm getting a different issue.
 You can ask for help in the [Archipelago Discord Server](https://discord.gg/8Z65BR2) or, if you think you've found a problem with the mod, create an issue in our [GitHub](https://github.com/DrBibop/Archipelago_Inscryption/issues).
+
+# Credits
+Developed by Ballin Inc. :
+ - DrBibop
+ - Glowbuzz
