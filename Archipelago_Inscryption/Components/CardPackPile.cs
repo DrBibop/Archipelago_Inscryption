@@ -81,7 +81,7 @@ namespace Archipelago_Inscryption.Components
             Singleton<InteractionCursor>.Instance.InteractionDisabled = false;
 
             SaveManager.SaveFile.gbcData.packsOpened++;
-            ArchipelagoManager.AvailableCardPacks--;
+            ArchipelagoData.Data.availableCardPacks--;
 
             RandomizerHelper.DestroyPackPile();
 

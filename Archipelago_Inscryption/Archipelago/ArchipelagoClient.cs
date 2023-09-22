@@ -6,10 +6,7 @@ using Archipelago.MultiClient.Net.MessageLog.Messages;
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago_Inscryption.Components;
-using DiskCardGame;
-using InscryptionAPI.Saves;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -24,8 +21,6 @@ namespace Archipelago_Inscryption.Archipelago
         internal static bool IsConnecting => isConnecting;
         internal static bool IsConnected => isConnected;
 
-        internal static Data serverData;
-
         private const string ArchipelagoVersion = "0.4.1";
 
         private delegate void OnConnectAttempt(LoginResult result, Action<LoginResult> oneOffCallback);
@@ -35,40 +30,18 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static ArchipelagoSession session;
 
-        internal static void Init()
-        {
-            serverData = new Data("");
-
-            List<long> storedCompletedChecks = ModdedSaveManager.SaveData.GetValueAsObject<List<long>>(ArchipelagoModPlugin.PluginGuid, "CompletedChecks");
-            List<string> storedReceivedItems = ModdedSaveManager.SaveData.GetValueAsObject<List<string>>(ArchipelagoModPlugin.PluginGuid, "ReceivedItems");
-            string storedSeed = ModdedSaveManager.SaveData.GetValueAsObject<string>(ArchipelagoModPlugin.PluginGuid, "Seed");
-
-            if (storedCompletedChecks != null) serverData.completedChecks = storedCompletedChecks;
-            if (storedReceivedItems != null)
-            {
-                foreach (string encodedItem in  storedReceivedItems)
-                {
-                    serverData.receivedItems.Add(DecodeItemFromString(encodedItem));
-                }
-            }
-            if (storedSeed != null)
-            {
-                serverData.seed = storedSeed;
-            }
-        }
-
         internal static bool ConnectAsync(string hostName, int port, string slotName, string password, Action<LoginResult> oneOffCallback = null)
         {
             if (isConnecting || isConnected) return false;
 
-            serverData.hostName = hostName;
-            serverData.port = port;
-            serverData.slotName = slotName;
-            serverData.password = password;
+            ArchipelagoData.Data.hostName = hostName;
+            ArchipelagoData.Data.port = port;
+            ArchipelagoData.Data.slotName = slotName;
+            ArchipelagoData.Data.password = password;
 
             isConnecting = true;
 
-            ArchipelagoModPlugin.Log.LogInfo($"Connecting to {serverData.hostName}:{serverData.port} as {serverData.slotName}...");
+            ArchipelagoModPlugin.Log.LogInfo($"Connecting to {hostName}:{port} as {slotName}...");
 
             ThreadPool.QueueUserWorkItem(_ => Connect(OnConnected, oneOffCallback));
 
@@ -95,7 +68,7 @@ namespace Archipelago_Inscryption.Archipelago
         {
             if (!isConnected) return;
 
-            session.Locations.CompleteLocationChecksAsync(serverData.completedChecks.ToArray());
+            session.Locations.CompleteLocationChecksAsync(ArchipelagoData.Data.completedChecks.ToArray());
         }
 
         internal static void SendGoalCompleted()
@@ -104,17 +77,16 @@ namespace Archipelago_Inscryption.Archipelago
 
             StatusUpdatePacket statusUpdate = new StatusUpdatePacket() { Status = ArchipelagoClientState.ClientGoal };
             session.Socket.SendPacketAsync(statusUpdate);
+            ArchipelagoData.Data.goalCompletedAndSent = true;
         }
 
         private static ArchipelagoSession CreateSession()
         {
-            var session = ArchipelagoSessionFactory.CreateSession(serverData.hostName, serverData.port);
+            var session = ArchipelagoSessionFactory.CreateSession(ArchipelagoData.Data.hostName, ArchipelagoData.Data.port);
             session.MessageLog.OnMessageReceived += OnMessageReceived;
             session.Socket.ErrorReceived += SessionErrorReceived;
             session.Socket.SocketClosed += SessionSocketClosed;
             session.Items.ItemReceived += OnItemReceived;
-            if (serverData.deathlink)
-                session.CreateDeathLinkService();
             return session;
         }
 
@@ -129,10 +101,10 @@ namespace Archipelago_Inscryption.Archipelago
                 session = CreateSession();
                 result = session.TryConnectAndLogin(
                     "Inscryption",
-                    serverData.slotName,
+                    ArchipelagoData.Data.slotName,
                     ItemsHandlingFlags.AllItems,
                     new Version(ArchipelagoVersion),
-                    password: serverData.password == "" ? null : serverData.password
+                    password: ArchipelagoData.Data.password == "" ? null : ArchipelagoData.Data.password
                 );
             }
             catch (Exception e)
@@ -152,101 +124,40 @@ namespace Archipelago_Inscryption.Archipelago
 
             if (result.Successful)
             {
-                if (serverData.seed != session.RoomState.Seed && (serverData.receivedItems.Count > 0 || serverData.completedChecks.Count > 0))
+                if (ArchipelagoData.Data.seed != "" && ArchipelagoData.Data.seed != session.RoomState.Seed)
                 {
                     string resetMessage = "New MultiWorld detected! Reset your save file properly before starting.";
                     ArchipelagoModPlugin.Log.LogWarning(resetMessage);
                     Singleton<ArchipelagoUI>.Instance.LogImportant(resetMessage);
 
-                    serverData.receivedItems.Clear();
-                    serverData.completedChecks.Clear();
-
-
-                    ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", new List<string>());
-                    ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", new List<long>());
-                    ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode", new List<int>());
-                    ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinClockCode", new List<int>());
-                    ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSmallClockCode", new List<int>());
+                    ArchipelagoData.Data.Reset(session.RoomState.Seed);
                 }
 
                 LoginSuccessful successfulResult = (LoginSuccessful)result;
 
-                serverData.slotData = successfulResult.SlotData;
+                var slotData = successfulResult.SlotData;
 
-                if (serverData.slotData.TryGetValue("deathlink", out var DeathLink))
-                    serverData.deathlink = Convert.ToInt32(DeathLink) == 1;
-                if (serverData.slotData.TryGetValue("optional_death_card", out var optionalDeathCard))
-                    ArchipelagoManager.optionalDeathCard = (OptionalDeathCard)Convert.ToInt32(optionalDeathCard);
-                if (serverData.slotData.TryGetValue("randomize_codes", out var randomizeCodes))
-                    ArchipelagoManager.randomizeCodes = Convert.ToInt32(randomizeCodes) == 1;
-                if (serverData.slotData.TryGetValue("randomize_deck", out var randomizeDeck))
-                    ArchipelagoManager.randomizeDeck = (RandomizeDeck)Convert.ToInt32(randomizeDeck);
-                if (serverData.slotData.TryGetValue("randomize_abilities", out var randomizeAbilities))
-                    ArchipelagoManager.randomizeAbilities = (RandomizeAbilities)Convert.ToInt32(randomizeAbilities);
+                if (slotData.TryGetValue("deathlink", out var DeathLink))
+                    ArchipelagoOptions.deathlink = Convert.ToInt32(DeathLink) == 1;
+                if (slotData.TryGetValue("optional_death_card", out var optionalDeathCard))
+                    ArchipelagoOptions.optionalDeathCard = (OptionalDeathCard)Convert.ToInt32(optionalDeathCard);
+                if (slotData.TryGetValue("goal", out var goal))
+                    ArchipelagoOptions.goal = (Goal)Convert.ToInt32(goal);
+                if (slotData.TryGetValue("randomize_codes", out var randomizeCodes))
+                    ArchipelagoOptions.randomizeCodes = Convert.ToInt32(randomizeCodes) == 1;
+                if (slotData.TryGetValue("randomize_deck", out var randomizeDeck))
+                    ArchipelagoOptions.randomizeDeck = (RandomizeDeck)Convert.ToInt32(randomizeDeck);
+                if (slotData.TryGetValue("randomize_abilities", out var randomizeAbilities))
+                    ArchipelagoOptions.randomizeAbilities = (RandomizeAbilities)Convert.ToInt32(randomizeAbilities);
 
                 DeathLinkManager.DeathLinkService = session.CreateDeathLinkService();
                 DeathLinkManager.Init();
 
-                serverData.seed = session.RoomState.Seed;
-                ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "Seed", serverData.seed);
-
-                if (ArchipelagoManager.randomizeCodes)
+                if (ArchipelagoOptions.randomizeCodes && ArchipelagoData.Data.cabinClockCode.Count <= 0)
                 {
-                    int seed = int.Parse(serverData.seed.Substring(serverData.seed.Length - 6)) + 20 * session.ConnectionInfo.Slot;
+                    int seed = int.Parse(session.RoomState.Seed.Substring(session.RoomState.Seed.Length - 6)) + 20 * session.ConnectionInfo.Slot;
 
-                    List<int> cabinSafeCode = ModdedSaveManager.SaveData.GetValueAsObject<List<int>>(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode");
-                    if (cabinSafeCode != null && cabinSafeCode.Count > 0) 
-                    {
-                        ArchipelagoManager.cabinSafeCode = cabinSafeCode;
-                    }
-                    else
-                    {
-                        do
-                        {
-                            int number = SeededRandom.Range(0, 9, seed++);
-                            if (!ArchipelagoManager.cabinSafeCode.Contains(number))
-                                ArchipelagoManager.cabinSafeCode.Add(number);
-                        } while (ArchipelagoManager.cabinSafeCode.Count < 3);
-                        ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode", ArchipelagoManager.cabinSafeCode);
-                    }
-
-                    List<int> cabinClockCode = ModdedSaveManager.SaveData.GetValueAsObject<List<int>>(ArchipelagoModPlugin.PluginGuid, "CabinClockCode");
-                    if (cabinClockCode != null && cabinClockCode.Count > 0)
-                    {
-                        ArchipelagoManager.cabinClockCode = cabinClockCode;
-                    }
-                    else
-                    {
-                        do
-                        {
-                            int number = SeededRandom.Range(0, 11, seed++);
-                            if (!ArchipelagoManager.cabinClockCode.Contains(number))
-                                ArchipelagoManager.cabinClockCode.Add(number);
-                        } while (ArchipelagoManager.cabinClockCode.Count < 3);
-                        ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinClockCode", ArchipelagoManager.cabinClockCode);
-                    }
-
-                    List<int> cabinSmallClockCode = ModdedSaveManager.SaveData.GetValueAsObject<List<int>>(ArchipelagoModPlugin.PluginGuid, "CabinSmallClockCode");
-                    if (cabinSmallClockCode != null && cabinSmallClockCode.Count > 0)
-                    {
-                        ArchipelagoManager.cabinSmallClockCode = cabinSmallClockCode;
-                    }
-                    else
-                    {
-                        ArchipelagoManager.cabinSmallClockCode = new List<int> { 0, 0, SeededRandom.Range(0, 11, seed++) };
-                        ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSmallClockCode", ArchipelagoManager.cabinSmallClockCode);
-                    }
-
-                    List<int> factoryClockCode = ModdedSaveManager.SaveData.GetValueAsObject<List<int>>(ArchipelagoModPlugin.PluginGuid, "FactoryClockCode");
-                    if (factoryClockCode != null && factoryClockCode.Count > 0)
-                    {
-                        ArchipelagoManager.factoryClockCode = factoryClockCode;
-                    }
-                    else
-                    {
-                        ArchipelagoManager.factoryClockCode = new List<int> { 0, 0, SeededRandom.Range(0, 11, seed++) };
-                        ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "FactoryClockCode", ArchipelagoManager.factoryClockCode);
-                    }
+                    ArchipelagoOptions.RandomizeCodes(seed);
                 }
 
                 Singleton<ArchipelagoUI>.Instance.QueueSave();
@@ -256,7 +167,7 @@ namespace Archipelago_Inscryption.Archipelago
             else
             {
                 LoginFailure failure = (LoginFailure)result;
-                string errorMessage = $"Failed to connect to {serverData.hostName}: ";
+                string errorMessage = $"Failed to connect to {ArchipelagoData.Data.hostName}: ";
                 errorMessage = failure.Errors.Aggregate(errorMessage, (current, error) => current + $"\n    {error}");
 
                 ArchipelagoModPlugin.Log.LogError(errorMessage);
@@ -290,42 +201,35 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void OnItemReceived(ReceivedItemsHelper helper)
         {
-            if (serverData.index >= helper.Index) return;
+            if (ArchipelagoData.Data.index >= helper.Index) return;
 
-            serverData.index++;
+            ArchipelagoData.Data.index++;
 
             NetworkItem nextItem = helper.DequeueItem();
-            NetworkItem matchedItem = serverData.receivedItems.FirstOrDefault(x => IsSameItem(x, nextItem));
+            NetworkItem matchedItem = ArchipelagoData.Data.itemsUnaccountedFor.FirstOrDefault(x => IsSameItem(x, nextItem));
 
             if (IsSameItem(matchedItem, default(NetworkItem)))
             {
                 // This item is new
-                serverData.receivedItems.Add(nextItem);
+                ArchipelagoData.Data.receivedItems.Add(nextItem);
 
                 if (onNewItemReceived != null)
                     onNewItemReceived(nextItem);
             }
-        }
+            else
+            {
+                ArchipelagoData.Data.itemsUnaccountedFor.Remove(matchedItem);
 
-        internal static string EncodeItemToString(NetworkItem item)
-        {
-            return $"{item.Item}|{item.Location}|{item.Player}|{(int)item.Flags}";
-        }
+                if (!ArchipelagoManager.VerifyItem(nextItem))
+                {
+                    ArchipelagoModPlugin.Log.LogWarning("Item ID " + nextItem.Item + " didn't apply properly. Retrying...");
+                    if (onNewItemReceived != null)
+                        onNewItemReceived(nextItem);
 
-        private static NetworkItem DecodeItemFromString(string itemString)
-        {
-            string[] elements = itemString.Split('|');
-            NetworkItem networkItem = new NetworkItem();
-            if (long.TryParse(elements[0], out long item))
-                networkItem.Item = item;
-            if (long.TryParse(elements[1], out long location))
-                networkItem.Location = location;
-            if (int.TryParse(elements[2], out int player))
-                networkItem.Player = player;
-            if (Enum.TryParse(elements[3], out ItemFlags flags))
-                networkItem.Flags = flags;
-
-            return networkItem;
+                    if (!ArchipelagoManager.VerifyItem(nextItem))
+                        ArchipelagoModPlugin.Log.LogError("Item ID " + nextItem.Item + " has failed to apply. Contact us in the Archipelago Discord server or open an issue in our GitHub repository.");
+                }
+            }
         }
 
         private static bool IsSameItem(NetworkItem left, NetworkItem right)
@@ -347,44 +251,6 @@ namespace Archipelago_Inscryption.Archipelago
             if (!isConnected) return "";
 
             return session.Items.GetItemName(item);
-        }
-
-        internal struct Data
-        {
-            public string hostName;
-            public int port;
-            public string slotName;
-            public string password;
-            public bool deathlink;
-            public string seed;
-            public Dictionary<string, object> slotData;
-            public List<long> completedChecks;
-            public List<NetworkItem> receivedItems;
-            public uint index;
-
-            public Data(
-                string hostName                     = "archipelago.gg",
-                int port                            = 38281,
-                string slotName                     = "",
-                string password                     = "",
-                bool deathlink                      = false,
-                string seed                         = "Unknown",
-                Dictionary<string, object> slotData = null,
-                List<long> completedChecks          = null,
-                List<NetworkItem> receivedItems     = null
-                )
-            {
-                this.hostName           = hostName;
-                this.port               = port;
-                this.slotName           = slotName;
-                this.password           = password;
-                this.deathlink          = deathlink;
-                this.seed               = seed;
-                this.slotData           = slotData == null ? new Dictionary<string, object>() : slotData;
-                this.completedChecks    = completedChecks == null ? new List<long>() : completedChecks;
-                this.receivedItems      = receivedItems == null ? new List<NetworkItem>() : receivedItems;
-                this.index = 0;
-            }
         }
     }
 }

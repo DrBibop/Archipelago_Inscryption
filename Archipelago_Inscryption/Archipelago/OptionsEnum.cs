@@ -24,4 +24,11 @@ namespace Archipelago_Inscryption.Archipelago
         Enable,
         EnableOnlyOnDeathLink
     }
+
+    internal enum Goal
+    {
+        AllActsInOrder,
+        AllActsAnyOrder,
+        Act1Only
+    }
 }

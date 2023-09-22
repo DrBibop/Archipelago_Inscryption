@@ -5,7 +5,6 @@ using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using GBC;
-using InscryptionAPI.Saves;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -89,34 +88,10 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static Dictionary<APCheck, CheckInfo> checkInfos = new Dictionary<APCheck, CheckInfo>();
 
-        private static int availableCardPacks = 0;
-
-        internal static OptionalDeathCard optionalDeathCard = OptionalDeathCard.Disable;
-        internal static bool randomizeCodes = false;
-        internal static RandomizeDeck randomizeDeck = RandomizeDeck.Disable;
-        internal static RandomizeAbilities randomizeAbilities = RandomizeAbilities.Disable;
-
-        internal static List<int> cabinSafeCode = new List<int>();
-        internal static List<int> cabinClockCode = new List<int>();
-        internal static List<int> cabinSmallClockCode = new List<int>();
-        internal static List<int> factoryClockCode = new List<int>();
-
-        internal static int AvailableCardPacks
-        {
-            get { return availableCardPacks; }
-            set
-            {
-                availableCardPacks = value;
-                ModdedSaveManager.SaveData.SetValue(ArchipelagoModPlugin.PluginGuid, "AvailableCardPacks", value);
-            }
-        }
-
         internal static void Init()
         {
             ArchipelagoClient.onConnectAttemptDone += OnConnectAttempt;
             ArchipelagoClient.onNewItemReceived += OnItemReceived;
-
-            availableCardPacks = ModdedSaveManager.SaveData.GetValueAsInt(ArchipelagoModPlugin.PluginGuid, "AvailableCardPacks");
         }
 
         private static void OnItemReceived(NetworkItem item)
@@ -124,15 +99,6 @@ namespace Archipelago_Inscryption.Archipelago
             AudioController.Instance.PlaySound2D("creepy_rattle_lofi");
 
             Singleton<ArchipelagoUI>.Instance.StartCoroutine(ShowItemMessageOneFrameLater(item));
-
-            List<string> encodedItems = new List<string>();
-
-            foreach (NetworkItem networkItem in ArchipelagoClient.serverData.receivedItems)
-            {
-                encodedItems.Add(ArchipelagoClient.EncodeItemToString(networkItem));
-            }
-
-            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", encodedItems);
 
             APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
 
@@ -144,7 +110,7 @@ namespace Archipelago_Inscryption.Archipelago
             yield return null;
 
             string message;
-            if (ArchipelagoClient.GetPlayerName(item.Player) == ArchipelagoClient.serverData.slotName)
+            if (item.Player == ArchipelagoClient.session.ConnectionInfo.Slot)
                 message = "You have found your " + ArchipelagoClient.GetItemName(item.Item);
             else
                 message = "Received " + ArchipelagoClient.GetItemName(item.Item) + " from " + ArchipelagoClient.GetPlayerName(item.Player);
@@ -187,7 +153,7 @@ namespace Archipelago_Inscryption.Archipelago
             }
             else if (receivedItem == APItem.CardPack)
             {
-                AvailableCardPacks++;
+                ArchipelagoData.Data.availableCardPacks++;
                 RandomizerHelper.UpdatePackButtonEnabled();
             }
             else if (receivedItem == APItem.SquirrelTotemHead && !RunState.Run.totemTops.Contains(Tribe.Squirrel))
@@ -233,27 +199,7 @@ namespace Archipelago_Inscryption.Archipelago
                 }
                 RunState.Run.consumables.Add("SpecialDagger");
                 if (Singleton<ItemsManager>.Instance)
-                {
-                    DiscoverableCheckInteractable[] allCheckCards = GameObject.FindObjectsOfType<DiscoverableCheckInteractable>();
-
-                    if (allCheckCards != null && allCheckCards.Length > 0)
-                    {
-                        DiscoverableCheckInteractable discoveringCard = allCheckCards.FirstOrDefault(card => card.Discovering);
-
-                        if (discoveringCard != null)
-                        {
-                            RandomizerHelper.UpdateItemsWhenDoneDiscovering(discoveringCard);
-                        }
-                        else
-                        {
-                            Singleton<ItemsManager>.Instance.UpdateItems(false);
-                        }
-                    }
-                    else
-                    {
-                        Singleton<ItemsManager>.Instance.UpdateItems(false);
-                    }
-                }
+                    Singleton<ItemsManager>.Instance.UpdateItems(false);
             }
             else if (receivedItem == APItem.AnglerHook && SaveManager.SaveFile.IsPart1)
             {
@@ -276,27 +222,7 @@ namespace Archipelago_Inscryption.Archipelago
                 }
                 RunState.Run.consumables.Add("FishHook");
                 if (Singleton<ItemsManager>.Instance)
-                {
-                    DiscoverableCheckInteractable[] allCheckCards = GameObject.FindObjectsOfType<DiscoverableCheckInteractable>();
-
-                    if (allCheckCards != null && allCheckCards.Length > 0)
-                    {
-                        DiscoverableCheckInteractable discoveringCard = allCheckCards.FirstOrDefault(card => card.Discovering);
-
-                        if (discoveringCard != null)
-                        {
-                            RandomizerHelper.UpdateItemsWhenDoneDiscovering(discoveringCard);
-                        }
-                        else
-                        {
-                            Singleton<ItemsManager>.Instance.UpdateItems(false);
-                        }
-                    }
-                    else
-                    {
-                        Singleton<ItemsManager>.Instance.UpdateItems(false);
-                    }
-                }
+                    Singleton<ItemsManager>.Instance.UpdateItems(false);
             }
             else if (receivedItem.ToString().Contains("Epitaph"))
             {
@@ -382,11 +308,57 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 AudioController.Instance.PlaySound2D("creepy_rattle_glassy", MixerGroup.None, 0.5f);
                 ScoutChecks();
+                VerifyGoalCompletion();
             }
             else
             {
                 AudioController.Instance.PlaySound2D("glitch", MixerGroup.None, 0.5f);
             }
+        }
+
+        internal static bool VerifyItem(NetworkItem item)
+        {
+            APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
+
+            if (itemStoryPairs.TryGetValue(receivedItem, out StoryEvent storyEvent) && !StoryEventsData.EventCompleted(storyEvent))
+            {
+                return false;
+            }
+
+            if (itemPixelCardPair.TryGetValue(receivedItem, out string cardName) && !SaveManager.SaveFile.gbcCardsCollected.Contains(cardName))
+            {
+                return false;
+            }
+
+            if (receivedItem.ToString().Contains("Epitaph") && !SaveData.Data.undeadTemple.epitaphPieces[(int)receivedItem - (int)APItem.EpitaphPiece1].found)
+            {
+                return false;
+            }
+
+            if (receivedItem == APItem.CameraReplica && !SaveData.Data.natureTemple.hasCamera)
+            {
+                return false;
+            }
+
+            if (receivedItem == APItem.MrsBombRemote && !Part3SaveData.Data.unlockedItems.Contains(Part3SaveData.ItemUnlock.BombRemote))
+            {
+                return false;
+            }
+            else if (receivedItem == APItem.ExtraBattery && !Part3SaveData.Data.unlockedItems.Contains(Part3SaveData.ItemUnlock.Battery))
+            {
+                return false;
+            }
+            else if (receivedItem == APItem.NanoArmorGenerator && !Part3SaveData.Data.unlockedItems.Contains(Part3SaveData.ItemUnlock.ShieldGenerator))
+            {
+                return false;
+            }
+
+            if (receivedItem == APItem.Quill && !Part3SaveData.Data.foundUndeadTempleQuill)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         internal static void ScoutChecks()
@@ -426,10 +398,9 @@ namespace Archipelago_Inscryption.Archipelago
         {
             long checkID = CHECK_ID_OFFSET + (long)check;
 
-            if (!ArchipelagoClient.serverData.completedChecks.Contains(checkID))
+            if (!ArchipelagoData.Data.completedChecks.Contains(checkID))
             {
-                ArchipelagoClient.serverData.completedChecks.Add(checkID);
-                ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", ArchipelagoClient.serverData.completedChecks);
+                ArchipelagoData.Data.completedChecks.Add(checkID);
                 ArchipelagoClient.SendChecksToServerAsync();
                 Singleton<ArchipelagoUI>.Instance.QueueSave();
             }
@@ -439,19 +410,25 @@ namespace Archipelago_Inscryption.Archipelago
         {
             long checkID = CHECK_ID_OFFSET + (long)check;
 
-            return ArchipelagoClient.serverData.completedChecks.Contains(checkID);
+            return ArchipelagoData.Data.completedChecks.Contains(checkID);
         }
 
         internal static bool HasItem(APItem item)
         {
             long itemID = ITEM_ID_OFFSET + (long)item;
 
-            return ArchipelagoClient.serverData.receivedItems.Any(x => x.Item == itemID);
+            return ArchipelagoData.Data.receivedItems.Any(x => x.Item == itemID);
         }
 
-        internal static void KillPlayer()
+        internal static void VerifyGoalCompletion()
         {
-
+            if (!ArchipelagoData.Data.goalCompletedAndSent &&
+                (ArchipelagoOptions.goal == Goal.AllActsInOrder && ArchipelagoData.Data.epilogueCompleted) ||
+                (ArchipelagoOptions.goal == Goal.AllActsAnyOrder && ArchipelagoData.Data.act1Completed && ArchipelagoData.Data.act2Completed && ArchipelagoData.Data.act3Completed) ||
+                (ArchipelagoOptions.goal == Goal.Act1Only && ArchipelagoData.Data.act1Completed))
+            {
+                ArchipelagoClient.SendGoalCompleted();
+            }
         }
 
         internal static CheckInfo GetCheckInfo(APCheck check)

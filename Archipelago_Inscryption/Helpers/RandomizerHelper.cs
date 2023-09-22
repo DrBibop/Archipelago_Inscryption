@@ -4,10 +4,7 @@ using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
-using InscryptionAPI.Card;
 using Pixelplacement;
-using Steamworks;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -262,11 +259,11 @@ namespace Archipelago_Inscryption.Helpers
             CheckInfo checkInfo = ArchipelagoManager.GetCheckInfo(check);
 
             CardInfo info = ScriptableObject.CreateInstance<CardInfo>();
-            info.SetNames("ArchipelagoCheck_" + check.ToString(), checkInfo.itemName);
-            info.SetHideStats();
-            string modPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            info.SetPortrait(modPath + "\\CardPortraits\\archi_portrait.png");
-            info.SetPixelPortrait(modPath + "\\CardPortraits\\archi_portrait_gbc.png");
+            info.name = "ArchipelagoCheck_" + check.ToString();
+            info.displayedName = checkInfo.itemName;
+            info.hideAttackAndHealth = true;
+            info.portraitTex = AssetsManager.cardPortraitSprite;
+            info.pixelPortrait = AssetsManager.cardPixelPortraitSprite;
             string[] discoverTextDialogs = SaveManager.SaveFile.IsPart3 ? checkCardP03Dialog : checkCardLeshyDialog;
             info.description = discoverTextDialogs[UnityEngine.Random.Range(0, discoverTextDialogs.Length)];
             return info;
@@ -275,11 +272,12 @@ namespace Archipelago_Inscryption.Helpers
         internal static CardInfo GenerateCardInfoWithName(string name, string description)
         {
             CardInfo info = ScriptableObject.CreateInstance<CardInfo>();
-            info.SetNames("Archipelago_" + name, name);
-            info.SetHideStats();
+            info.name = "Archipelago_" + name;
+            info.displayedName = name;
+            info.hideAttackAndHealth = true;
             string modPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            info.SetPortrait(modPath + "\\CardPortraits\\archi_portrait.png");
-            info.SetPixelPortrait(modPath + "\\CardPortraits\\archi_portrait_gbc.png");
+            info.portraitTex = AssetsManager.cardPortraitSprite;
+            info.pixelPortrait = AssetsManager.cardPixelPortraitSprite;
             info.description = description;
             return info;
         }
@@ -368,10 +366,10 @@ namespace Archipelago_Inscryption.Helpers
 
             bool result = false;
             TextBox.Prompt prompt = new TextBox.Prompt("Open a pack", "Cancel", option => result = (option == 0));
-            yield return Singleton<TextBox>.Instance.ShowUntilInput($"You have {ArchipelagoManager.AvailableCardPacks} card pack{(ArchipelagoManager.AvailableCardPacks > 1 ? "s" : "")} available.", TextBox.Style.Neutral, null, TextBox.ScreenPosition.ForceTop, 0, true, false, prompt);
+            yield return Singleton<TextBox>.Instance.ShowUntilInput($"You have {ArchipelagoData.Data.availableCardPacks} card pack{(ArchipelagoData.Data.availableCardPacks > 1 ? "s" : "")} available.", TextBox.Style.Neutral, null, TextBox.ScreenPosition.ForceTop, 0, true, false, prompt);
             if (result)
             {
-                ArchipelagoManager.AvailableCardPacks--;
+                ArchipelagoData.Data.availableCardPacks--;
                 yield return PackOpeningUI.instance.OpenPack((CardTemple)UnityEngine.Random.Range(0, (int)CardTemple.NUM_TEMPLES));
                 SaveManager.SaveToFile();
             }
@@ -392,7 +390,7 @@ namespace Archipelago_Inscryption.Helpers
         {
             if (packButton == null) return;
 
-            packButton.SetEnabled(ArchipelagoManager.AvailableCardPacks > 0 && SceneLoader.ActiveSceneName != "GBC_WorldMap");
+            packButton.SetEnabled(ArchipelagoData.Data.availableCardPacks > 0 && SceneLoader.ActiveSceneName != "GBC_WorldMap");
         }
 
         internal static void SpawnPackPile(DeckReviewSequencer instance)
@@ -403,7 +401,7 @@ namespace Archipelago_Inscryption.Helpers
             packPile.transform.localEulerAngles = new Vector3(0, 90, 0);
             packPile.AddComponent<BoxCollider>().size = new Vector3(1.2f, 0.1f, 2.2f);
 
-            for (int i = 0; i < ArchipelagoManager.AvailableCardPacks; i++)
+            for (int i = 0; i < ArchipelagoData.Data.availableCardPacks; i++)
             {
                 GameObject pack = GameObject.Instantiate(AssetsManager.cardPackPrefab, packPile.transform);
                 pack.transform.localPosition = new Vector3(-10, 0.1f * i, 0);
@@ -412,7 +410,7 @@ namespace Archipelago_Inscryption.Helpers
             }
 
             CardPackPile pileScript = packPile.AddComponent<CardPackPile>();
-            pileScript.topPackBasePosition = new Vector3(0, 0.1f * (ArchipelagoManager.AvailableCardPacks - 1), 0);
+            pileScript.topPackBasePosition = new Vector3(0, 0.1f * (ArchipelagoData.Data.availableCardPacks - 1), 0);
             pileScript.pileTop = packs.Last();
         }
 
@@ -423,7 +421,7 @@ namespace Archipelago_Inscryption.Helpers
             int i = 0;
             foreach (GameObject pack in packs)
             {
-                Tween.LocalPosition(pack.transform, new Vector3(-10, 0.1f * i, 0), 0.20f, 0.02f * (ArchipelagoManager.AvailableCardPacks - i - 1), Tween.EaseIn, Tween.LoopType.None, null, () => GameObject.Destroy(pack));
+                Tween.LocalPosition(pack.transform, new Vector3(-10, 0.1f * i, 0), 0.20f, 0.02f * (ArchipelagoData.Data.availableCardPacks - i - 1), Tween.EaseIn, Tween.LoopType.None, null, () => GameObject.Destroy(pack));
 
                 i++;
             }
@@ -436,8 +434,8 @@ namespace Archipelago_Inscryption.Helpers
         {
             if (!DeathLinkManager.receivedDeath)
                 DeathLinkManager.SendDeathLink();
-            if ((DeathLinkManager.receivedDeath && ArchipelagoManager.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
-                || ArchipelagoManager.optionalDeathCard == OptionalDeathCard.Disable)
+            if ((DeathLinkManager.receivedDeath && ArchipelagoOptions.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
+                || ArchipelagoOptions.optionalDeathCard == OptionalDeathCard.Disable)
             {
                 Singleton<ViewManager>.Instance.SwitchToView(View.Default, false, true);
                 yield return manager.KillPlayerSequence();
@@ -559,6 +557,7 @@ namespace Archipelago_Inscryption.Helpers
             }
             return list;
         }
+
         internal static CardInfo RandomRareCardInAct1(int seed)
         {
             List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Rare)
@@ -575,6 +574,12 @@ namespace Archipelago_Inscryption.Helpers
         {
             yield return new WaitUntil(() => !card.Discovering);
             Singleton<ItemsManager>.Instance.UpdateItems();
+        }
+
+        internal static void OldDataOpened()
+        {
+            ArchipelagoData.Data.epilogueCompleted = true;
+            ArchipelagoManager.VerifyGoalCompletion();
         }
     }
 }

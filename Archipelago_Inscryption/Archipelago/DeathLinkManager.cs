@@ -1,12 +1,10 @@
 ﻿using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Helpers;
-using BepInEx;
 using DiskCardGame;
 using GBC;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Archipelago_Inscryption.Archipelago
@@ -19,9 +17,9 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static void Init()
         {
-            Console.WriteLine($"DeathLink is set to {ArchipelagoClient.serverData.deathlink}");
+            ArchipelagoModPlugin.Log.LogInfo($"DeathLink is set to {ArchipelagoOptions.deathlink}");
             DeathLinkService.OnDeathLinkReceived += ReceiveDeathLink;
-            if (ArchipelagoClient.serverData.deathlink)
+            if (ArchipelagoOptions.deathlink)
                 DeathLinkService.EnableDeathLink();
             else
                 DeathLinkService.DisableDeathLink();
@@ -118,7 +116,7 @@ namespace Archipelago_Inscryption.Archipelago
 
         static public void SendDeathLink()
         {
-            if (!ArchipelagoClient.serverData.deathlink || receivedDeath)
+            if (!ArchipelagoOptions.deathlink || receivedDeath)
                 return;
             nbDeathsSent++;
             ArchipelagoModPlugin.Log.LogMessage("Sharing death with your friends...");
@@ -131,7 +129,7 @@ namespace Archipelago_Inscryption.Archipelago
                 cause = " lack of skill";
             else
                 cause = " ineptitude";
-            DeathLinkService.SendDeathLink(new DeathLink(ArchipelagoClient.serverData.slotName, alias + cause));
+            DeathLinkService.SendDeathLink(new DeathLink(ArchipelagoClient.GetPlayerName(ArchipelagoClient.session.ConnectionInfo.Slot), alias + cause));
         }
     }
 }

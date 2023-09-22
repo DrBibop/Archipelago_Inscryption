@@ -4,6 +4,6 @@
     "website_url": "https://github.com/DrBibop/Archipelago_Inscryption",
     "description": "Archipelago Multiworld Randomizer integration for Inscryption.",
     "dependencies": [
-        "API_dev-API-2.14.2"
+        "BepInEx-BepInExPack_Inscryption-5.4.1902"
     ]
 }

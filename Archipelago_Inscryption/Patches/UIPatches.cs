@@ -195,10 +195,13 @@ namespace Archipelago_Inscryption.Patches
         {
             __instance.transform.Find("Clips_Row").gameObject.SetActive(false);
             __instance.transform.Find("Chapter_Row/ChapterSelectItemUI").gameObject.SetActive(false);
-            if (!StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked))
-                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject.SetActive(false);
-            if (!StoryEventsData.EventCompleted(StoryEvent.Part2Completed))
-                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
+            if (ArchipelagoOptions.goal != Goal.AllActsAnyOrder)
+            {
+                if (ArchipelagoOptions.goal == Goal.Act1Only || !StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked))
+                    __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject.SetActive(false);
+                if (ArchipelagoOptions.goal == Goal.Act1Only || !StoryEventsData.EventCompleted(StoryEvent.Part2Completed))
+                    __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
+            }
             if (!StoryEventsData.EventCompleted(StoryEvent.Part3Completed))
                 __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (4)").gameObject.SetActive(false);
         }
@@ -225,8 +228,8 @@ namespace Archipelago_Inscryption.Patches
         }
 
         [HarmonyPatch(typeof(MenuCard), "Awake")]
-        [HarmonyPostfix]
-        static void ReplaceNewGameText(MenuCard __instance)
+        [HarmonyPrefix]
+        static bool ReplaceNewGameText(MenuCard __instance)
         {
             if (__instance.MenuAction == MenuAction.NewGame)
             {
@@ -235,7 +238,11 @@ namespace Archipelago_Inscryption.Patches
                 __instance.titleLocId = "";
                 __instance.titleText = "CHAPTER SELECT";
                 __instance.lockAfterStoryEvent = false;
+                if (ArchipelagoOptions.goal == Goal.AllActsAnyOrder)
+                    __instance.lockBeforeStoryEvent = false;
             }
+
+            return true;
         }
     }
 }

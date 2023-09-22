@@ -31,7 +31,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPostfix]
         static void InitializeItemNewGame(SaveData __instance)
         {
-            List<NetworkItem> receivedItem = ArchipelagoClient.serverData.receivedItems;
+            List<NetworkItem> receivedItem = ArchipelagoData.Data.receivedItems;
             int countCurrency = receivedItem.Count(item => item.Item == (ArchipelagoManager.ITEM_ID_OFFSET + (long)APItem.Currency));
             __instance.currency = countCurrency;
             for (APItem i = APItem.EpitaphPiece1; i <= APItem.EpitaphPiece9; i++)
@@ -101,7 +101,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPostfix]
         static void SpawnCardPackPile(DeckReviewSequencer __instance)
         {
-            if (ArchipelagoManager.AvailableCardPacks <= 0 || Singleton<GameFlowManager>.Instance.CurrentGameState != GameState.Map) return;
+            if (ArchipelagoData.Data.availableCardPacks <= 0 || Singleton<GameFlowManager>.Instance.CurrentGameState != GameState.Map) return;
 
             RandomizerHelper.SpawnPackPile(__instance);
         }

@@ -3,12 +3,8 @@ using Archipelago_Inscryption.Archipelago;
 using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Utils;
 using DiskCardGame;
-using EasyFeedback;
 using GBC;
-using InscryptionAPI.Saves;
 using System;
-using System.Collections;
-using System.ComponentModel.Design;
 using UnityEngine;
 
 namespace Archipelago_Inscryption.Helpers
@@ -35,12 +31,7 @@ namespace Archipelago_Inscryption.Helpers
         {
             if (ArchipelagoClient.IsConnecting) return;
 
-            string savedHostName = ModdedSaveManager.SaveData.GetValueAsObject<string>(ArchipelagoModPlugin.PluginGuid, "HostName");
-            int savedPort = ModdedSaveManager.SaveData.GetValueAsInt(ArchipelagoModPlugin.PluginGuid, "Port");
-            string savedSlotName = ModdedSaveManager.SaveData.GetValueAsObject<string>(ArchipelagoModPlugin.PluginGuid, "SlotName");
-            string savedPassword = ModdedSaveManager.SaveData.GetValueAsObject<string>(ArchipelagoModPlugin.PluginGuid, "Password");
-
-            if (savedHostName == null || savedHostName == "" || savedPort <= 1024 || savedPort > 65535)
+            if (ArchipelagoData.Data.hostName == "" || ArchipelagoData.Data.port <= 1024 || ArchipelagoData.Data.port > 65535)
             {
                 Singleton<MenuController>.Instance.ResetToDefaultState();
                 Singleton<ArchipelagoUI>.Instance.LogImportant("Connect to Archipelago using the settings menu.");
@@ -48,7 +39,7 @@ namespace Archipelago_Inscryption.Helpers
             else
             {
                 Singleton<ArchipelagoUI>.Instance.LogMessage("Connecting...");
-                ArchipelagoClient.ConnectAsync(savedHostName, savedPort, savedSlotName, savedPassword, callback);
+                ArchipelagoClient.ConnectAsync(ArchipelagoData.Data.hostName, ArchipelagoData.Data.port, ArchipelagoData.Data.slotName, ArchipelagoData.Data.password, callback);
             }
         }
 

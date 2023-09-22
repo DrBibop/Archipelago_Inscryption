@@ -36,12 +36,6 @@
     <Reference Include="HarmonyXInterop">
       <HintPath>..\Dependencies\HarmonyXInterop.dll</HintPath>
     </Reference>
-    <Reference Include="InscryptionAPI">
-      <HintPath>..\Dependencies\InscryptionAPI.dll</HintPath>
-    </Reference>
-    <Reference Include="InscryptionCommunityPatch">
-      <HintPath>..\Dependencies\InscryptionCommunityPatch.dll</HintPath>
-    </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>..\Dependencies\Mono.Cecil.dll</HintPath>
     </Reference>

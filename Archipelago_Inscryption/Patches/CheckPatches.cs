@@ -28,6 +28,15 @@ namespace Archipelago_Inscryption.Patches
 
             ArchipelagoManager.SendStoryCheckIfApplicable(storyEvent);
 
+            if (storyEvent == StoryEvent.StartScreenNewGameUnlocked)
+                ArchipelagoData.Data.act1Completed = true;
+            else if (storyEvent == StoryEvent.Part2Completed)
+                ArchipelagoData.Data.act2Completed = true;
+            else if (storyEvent == StoryEvent.Part3Completed)
+                ArchipelagoData.Data.act3Completed = true;
+
+            ArchipelagoManager.VerifyGoalCompletion();
+
             return true;
         }
 
@@ -96,9 +105,9 @@ namespace Archipelago_Inscryption.Patches
                 checkCard.SetEnabled(false);
             }
 
-            if (ArchipelagoManager.randomizeCodes)
+            if (ArchipelagoOptions.randomizeCodes)
             {
-                __instance.correctLockPositions = ArchipelagoManager.cabinSafeCode.Select(digit => (10 - digit) % 10).ToList();
+                __instance.correctLockPositions = ArchipelagoData.Data.cabinSafeCode.Select(digit => (10 - digit) % 10).ToList();
             }
 
             return true;
@@ -176,10 +185,10 @@ namespace Archipelago_Inscryption.Patches
                         checkCard.SetEnabled(false);
                 }
 
-                if (ArchipelagoManager.randomizeCodes)
+                if (ArchipelagoOptions.randomizeCodes)
                 {
-                    __instance.solutionPositionsLarge = ArchipelagoManager.factoryClockCode.ToArray();
-                    __instance.solutionPositionsSmall = ArchipelagoManager.cabinSmallClockCode.ToArray();
+                    __instance.solutionPositionsLarge = ArchipelagoData.Data.factoryClockCode.ToArray();
+                    __instance.solutionPositionsSmall = ArchipelagoData.Data.cabinSmallClockCode.ToArray();
                 }
             }
             else
@@ -217,10 +226,10 @@ namespace Archipelago_Inscryption.Patches
                         checkCard2.SetEnabled(false);
                 }
 
-                if (ArchipelagoManager.randomizeCodes)
+                if (ArchipelagoOptions.randomizeCodes)
                 {
-                    __instance.solutionPositionsLarge = ArchipelagoManager.cabinClockCode.ToArray();
-                    __instance.solutionPositionsSmall = ArchipelagoManager.cabinSmallClockCode.ToArray();
+                    __instance.solutionPositionsLarge = ArchipelagoData.Data.cabinClockCode.ToArray();
+                    __instance.solutionPositionsSmall = ArchipelagoData.Data.cabinSmallClockCode.ToArray();
 
                     Transform clock = __instance.transform.Find("CuckooClock");
 
@@ -243,9 +252,9 @@ namespace Archipelago_Inscryption.Patches
                     Transform minuteHandClue = cluesObject.transform.Find("MinuteCluePivot");
                     Transform hourHandClue = cluesObject.transform.Find("HourCluePivot");
 
-                    secondHandClue.localEulerAngles = new Vector3(0, 0, 360 - 30 * ArchipelagoManager.cabinClockCode[0]);
-                    minuteHandClue.localEulerAngles = new Vector3(0, 0, 360 - 30 * ArchipelagoManager.cabinClockCode[1]);
-                    hourHandClue.localEulerAngles = new Vector3(0, 0, 360 - 30 * ArchipelagoManager.cabinClockCode[2]);
+                    secondHandClue.localEulerAngles = new Vector3(0, 0, 360 - 30 * ArchipelagoData.Data.cabinClockCode[0]);
+                    minuteHandClue.localEulerAngles = new Vector3(0, 0, 360 - 30 * ArchipelagoData.Data.cabinClockCode[1]);
+                    hourHandClue.localEulerAngles = new Vector3(0, 0, 360 - 30 * ArchipelagoData.Data.cabinClockCode[2]);
 
                     cluesObject.SetLayerRecursive(LayerMask.NameToLayer("WizardEyeVisible"));
                 }
@@ -634,7 +643,7 @@ namespace Archipelago_Inscryption.Patches
                     break;
                 case "HoloMapArea_TempleWizardSide(Clone)":
                     Transform clue = __instance.transform.Find("Splatter/clue");
-                    clue.GetComponent<MeshRenderer>().material.mainTexture = AssetsManager.factoryClockClueTexs[ArchipelagoManager.factoryClockCode[2]];
+                    clue.GetComponent<MeshRenderer>().material.mainTexture = AssetsManager.factoryClockClueTexs[ArchipelagoOptions.factoryClockCode[2]];
                     break;
             }
         }
@@ -809,7 +818,7 @@ namespace Archipelago_Inscryption.Patches
 
             index++;
 
-            codes.Insert(index, new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ArchipelagoClient), "SendGoalCompleted")));
+            codes.Insert(index, new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "OldDataOpened")));
 
             return codes.AsEnumerable();
         }

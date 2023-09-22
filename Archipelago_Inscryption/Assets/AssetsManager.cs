@@ -10,6 +10,8 @@ namespace Archipelago_Inscryption.Assets
         internal static Sprite inputFieldSprite;
         internal static Sprite[] packButtonSprites;
         internal static Sprite editedNatureFloorSprite;
+        internal static Sprite cardPortraitSprite;
+        internal static Sprite cardPixelPortraitSprite;
 
         internal static Texture2D boonTableTex;
         internal static Texture2D[] smallClockClueTexs;
@@ -40,10 +42,14 @@ namespace Archipelago_Inscryption.Assets
             Texture2D archipelagoTabTex = assetBundle.LoadAsset<Texture2D>("ArchipelagoTab");
             Texture2D inputFieldTex = assetBundle.LoadAsset<Texture2D>("InputFieldImage");
             Texture2D editedNatureFloorTex = assetBundle.LoadAsset<Texture2D>("nature_temple_floor_edited");
+            Texture2D cardPortraitTex = assetBundle.LoadAsset<Texture2D>("archi_portrait");
+            Texture2D cardPixelPortraitTex = assetBundle.LoadAsset<Texture2D>("archi_portrait_gbc");
 
             archiSettingsTabSprite = GenerateSprite(archipelagoTabTex);
             inputFieldSprite = GenerateSprite(inputFieldTex);
             editedNatureFloorSprite = GenerateSprite(editedNatureFloorTex);
+            cardPortraitSprite = GenerateSprite(cardPortraitTex);
+            cardPixelPortraitSprite = GenerateSprite(cardPixelPortraitTex);
 
             packButtonSprites = assetBundle.LoadAssetWithSubAssets<Sprite>("GBCCardPackButton");
 

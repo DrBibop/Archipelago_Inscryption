@@ -4,7 +4,6 @@ using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using GBC;
 using HarmonyLib;
-using InscryptionAPI.Saves;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -13,10 +12,8 @@ using System.Reflection.Emit;
 using TMPro;
 using UnityEngine;
 using Unity;
-using InscryptionAPI.Card;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using System;
-using InscryptionAPI.Nodes;
 using Archipelago.MultiClient.Net.Models;
 
 namespace Archipelago_Inscryption.Patches
@@ -57,6 +54,13 @@ namespace Archipelago_Inscryption.Patches
             return codes.AsEnumerable();
         }
 
+        [HarmonyPatch(typeof(SaveManager), "SaveToFile")]
+        [HarmonyPostfix]
+        static void SaveArchipelagoDataToFile()
+        {
+            ArchipelagoData.SaveToFile();
+        }
+
         [HarmonyPatch(typeof(SaveFile), "GetCurrentRandomSeed")]
         [HarmonyPostfix]
         static void AddOpenedPacksToSeed(SaveFile __instance, ref int __result)
@@ -75,18 +79,10 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool EraseArchipelagoData()
         {
-            ArchipelagoClient.serverData.completedChecks.Clear();
-            ArchipelagoClient.serverData.receivedItems.Clear();
-            ArchipelagoManager.cabinSafeCode.Clear();
-            ArchipelagoManager.cabinClockCode.Clear();
-            ArchipelagoManager.cabinSmallClockCode.Clear();
-            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CompletedChecks", new List<long>());
-            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "ReceivedItems", new List<string>());
-            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSafeCode", new List<int>());
-            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinClockCode", new List<int>());
-            ModdedSaveManager.SaveData.SetValueAsObject(ArchipelagoModPlugin.PluginGuid, "CabinSmallClockCode", new List<int>());
             if (ArchipelagoClient.IsConnected)
                 ArchipelagoClient.Disconnect();
+            ArchipelagoData.Data.Reset("");
+            ArchipelagoData.Data.index = 0;
             return true;
         }
 
@@ -94,7 +90,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPostfix]
         static void ChangeRulebookPassword(PageContentLoader __instance)
         {
-            if (ArchipelagoManager.randomizeCodes && __instance.currentAdditiveObjects.Count > 0 && __instance.currentAdditiveObjects.First().name.Contains("SafePassword"))
+            if (ArchipelagoOptions.randomizeCodes && __instance.currentAdditiveObjects.Count > 0 && __instance.currentAdditiveObjects.First().name.Contains("SafePassword"))
             {
                 GameObject passwordObject = __instance.currentAdditiveObjects.First();
                 TextMeshPro[] texts = passwordObject.GetComponentsInChildren<TextMeshPro>(true);
@@ -102,11 +98,11 @@ namespace Archipelago_Inscryption.Patches
                 for (int i = 0; i < texts.Length; i++)
                 {
                     if (texts[i].gameObject.name.Contains("(1)"))
-                        texts[i].text = ArchipelagoManager.cabinSafeCode[1].ToString();
+                        texts[i].text = ArchipelagoData.Data.cabinSafeCode[1].ToString();
                     else if (texts[i].gameObject.name.Contains("(2)"))
-                        texts[i].text = ArchipelagoManager.cabinSafeCode[2].ToString();
+                        texts[i].text = ArchipelagoData.Data.cabinSafeCode[2].ToString();
                     else
-                        texts[i].text = ArchipelagoManager.cabinSafeCode[0].ToString();
+                        texts[i].text = ArchipelagoData.Data.cabinSafeCode[0].ToString();
                 }
             }
         }
@@ -115,13 +111,13 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPostfix]
         static void ChangeSmallClockPassword(Part1FinaleSceneSequencer __instance)
         {
-            if (!ArchipelagoManager.randomizeCodes || __instance.deckTrialSequencer.transform.parent.Find("SmallClockClue(Clone)") != null) return;
+            if (!ArchipelagoOptions.randomizeCodes || __instance.deckTrialSequencer.transform.parent.Find("SmallClockClue(Clone)") != null) return;
 
             GameObject table = __instance.deckTrialSequencer.transform.parent.Find("Cube").gameObject;
             table.GetComponent<MeshRenderer>().material.mainTexture = AssetsManager.boonTableTex;
 
             GameObject clue = GameObject.Instantiate(AssetsManager.smallClockCluePrefab, table.transform.parent);
-            clue.GetComponent<MeshRenderer>().material.mainTexture = AssetsManager.smallClockClueTexs[ArchipelagoManager.cabinSmallClockCode[2]];
+            clue.GetComponent<MeshRenderer>().material.mainTexture = AssetsManager.smallClockClueTexs[ArchipelagoData.Data.cabinSmallClockCode[2]];
             clue.transform.localPosition = new Vector3(-1.6744f, 1.6f, -0.9f);
             clue.transform.localEulerAngles = new Vector3(90, 90, 0);
             clue.transform.localScale = new Vector3(0.7f, 0.5f, 0.7f);
@@ -132,7 +128,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPostfix]
         static void ReplaceGBCSafeCodeClue(DogFoodBowlVolume __instance)
         {
-            if (!ArchipelagoManager.randomizeCodes) return;
+            if (!ArchipelagoOptions.randomizeCodes) return;
 
             SpriteRenderer floor = __instance.transform.root.Find("OutdoorsCentral/Floor").GetComponent<SpriteRenderer>();
 
@@ -141,7 +137,7 @@ namespace Archipelago_Inscryption.Patches
             GameObject codeClue = GameObject.Instantiate(AssetsManager.gbcSafeCluePrefab, floor.transform);
             codeClue.layer = LayerMask.NameToLayer("GBCPixel");
             string codeText = "";
-            foreach (int digit in ArchipelagoManager.cabinSafeCode)
+            foreach (int digit in ArchipelagoData.Data.cabinSafeCode)
             {
                 codeText += digit.ToString();
             }
@@ -154,11 +150,11 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool ReplaceGBCSafeCode(SafeVolume __instance, ref bool __result)
         {
-            if (ArchipelagoManager.randomizeCodes)
+            if (ArchipelagoOptions.randomizeCodes)
             {
-                __result = SaveData.Data.natureTemple.safeState.sliderPositions[0] == ArchipelagoManager.cabinSafeCode[0] 
-                    && SaveData.Data.natureTemple.safeState.sliderPositions[1] == ArchipelagoManager.cabinSafeCode[1]
-                    && SaveData.Data.natureTemple.safeState.sliderPositions[2] == ArchipelagoManager.cabinSafeCode[2];
+                __result = SaveData.Data.natureTemple.safeState.sliderPositions[0] == ArchipelagoData.Data.cabinSafeCode[0] 
+                    && SaveData.Data.natureTemple.safeState.sliderPositions[1] == ArchipelagoData.Data.cabinSafeCode[1]
+                    && SaveData.Data.natureTemple.safeState.sliderPositions[2] == ArchipelagoData.Data.cabinSafeCode[2];
 
                 return false;
             }
@@ -253,7 +249,6 @@ namespace Archipelago_Inscryption.Patches
             if (playerDefeated)
             {
                 DeathLinkManager.SendDeathLink();
-                ArchipelagoModPlugin.Log.LogMessage("Rip bozo 2");
             }
             return true;
         }
@@ -265,7 +260,6 @@ namespace Archipelago_Inscryption.Patches
             if (DeathLinkManager.receivedDeath)
                 return true;
             DeathLinkManager.SendDeathLink();
-            ArchipelagoModPlugin.Log.LogMessage("Rip bozo 3");
             return true;
         }
     }
@@ -309,7 +303,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool RandomizeDeckWhenArrivingOnNode(MapNode __instance)
         {
-            if (ArchipelagoManager.randomizeDeck != RandomizeDeck.Disable)
+            if (ArchipelagoOptions.randomizeDeck != RandomizeDeck.Disable)
             {
                 List<CardInfo> newCards = new List<CardInfo>();
                 List<CardInfo> allAddedCards = new List<CardInfo>();
@@ -332,11 +326,11 @@ namespace Archipelago_Inscryption.Patches
                 foreach (CardInfo c in RunState.Run.playerDeck.Cards)
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
-                    if (ArchipelagoManager.randomizeDeck == RandomizeDeck.RandomizeType)
+                    if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
                     {
-                        if (c.HasAnyOfCardMetaCategories(CardMetaCategory.Rare))
+                        if (c.metaCategories.Contains(CardMetaCategory.Rare))
                             card = RandomizerHelper.RandomRareCardInAct1(seed++);
-                        else if (c.IsPelt())
+                        else if (c.HasTrait(Trait.Pelt))
                         {
                             card = c;
                             continue;
@@ -351,7 +345,7 @@ namespace Archipelago_Inscryption.Patches
                             card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
                         }
                     }
-                    else if (ArchipelagoManager.randomizeDeck == RandomizeDeck.RandomizeAll)
+                    else if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
                     {
                         List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature
                         && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
@@ -369,7 +363,7 @@ namespace Archipelago_Inscryption.Patches
                         {
                             continue;
                         }
-                        if (ArchipelagoManager.randomizeAbilities != RandomizeAbilities.Disable)
+                        if (ArchipelagoOptions.randomizeAbilities != RandomizeAbilities.Disable)
                         {
                             if (mod.fromCardMerge)
                             {
@@ -389,7 +383,7 @@ namespace Archipelago_Inscryption.Patches
                         }
                         card.mods.Add(mod);
                     }
-                    if (ArchipelagoManager.randomizeAbilities == RandomizeAbilities.RandomizeAll)
+                    if (ArchipelagoOptions.randomizeAbilities == RandomizeAbilities.RandomizeAll)
                     {
                         int abilityCount = card.abilities.Count;
                         card.abilities.Clear();
@@ -412,7 +406,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool RandomizeDeckAct2()
         {
-            if (ArchipelagoManager.randomizeDeck != RandomizeDeck.Disable)
+            if (ArchipelagoOptions.randomizeDeck != RandomizeDeck.Disable)
             {
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
                 List<CardInfo> newCards = new List<CardInfo>();
@@ -430,7 +424,7 @@ namespace Archipelago_Inscryption.Patches
                     else
                         card = c;
                     card.mods = c.mods;
-                    if (ArchipelagoManager.randomizeAbilities == RandomizeAbilities.RandomizeAll)
+                    if (ArchipelagoOptions.randomizeAbilities == RandomizeAbilities.RandomizeAll)
                     {
                         int rand = 0;
                         int abilityCount = card.abilities.Count;
@@ -464,7 +458,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool RandomizeDeckAct3()
         {
-            if (ArchipelagoManager.randomizeDeck != RandomizeDeck.Disable)
+            if (ArchipelagoOptions.randomizeDeck != RandomizeDeck.Disable)
             {
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
                 List<CardInfo> newCards = new List<CardInfo>();
