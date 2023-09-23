@@ -3,6 +3,7 @@ using Archipelago_Inscryption.Assets;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using System;
 using System.Reflection;
 
 namespace Archipelago_Inscryption
