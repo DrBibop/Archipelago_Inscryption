@@ -114,7 +114,7 @@ namespace Archipelago_Inscryption.Helpers
                         SaveData.Data.wizardTemple.roomId = "Floor_1";
                         SaveData.Data.wizardTemple.cameraPosition = Vector2.zero;
 
-                        SaveManager.SaveFile.currentScene = "GBC_WorldMap";
+                        SaveManager.SaveFile.currentScene = StoryEventsData.EventCompleted(StoryEvent.GBCIntroCompleted) ? "GBC_WorldMap" : "GBC_Starting_Island";
                         SaveData.Data.overworldNode = "StartingIsland";
                     }
                     else

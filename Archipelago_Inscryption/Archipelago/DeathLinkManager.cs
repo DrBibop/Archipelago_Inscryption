@@ -3,7 +3,6 @@ using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using GBC;
-using System;
 using System.Collections;
 using UnityEngine;
 
@@ -13,7 +12,6 @@ namespace Archipelago_Inscryption.Archipelago
     {
         public static DeathLinkService DeathLinkService;
         internal static bool receivedDeath;
-        private static int nbDeathsSent;
 
         internal static void Init()
         {
@@ -50,6 +48,9 @@ namespace Archipelago_Inscryption.Archipelago
             if (Singleton<FirstPersonController>.Instance != null && Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.FirstPerson3D)
                 yield return Singleton<GameFlowManager>.Instance.DoTransitionSequence(GameState.Map, null);
 
+            if (PauseMenu.instance && PauseMenu.instance.Paused)
+                yield return new WaitUntil(() => !PauseMenu.instance.Paused);
+
             if (SaveManager.saveFile.IsPart1 && Singleton<GameFlowManager>.Instance != null && ProgressionData.LearnedMechanic(MechanicsConcept.LosingLife))
             {
                 RunState finishedRun = RunState.Run;
@@ -71,7 +72,7 @@ namespace Archipelago_Inscryption.Archipelago
             }
             else if (SaveManager.saveFile.IsPart2)
             {
-                if (SaveManager.SaveFile.currentScene != "GBC_Starting_Island")
+                if (SaveManager.SaveFile.currentScene != "GBC_Starting_Island" && SaveManager.SaveFile.currentScene != "GBC_WorldMap")
                 {
                     if (GBCEncounterManager.Instance != null && GBCEncounterManager.Instance.EncounterOccurring)
                     {
@@ -89,9 +90,8 @@ namespace Archipelago_Inscryption.Archipelago
                     SaveData.Data.wizardTemple.roomId = "Floor_1";
                     SaveData.Data.wizardTemple.cameraPosition = Vector2.zero;
 
-                    SaveManager.SaveFile.currentScene = "GBC_Starting_Island";
+                    SaveManager.SaveFile.currentScene = "GBC_WorldMap";
                     SaveData.Data.overworldNode = "StartingIsland";
-                    SaveData.Data.overworldIndoorPosition = -Vector3.up;
                     LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
                 }
             }
@@ -118,7 +118,6 @@ namespace Archipelago_Inscryption.Archipelago
         {
             if (!ArchipelagoOptions.deathlink || receivedDeath)
                 return;
-            nbDeathsSent++;
             ArchipelagoModPlugin.Log.LogMessage("Sharing death with your friends...");
             var alias = ArchipelagoClient.session.Players.GetPlayerAliasAndName(ArchipelagoClient.session.ConnectionInfo.Slot);
             int i = UnityEngine.Random.Range(0, 2);
