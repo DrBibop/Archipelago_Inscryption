@@ -5,6 +5,7 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using Pixelplacement;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -542,9 +543,7 @@ namespace Archipelago_Inscryption.Helpers
             if (choosableDeathcardMods.Count > 0)
             {
                 foreach (CardModificationInfo deathcardMod in choosableDeathcardMods)
-                {
                     list.Add(CardLoader.CreateDeathCard(deathcardMod));
-                }
             }
             else
             {
@@ -561,7 +560,8 @@ namespace Archipelago_Inscryption.Helpers
         internal static CardInfo RandomRareCardInAct1(int seed)
         {
             List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Rare)
-            && x.temple == CardTemple.Nature && x.portraitTex != null && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
+            && x.temple == CardTemple.Nature && x.portraitTex != null && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false)
+            && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
             return CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
         }
 

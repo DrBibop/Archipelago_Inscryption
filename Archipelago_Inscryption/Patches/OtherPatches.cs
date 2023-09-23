@@ -317,6 +317,14 @@ namespace Archipelago_Inscryption.Patches
                 if (ArchipelagoManager.HasItem(APItem.StuntedWolfCard))
                     allAddedCards.Add(CardLoader.GetCardByName("Wolf_Talking"));
                 allAddedCards.AddRange(RandomizerHelper.GetAllDeathCards());
+                foreach (CardInfo card in allAddedCards)
+                {
+                    Console.WriteLine($"Mod 1");
+                    foreach (var item in card.mods)
+                    {
+                        Console.WriteLine($"Mod Exist {item.deathCardInfo != null}");
+                    }
+                }
                 if (!StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && ArchipelagoManager.HasItem(APItem.CagedWolfCard) && __instance.Data is CardRemoveNodeData)
                 {
                     CardInfo card = CardLoader.GetCardByName("CagedWolf");
@@ -343,7 +351,7 @@ namespace Archipelago_Inscryption.Patches
                             && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
                             cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
                             cardsInfoRandomPool.AddRange(allAddedCards);
-                            card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+                            card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
                         }
                     }
                     else if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
@@ -355,7 +363,9 @@ namespace Archipelago_Inscryption.Patches
                                                      && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken")));
                         cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
                         cardsInfoRandomPool.AddRange(allAddedCards);
-                        card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+                        card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+                        while (card.name != "!DEATHCARD_BASE")
+                            card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
                     }
                     else
                         card = c.Clone() as CardInfo;
@@ -418,11 +428,13 @@ namespace Archipelago_Inscryption.Patches
                 List<AbilityInfo> abilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll((AbilityInfo x) => x.metaCategories.Contains(AbilityMetaCategory.GrimoraRulebook)
                 || x.metaCategories.Contains(AbilityMetaCategory.MagnificusRulebook) || x.metaCategories.Contains(AbilityMetaCategory.Part1Modular)
                 || x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
+                if (ArchipelagoManager.HasItem(APItem.DrownedSoulCard))
+                    cardsInfoRandomPool.Add(CardLoader.GetCardByName("DrownedSoul"));
                 foreach (CardInfo c in SaveData.Data.deck.Cards)
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
                     if (StoryEventsData.EventCompleted(StoryEvent.GBCObolFound) || (!c.specialAbilities.Contains(SpecialTriggeredAbility.BrokenCoinRight) && !c.specialAbilities.Contains(SpecialTriggeredAbility.BrokenCoinLeft)))
-                        card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+                        card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
                     else
                         card = c;
                     card.mods = c.mods;
@@ -471,10 +483,11 @@ namespace Archipelago_Inscryption.Patches
                     cardsInfoRandomPool.Add(CardLoader.GetCardByName("BlueMage_Talking"));
                 if (ArchipelagoManager.HasItem(APItem.FishbotCard))
                     cardsInfoRandomPool.Add(CardLoader.GetCardByName("Angler_Talking"));
+
                 foreach (CardInfo c in Part3SaveData.Data.deck.Cards)
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
-                    card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
                     newCardsIds.Add(card.name);
                     newCards.Add(card);
                 }
