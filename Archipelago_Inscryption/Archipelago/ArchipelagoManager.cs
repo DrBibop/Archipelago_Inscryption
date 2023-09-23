@@ -88,6 +88,8 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static Dictionary<APCheck, CheckInfo> checkInfos = new Dictionary<APCheck, CheckInfo>();
 
+        private static Queue<NetworkItem> itemQueue = new Queue<NetworkItem>();
+
         internal static void Init()
         {
             ArchipelagoClient.onConnectAttemptDone += OnConnectAttempt;
@@ -100,9 +102,19 @@ namespace Archipelago_Inscryption.Archipelago
 
             Singleton<ArchipelagoUI>.Instance.StartCoroutine(ShowItemMessageOneFrameLater(item));
 
-            APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
+            itemQueue.Enqueue(item);
+        }
 
-            ApplyItemReceived(receivedItem);
+        internal static void ProcessNextItem()
+        {
+            if (itemQueue.Count > 0)
+            {
+                NetworkItem item = itemQueue.Dequeue();
+
+                APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
+
+                ApplyItemReceived(receivedItem);
+            }
         }
 
         private static IEnumerator ShowItemMessageOneFrameLater(NetworkItem item)
@@ -153,7 +165,7 @@ namespace Archipelago_Inscryption.Archipelago
             }
             else if (receivedItem == APItem.CardPack)
             {
-                ArchipelagoData.Data.availableCardPacks++;
+                ArchipelagoData.Data.availableCardPacks += 1;
                 RandomizerHelper.UpdatePackButtonEnabled();
             }
             else if (receivedItem == APItem.SquirrelTotemHead && !RunState.Run.totemTops.Contains(Tribe.Squirrel))

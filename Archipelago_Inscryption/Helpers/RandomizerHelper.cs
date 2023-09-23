@@ -434,7 +434,7 @@ namespace Archipelago_Inscryption.Helpers
         {
             if (!DeathLinkManager.receivedDeath)
                 DeathLinkManager.SendDeathLink();
-            if ((DeathLinkManager.receivedDeath && ArchipelagoOptions.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
+            if ((!DeathLinkManager.receivedDeath && ArchipelagoOptions.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
                 || ArchipelagoOptions.optionalDeathCard == OptionalDeathCard.Disable)
             {
                 Singleton<ViewManager>.Instance.SwitchToView(View.Default, false, true);

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Archipelago_Inscryption.Archipelago;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -36,6 +37,8 @@ namespace Archipelago_Inscryption.Components
                 if (saveTimer <= 0)
                     SaveManager.SaveToFile(false);
             }
+
+            ArchipelagoManager.ProcessNextItem();
 
             if (waitTimer > 0)
             {
