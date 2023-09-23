@@ -339,7 +339,8 @@ namespace Archipelago_Inscryption.Patches
                         {
                             List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature
                             && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock)
-                            && !x.metaCategories.Contains(CardMetaCategory.Rare) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
+                            && !x.metaCategories.Contains(CardMetaCategory.Rare) && ConceptProgressionTree.Tree.CardUnlocked(x, false) 
+                            && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
                             cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
                             cardsInfoRandomPool.AddRange(allAddedCards);
                             card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
@@ -350,7 +351,8 @@ namespace Archipelago_Inscryption.Patches
                         List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature
                         && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
                         cardsInfoRandomPool.AddRange(ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Rare)
-                                                     && x.temple == CardTemple.Nature && x.portraitTex != null && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false)));
+                                                     && x.temple == CardTemple.Nature && x.portraitTex != null && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false)
+                                                     && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken")));
                         cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
                         cardsInfoRandomPool.AddRange(allAddedCards);
                         card = CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
@@ -412,7 +414,7 @@ namespace Archipelago_Inscryption.Patches
                 List<CardInfo> newCards = new List<CardInfo>();
                 List<string> newCardsIds = new List<string>();
                 List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.GBCPlayable) 
-                && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null);
+                && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
                 List<AbilityInfo> abilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll((AbilityInfo x) => x.metaCategories.Contains(AbilityMetaCategory.GrimoraRulebook)
                 || x.metaCategories.Contains(AbilityMetaCategory.MagnificusRulebook) || x.metaCategories.Contains(AbilityMetaCategory.Part1Modular)
                 || x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
@@ -490,7 +492,7 @@ namespace Archipelago_Inscryption.Patches
                 CardInfo card = RandomizerHelper.RandomRareCardInAct1(seed++);
                 if (CardLoader.GetUnlockedCards(CardMetaCategory.Rare, CardTemple.Nature).Count >= __instance.NUM_CHOICES)
                 {
-                    while (__result.Exists((CardChoice x) => x.CardInfo.name == card.name))
+                    while (__result.Exists((CardChoice x) => x.CardInfo.name == card.name) && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || card.name != "Kraken"))
                         card = RandomizerHelper.RandomRareCardInAct1(seed++);
                 }
                 __result.Add(new CardChoice { CardInfo = card });
