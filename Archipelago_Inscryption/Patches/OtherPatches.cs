@@ -467,6 +467,10 @@ namespace Archipelago_Inscryption.Patches
                 List<string> newCardsIds = new List<string>();
                 List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Part3Random)
                 && x.temple == CardTemple.Tech && ConceptProgressionTree.Tree.CardUnlocked(x, false));
+                if (ArchipelagoManager.HasItem(APItem.LonelyWizbotCard))
+                    cardsInfoRandomPool.Add(CardLoader.GetCardByName("BlueMage_Talking"));
+                if (ArchipelagoManager.HasItem(APItem.FishbotCard))
+                    cardsInfoRandomPool.Add(CardLoader.GetCardByName("Angler_Talking"));
                 foreach (CardInfo c in Part3SaveData.Data.deck.Cards)
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
