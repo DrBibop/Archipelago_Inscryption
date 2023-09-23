@@ -420,9 +420,10 @@ namespace Archipelago_Inscryption.Helpers
             if (packPile == null) return;
             packPile.GetComponent<CardPackPile>().enabled = false;
             int i = 0;
+            int packsCount = packs.Count;
             foreach (GameObject pack in packs)
             {
-                Tween.LocalPosition(pack.transform, new Vector3(-10, 0.1f * i, 0), 0.20f, 0.02f * (ArchipelagoData.Data.availableCardPacks - i - 1), Tween.EaseIn, Tween.LoopType.None, null, () => GameObject.Destroy(pack));
+                Tween.LocalPosition(pack.transform, new Vector3(-10, 0.1f * i, 0), 0.20f, 0.02f * (packsCount - i - 1), Tween.EaseIn, Tween.LoopType.None, null, () => GameObject.Destroy(pack));
 
                 i++;
             }

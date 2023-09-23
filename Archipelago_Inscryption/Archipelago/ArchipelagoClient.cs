@@ -55,6 +55,7 @@ namespace Archipelago_Inscryption.Archipelago
             session = null;
             isConnected = false;
             isConnecting = false;
+            Singleton<ArchipelagoUI>.Instance.UpdateConnectionStatus(false);
         }
 
         internal static void ScoutLocationsAsync(Action<LocationInfoPacket> callback)
@@ -185,7 +186,6 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void SessionSocketClosed(string reason)
         {
-            Singleton<ArchipelagoUI>.Instance.UpdateConnectionStatus(false);
             ArchipelagoModPlugin.Log.LogInfo($"Connection lost: {reason}");
             if (session != null)
                 Disconnect();
