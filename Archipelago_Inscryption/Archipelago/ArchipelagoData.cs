@@ -84,6 +84,7 @@ namespace Archipelago_Inscryption.Archipelago
         internal void Reset(string newSeed)
         {
             seed = newSeed;
+            availableCardPacks = 0;
 
             completedChecks.Clear();
             receivedItems.Clear();
@@ -93,6 +94,12 @@ namespace Archipelago_Inscryption.Archipelago
             cabinClockCode.Clear();
             cabinSmallClockCode.Clear();
             factoryClockCode.Clear();
+
+            act1Completed = false;
+            act2Completed = false;
+            act3Completed = false;
+            epilogueCompleted = false;
+            goalCompletedAndSent = false;
         }
 
         internal static void SaveToFile()

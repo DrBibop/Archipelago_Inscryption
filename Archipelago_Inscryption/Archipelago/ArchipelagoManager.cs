@@ -165,7 +165,7 @@ namespace Archipelago_Inscryption.Archipelago
             }
             else if (receivedItem == APItem.CardPack)
             {
-                ArchipelagoData.Data.availableCardPacks += 1;
+                ArchipelagoData.Data.availableCardPacks++;
                 RandomizerHelper.UpdatePackButtonEnabled();
             }
             else if (receivedItem == APItem.SquirrelTotemHead && !RunState.Run.totemTops.Contains(Tribe.Squirrel))

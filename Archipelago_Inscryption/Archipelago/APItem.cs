@@ -18,8 +18,6 @@
         BeeFigurine,
         GreaterSmoke,
         AnglerHook,
-        Currency,
-        CardPack,
         CameraReplica,
         PileOfMeat,
         EpitaphPiece1,
@@ -50,6 +48,8 @@
         FishbotCard,
         HoloPelt,
         Quill,
+        Currency,
+        CardPack,
         COUNT
     }
 }
