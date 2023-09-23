@@ -52,6 +52,8 @@ namespace Archipelago_Inscryption.Archipelago
 
             if (SaveManager.saveFile.IsPart1 && Singleton<GameFlowManager>.Instance != null && ProgressionData.LearnedMechanic(MechanicsConcept.LosingLife))
             {
+                RunState finishedRun = RunState.Run;
+
                 if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
                 {
                     yield return new WaitUntil(() => Singleton<TurnManager>.Instance.IsPlayerTurn || Singleton<TurnManager>.Instance.GameIsOver());
@@ -64,8 +66,6 @@ namespace Archipelago_Inscryption.Archipelago
                         yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
                     yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
                 }
-
-                RunState finishedRun = RunState.Run;
 
                 yield return new WaitUntil(() => RunState.Run != finishedRun);
             }
