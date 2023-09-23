@@ -364,8 +364,6 @@ namespace Archipelago_Inscryption.Patches
                         cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
                         cardsInfoRandomPool.AddRange(allAddedCards);
                         card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-                        while (card.name != "!DEATHCARD_BASE")
-                            card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
                     }
                     else
                         card = c.Clone() as CardInfo;
