@@ -124,13 +124,18 @@ namespace Archipelago_Inscryption.Archipelago
 
             if (result.Successful)
             {
-                if (ArchipelagoData.Data.seed != "" && ArchipelagoData.Data.seed != session.RoomState.Seed)
+                if (ArchipelagoData.Data.seed != session.RoomState.Seed)
                 {
-                    string resetMessage = "New MultiWorld detected! Reset your save file properly before starting.";
-                    ArchipelagoModPlugin.Log.LogWarning(resetMessage);
-                    Singleton<ArchipelagoUI>.Instance.LogImportant(resetMessage);
+                    if (ArchipelagoData.Data.seed != "")
+                    {
+                        string resetMessage = "New MultiWorld detected! Reset your save file properly before starting.";
+                        ArchipelagoModPlugin.Log.LogWarning(resetMessage);
+                        Singleton<ArchipelagoUI>.Instance.LogImportant(resetMessage);
 
-                    ArchipelagoData.Data.Reset(session.RoomState.Seed);
+                        ArchipelagoData.Data.Reset();
+                    }
+
+                    ArchipelagoData.Data.seed = session.RoomState.Seed;
                 }
 
                 LoginSuccessful successfulResult = (LoginSuccessful)result;

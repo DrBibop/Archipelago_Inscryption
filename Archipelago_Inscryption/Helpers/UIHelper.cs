@@ -5,6 +5,7 @@ using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace Archipelago_Inscryption.Helpers
@@ -148,6 +149,19 @@ namespace Archipelago_Inscryption.Helpers
         {
             Singleton<MenuController>.Instance.ResetToDefaultState();
             Singleton<VideoCameraRig>.Instance.EnterChapterSelect();
+        }
+
+        internal static void UpdateChapterSelectButton()
+        {
+            if (ArchipelagoOptions.goal != Goal.AllActsAnyOrder) return;
+
+            MenuCard chapterSelectCard = Singleton<MenuController>.Instance.cards.First(c => c.MenuAction == MenuAction.NewGame);
+
+            if (chapterSelectCard != null)
+            {
+                chapterSelectCard.lockBeforeStoryEvent = false;
+                chapterSelectCard.SetGlitchedSpriteShown(false);
+            }
         }
     }
 }

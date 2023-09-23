@@ -321,6 +321,7 @@ namespace Archipelago_Inscryption.Archipelago
                 AudioController.Instance.PlaySound2D("creepy_rattle_glassy", MixerGroup.None, 0.5f);
                 ScoutChecks();
                 VerifyGoalCompletion();
+                UIHelper.UpdateChapterSelectButton();
             }
             else
             {

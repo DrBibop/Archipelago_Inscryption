@@ -81,10 +81,10 @@ namespace Archipelago_Inscryption.Archipelago
             }
         }
 
-        internal void Reset(string newSeed)
+        internal void Reset()
         {
-            seed = newSeed;
             availableCardPacks = 0;
+            index = 0;
 
             completedChecks.Clear();
             receivedItems.Clear();

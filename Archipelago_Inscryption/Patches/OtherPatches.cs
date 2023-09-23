@@ -81,8 +81,8 @@ namespace Archipelago_Inscryption.Patches
         {
             if (ArchipelagoClient.IsConnected)
                 ArchipelagoClient.Disconnect();
-            ArchipelagoData.Data.Reset("");
-            ArchipelagoData.Data.index = 0;
+            ArchipelagoData.Data.Reset();
+            ArchipelagoData.Data.seed = "";
             return true;
         }
 
