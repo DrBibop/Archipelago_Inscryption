@@ -53,6 +53,8 @@ namespace Archipelago_Inscryption.Archipelago
 
             if (SaveManager.saveFile.IsPart1 && Singleton<GameFlowManager>.Instance != null && ProgressionData.LearnedMechanic(MechanicsConcept.LosingLife))
             {
+                PauseMenu.pausingDisabled = true;
+
                 RunState finishedRun = RunState.Run;
 
                 if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
@@ -68,11 +70,13 @@ namespace Archipelago_Inscryption.Archipelago
                     yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
                 }
 
+                PauseMenu.pausingDisabled = false;
+
                 yield return new WaitUntil(() => RunState.Run != finishedRun);
             }
             else if (SaveManager.saveFile.IsPart2)
             {
-                if (SaveManager.SaveFile.currentScene != "GBC_Starting_Island" && SaveManager.SaveFile.currentScene != "GBC_WorldMap")
+                if (SceneLoader.ActiveSceneName != "GBC_Starting_Island" && SceneLoader.ActiveSceneName != "GBC_WorldMap")
                 {
                     if (GBCEncounterManager.Instance != null && GBCEncounterManager.Instance.EncounterOccurring)
                     {
@@ -97,6 +101,8 @@ namespace Archipelago_Inscryption.Archipelago
             }
             else if (SaveManager.saveFile.IsPart3 && Singleton<GameFlowManager>.Instance != null)
             {
+                PauseMenu.pausingDisabled = true;
+
                 if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
                 {
                     yield return new WaitUntil(() => Singleton<TurnManager>.Instance.IsPlayerTurn);
@@ -109,6 +115,8 @@ namespace Archipelago_Inscryption.Archipelago
                     yield return new WaitUntil(() => Singleton<GameMap>.Instance.FullyUnrolled);
                     yield return Singleton<Part3GameFlowManager>.Instance.PlayerRespawnSequence();
                 }
+
+                PauseMenu.pausingDisabled = false;
             }
 
             receivedDeath = false;
