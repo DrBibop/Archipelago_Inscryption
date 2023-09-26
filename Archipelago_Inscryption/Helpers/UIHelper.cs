@@ -91,6 +91,9 @@ namespace Archipelago_Inscryption.Helpers
                 GameObject.Destroy(FinaleDeletionWindowManager.instance.gameObject);
             }
 
+            StoryEventsData.EraseEvent(StoryEvent.FullGameCompleted);
+            StoryEventsData.EraseEvent(StoryEvent.Part3Completed);
+
             switch (chapter)
             {
                 case 1:
@@ -138,9 +141,6 @@ namespace Archipelago_Inscryption.Helpers
                 default:
                     break;
             }
-
-            StoryEventsData.EraseEvent(StoryEvent.FullGameCompleted);
-            StoryEventsData.EraseEvent(StoryEvent.Part3Completed);
 
             LoadingScreenManager.LoadScene(SaveManager.SaveFile.currentScene);
         }
