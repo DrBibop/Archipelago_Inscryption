@@ -317,14 +317,6 @@ namespace Archipelago_Inscryption.Patches
                 if (ArchipelagoManager.HasItem(APItem.StuntedWolfCard))
                     allAddedCards.Add(CardLoader.GetCardByName("Wolf_Talking"));
                 allAddedCards.AddRange(RandomizerHelper.GetAllDeathCards());
-                foreach (CardInfo card in allAddedCards)
-                {
-                    Console.WriteLine($"Mod 1");
-                    foreach (var item in card.mods)
-                    {
-                        Console.WriteLine($"Mod Exist {item.deathCardInfo != null}");
-                    }
-                }
                 if (!StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && ArchipelagoManager.HasItem(APItem.CagedWolfCard) && __instance.Data is CardRemoveNodeData)
                 {
                     CardInfo card = CardLoader.GetCardByName("CagedWolf");
@@ -352,6 +344,7 @@ namespace Archipelago_Inscryption.Patches
                             cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
                             cardsInfoRandomPool.AddRange(allAddedCards);
                             card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+                            RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(newCardsIds, ref seed, ref card, cardsInfoRandomPool);
                         }
                     }
                     else if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
@@ -364,6 +357,7 @@ namespace Archipelago_Inscryption.Patches
                         cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
                         cardsInfoRandomPool.AddRange(allAddedCards);
                         card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+                        RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(newCardsIds, ref seed, ref card, cardsInfoRandomPool);
                     }
                     else
                         card = c.Clone() as CardInfo;
@@ -411,7 +405,6 @@ namespace Archipelago_Inscryption.Patches
             return true;
         }
 
-
         [HarmonyPatch(typeof(GBCEncounterManager), "StartEncounter")]
         [HarmonyPrefix]
         static bool RandomizeDeckAct2()
@@ -451,6 +444,11 @@ namespace Archipelago_Inscryption.Patches
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
                     card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+                    if (newCardsIds.Contains("DrownedSoul"))
+                    {
+                        while (card.name == "DrownedSoul")
+                            card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+                    }
                     if (ArchipelagoOptions.randomizeAbilities == RandomizeAbilities.RandomizeAll)
                     {
                         int rand = 0;
@@ -459,7 +457,6 @@ namespace Archipelago_Inscryption.Patches
                         for (int t = 0; t < abilityCount; t++)
                         {
                             rand = UnityEngine.Random.Range(0, 4);
-                            Console.WriteLine($"Random : {rand}");
                             if (rand == 0)
                                 card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.MagnificusRulebook));
                             else if (rand == 1)
@@ -489,8 +486,7 @@ namespace Archipelago_Inscryption.Patches
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
                 List<CardInfo> newCards = new List<CardInfo>();
                 List<string> newCardsIds = new List<string>();
-                List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Part3Random)
-                && x.temple == CardTemple.Tech && ConceptProgressionTree.Tree.CardUnlocked(x, false));
+                List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Part3Random));
                 if (ArchipelagoManager.HasItem(APItem.LonelyWizbotCard))
                     cardsInfoRandomPool.Add(CardLoader.GetCardByName("BlueMage_Talking"));
                 if (ArchipelagoManager.HasItem(APItem.FishbotCard))
@@ -500,6 +496,16 @@ namespace Archipelago_Inscryption.Patches
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
                     card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+                    if (newCardsIds.Contains("BlueMage_Talking"))
+                    {
+                        while (card.name == "BlueMage_Talking")
+                            card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+                    }
+                    if (newCardsIds.Contains("Angler_Talking"))
+                    {
+                        while (card.name == "Angler_Talking")
+                            card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+                    }
                     newCardsIds.Add(card.name);
                     newCards.Add(card);
                 }
