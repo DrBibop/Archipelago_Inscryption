@@ -16,6 +16,17 @@ namespace Archipelago_Inscryption.Components
 
         bool opening = false;
 
+        private void Awake()
+        {
+            Invoke("EnableScript", 1f);
+        }
+
+        private void EnableScript()
+        {
+            if (RandomizerHelper.packPile == gameObject)
+                enabled = true;
+        }
+
         public override void OnCursorEnter()
         {
             if (pileTop == null)
@@ -74,7 +85,7 @@ namespace Archipelago_Inscryption.Components
 
             yield return pile.DestroyCards(new Vector3(0f, 4f, -5f), -20f, 0.75f);
 
-            Singleton<ViewManager>.Instance.SwitchToView(View.MapArial);
+            Singleton<ViewManager>.Instance.SwitchToView(SaveManager.SaveFile.IsPart3 ? View.MapDefault : View.MapArial);
 
             yield return new WaitForSeconds(0.25f);
 
