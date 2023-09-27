@@ -338,7 +338,7 @@ namespace Archipelago_Inscryption.Patches
                         }
                         else
                         {
-                            List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature
+                            List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.temple == CardTemple.Nature
                                                                  && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock)
                                                                  && !x.metaCategories.Contains(CardMetaCategory.Rare) && ConceptProgressionTree.Tree.CardUnlocked(x, false)
                                                                  && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
@@ -353,9 +353,9 @@ namespace Archipelago_Inscryption.Patches
                     }
                     else if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
                     {
-                        List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature
+                        List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.temple == CardTemple.Nature
                         && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
-                        cardsInfoRandomPool.AddRange(ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Rare)
+                        cardsInfoRandomPool.AddRange(ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.metaCategories.Contains(CardMetaCategory.Rare)
                                                      && x.temple == CardTemple.Nature && x.portraitTex != null && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false)
                                                      && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken")));
                         cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
@@ -368,7 +368,7 @@ namespace Archipelago_Inscryption.Patches
                     }
                     else
                     {
-                        if (!c.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
+                        if (!c.mods.Any(x => x.deathCardInfo != null))
                             card = (CardInfo)c.Clone();
                         else
                             card = (CardInfo)c;
@@ -430,7 +430,7 @@ namespace Archipelago_Inscryption.Patches
                 int cardAdded = 0;
                 if (StoryEventsData.EventCompleted(StoryEvent.GBCObolFound))
                 {
-                    cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.GBCPlayable)
+                    cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.metaCategories.Contains(CardMetaCategory.GBCPlayable)
                                           && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
                 }
                 else
@@ -442,11 +442,11 @@ namespace Archipelago_Inscryption.Patches
                     newCards.Add(obolRight);
                     newCardsIds.Add(obolRight.name);
                     cardAdded += 2;
-                    cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.GBCPlayable)
+                    cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.metaCategories.Contains(CardMetaCategory.GBCPlayable)
                                           && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken")
                                           && x.name != "CoinLeft" && x.name != "CoinRight");
                 }
-                List<AbilityInfo> abilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll((AbilityInfo x) => x.metaCategories.Contains(AbilityMetaCategory.GrimoraRulebook)
+                List<AbilityInfo> abilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(x => x.metaCategories.Contains(AbilityMetaCategory.GrimoraRulebook)
                                               || x.metaCategories.Contains(AbilityMetaCategory.MagnificusRulebook) || x.metaCategories.Contains(AbilityMetaCategory.Part1Modular)
                                               || x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
                 if (ArchipelagoManager.HasItem(APItem.DrownedSoulCard))
@@ -499,7 +499,13 @@ namespace Archipelago_Inscryption.Patches
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
                 List<CardInfo> newCards = new List<CardInfo>();
                 List<string> newCardsIds = new List<string>();
-                List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Part3Random));
+                List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.temple == CardTemple.Tech && x.portraitTex != null 
+                                                     && x.name != "!BOUNTYHUNTER_BASE" && x.name != "Librarian" && !x.name.Contains("EmptyVessel") && x.name != "!MYCOCARD_BASE" 
+                                                     && x.name != "CaptiveFile");
+                if (!ArchipelagoManager.HasItem(APItem.GemsModule))
+                    cardsInfoRandomPool.RemoveAll(x => x.name.Contains("Sentinel") || x.name.Contains("Gem"));
+                if (!Part3SaveData.Data.sideDeckAbilities.Contains(Ability.ConduitNull))
+                    cardsInfoRandomPool.RemoveAll(x => x.name.Contains("Conduit") || x.name.Contains("Cell"));
                 if (ArchipelagoManager.HasItem(APItem.LonelyWizbotCard))
                     cardsInfoRandomPool.Add(CardLoader.GetCardByName("BlueMage_Talking"));
                 if (ArchipelagoManager.HasItem(APItem.FishbotCard))
