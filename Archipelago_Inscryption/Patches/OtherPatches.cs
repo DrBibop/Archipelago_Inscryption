@@ -348,7 +348,7 @@ namespace Archipelago_Inscryption.Patches
                             if (!card.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
                                 card = (CardInfo)card.Clone();
 
-                            RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(newCardsIds, ref seed, ref card, cardsInfoRandomPool);
+                            RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(ref seed, newCardsIds, cardsInfoRandomPool, ref card);
                         }
                     }
                     else if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
@@ -364,7 +364,7 @@ namespace Archipelago_Inscryption.Patches
                         if (!card.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
                             card = (CardInfo)card.Clone();
 
-                        RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(newCardsIds, ref seed, ref card, cardsInfoRandomPool);
+                        RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(ref seed, newCardsIds, cardsInfoRandomPool, ref card);
                     }
                     else
                     {
@@ -504,20 +504,13 @@ namespace Archipelago_Inscryption.Patches
                     cardsInfoRandomPool.Add(CardLoader.GetCardByName("BlueMage_Talking"));
                 if (ArchipelagoManager.HasItem(APItem.FishbotCard))
                     cardsInfoRandomPool.Add(CardLoader.GetCardByName("Angler_Talking"));
+                if (ArchipelagoManager.HasItem(APItem.Ourobot))
+                    cardsInfoRandomPool.Add(CardLoader.GetCardByName("Ouroboros_Part3"));
                 foreach (CardInfo c in Part3SaveData.Data.deck.Cards)
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
                     card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
-                    if (newCardsIds.Contains("BlueMage_Talking"))
-                    {
-                        while (card.name == "BlueMage_Talking")
-                            card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone(); ;
-                    }
-                    if (newCardsIds.Contains("Angler_Talking"))
-                    {
-                        while (card.name == "Angler_Talking")
-                            card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone(); ;
-                    }
+                    RandomizerHelper.OnlyPutOneTalkingCardInDeckAct3(ref seed, newCardsIds, cardsInfoRandomPool, ref card);
                     foreach (var modCurrent in c.Mods)
                     {
                         if (ArchipelagoOptions.randomizeAbilities != RandomizeAbilities.Disable)

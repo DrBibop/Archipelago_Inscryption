@@ -569,7 +569,7 @@ namespace Archipelago_Inscryption.Helpers
             return (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
         }
 
-        internal static void OnlyPutOneTalkingCardInDeckAct1(List<string> newCardsIds, ref int seed, ref CardInfo card, List<CardInfo> cardsInfoRandomPool)
+        internal static void OnlyPutOneTalkingCardInDeckAct1(ref int seed, List<string> newCardsIds, List<CardInfo> cardsInfoRandomPool, ref CardInfo card)
         {
             if (newCardsIds.Contains("Stoat_Talking"))
             {
@@ -590,6 +590,25 @@ namespace Archipelago_Inscryption.Helpers
             {
                 while (card.name == "CagedWolf")
                     card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+            }
+        }
+
+        internal static void OnlyPutOneTalkingCardInDeckAct3(ref int seed, List<string> newCardsIds, List<CardInfo> cardsInfoRandomPool, ref CardInfo card)
+        {
+            if (newCardsIds.Contains("BlueMage_Talking"))
+            {
+                while (card.name == "BlueMage_Talking")
+                    card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone(); ;
+            }
+            if (newCardsIds.Contains("Angler_Talking"))
+            {
+                while (card.name == "Angler_Talking")
+                    card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone(); ;
+            }
+            if (newCardsIds.Contains("Ouroboros_Part3"))
+            {
+                while (card.name == "Ouroboros_Part3")
+                    card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone(); ;
             }
         }
 
