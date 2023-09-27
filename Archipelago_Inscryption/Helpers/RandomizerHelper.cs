@@ -566,7 +566,31 @@ namespace Archipelago_Inscryption.Helpers
             List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Rare)
             && x.temple == CardTemple.Nature && x.portraitTex != null && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false)
             && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
-            return CardLoader.GetDistinctCardsFromPool(seed++, 1, cardsInfoRandomPool).First();
+            return (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
+        }
+
+        internal static void OnlyPutOneTalkingCardInDeckAct1(List<string> newCardsIds, ref int seed, ref CardInfo card, List<CardInfo> cardsInfoRandomPool)
+        {
+            if (newCardsIds.Contains("Stoat_Talking"))
+            {
+                while (card.name == "Stoat_Talking")
+                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+            }
+            if (newCardsIds.Contains("Stinkbug_Talking"))
+            {
+                while (card.name == "Stinkbug_Talking")
+                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+            }
+            if (newCardsIds.Contains("Wolf_Talking"))
+            {
+                while (card.name == "Wolf_Talking")
+                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+            }
+            if (newCardsIds.Contains("CagedWolf"))
+            {
+                while (card.name == "CagedWolf")
+                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+            }
         }
 
         internal static void UpdateItemsWhenDoneDiscovering(DiscoverableCheckInteractable discoveringCard)

@@ -308,7 +308,6 @@ namespace Archipelago_Inscryption.Patches
                 List<CardInfo> newCards = new List<CardInfo>();
                 List<CardInfo> allAddedCards = new List<CardInfo>();
                 List<string> newCardsIds = new List<string>();
-                Dictionary<string, List<CardModificationInfo>> newCardsMod = new Dictionary<string, List<CardModificationInfo>>();
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
                 if (ArchipelagoManager.HasItem(APItem.CagedWolfCard) && !StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && !(__instance.Data is CardRemoveNodeData))
                     allAddedCards.Add(CardLoader.GetCardByName("CagedWolf"));
@@ -317,14 +316,6 @@ namespace Archipelago_Inscryption.Patches
                 if (ArchipelagoManager.HasItem(APItem.StuntedWolfCard))
                     allAddedCards.Add(CardLoader.GetCardByName("Wolf_Talking"));
                 allAddedCards.AddRange(RandomizerHelper.GetAllDeathCards());
-                foreach (CardInfo card in allAddedCards)
-                {
-                    Console.WriteLine($"Mod 1");
-                    foreach (var item in card.mods)
-                    {
-                        Console.WriteLine($"Mod Exist {item.deathCardInfo != null}");
-                    }
-                }
                 if (!StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && ArchipelagoManager.HasItem(APItem.CagedWolfCard) && __instance.Data is CardRemoveNodeData)
                 {
                     CardInfo card = CardLoader.GetCardByName("CagedWolf");
@@ -337,7 +328,9 @@ namespace Archipelago_Inscryption.Patches
                     if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
                     {
                         if (c.metaCategories.Contains(CardMetaCategory.Rare))
+                        {
                             card = RandomizerHelper.RandomRareCardInAct1(seed++);
+                        }
                         else if (c.HasTrait(Trait.Pelt))
                         {
                             card = c;
@@ -346,12 +339,16 @@ namespace Archipelago_Inscryption.Patches
                         else
                         {
                             List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.temple == CardTemple.Nature
-                            && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock)
-                            && !x.metaCategories.Contains(CardMetaCategory.Rare) && ConceptProgressionTree.Tree.CardUnlocked(x, false) 
-                            && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
+                                                                 && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock)
+                                                                 && !x.metaCategories.Contains(CardMetaCategory.Rare) && ConceptProgressionTree.Tree.CardUnlocked(x, false)
+                                                                 && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
                             cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
                             cardsInfoRandomPool.AddRange(allAddedCards);
                             card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+                            if (!card.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
+                                card = (CardInfo)card.Clone();
+
+                            RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(newCardsIds, ref seed, ref card, cardsInfoRandomPool);
                         }
                     }
                     else if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
@@ -364,9 +361,18 @@ namespace Archipelago_Inscryption.Patches
                         cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
                         cardsInfoRandomPool.AddRange(allAddedCards);
                         card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+                        if (!card.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
+                            card = (CardInfo)card.Clone();
+
+                        RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(newCardsIds, ref seed, ref card, cardsInfoRandomPool);
                     }
                     else
-                        card = c.Clone() as CardInfo;
+                    {
+                        if (!c.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
+                            card = (CardInfo)c.Clone();
+                        else
+                            card = (CardInfo)c;
+                    }
                     foreach (CardModificationInfo mod in c.Mods)
                     {
                         if (mod.deathCardInfo != null)
@@ -411,7 +417,6 @@ namespace Archipelago_Inscryption.Patches
             return true;
         }
 
-
         [HarmonyPatch(typeof(GBCEncounterManager), "StartEncounter")]
         [HarmonyPrefix]
         static bool RandomizeDeckAct2()
@@ -421,21 +426,41 @@ namespace Archipelago_Inscryption.Patches
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
                 List<CardInfo> newCards = new List<CardInfo>();
                 List<string> newCardsIds = new List<string>();
-                List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.GBCPlayable) 
-                && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
+                List<CardInfo> cardsInfoRandomPool = new List<CardInfo>();
+                int cardAdded = 0;
+                if (StoryEventsData.EventCompleted(StoryEvent.GBCObolFound))
+                {
+                    cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.GBCPlayable)
+                                          && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
+                }
+                else
+                {
+                    CardInfo obolLeft = CardLoader.GetCardByName("CoinLeft");
+                    newCards.Add(obolLeft);
+                    newCardsIds.Add(obolLeft.name);
+                    CardInfo obolRight = CardLoader.GetCardByName("CoinRight");
+                    newCards.Add(obolRight);
+                    newCardsIds.Add(obolRight.name);
+                    cardAdded += 2;
+                    cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.GBCPlayable)
+                                          && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken")
+                                          && x.name != "CoinLeft" && x.name != "CoinRight");
+                }
                 List<AbilityInfo> abilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll((AbilityInfo x) => x.metaCategories.Contains(AbilityMetaCategory.GrimoraRulebook)
-                || x.metaCategories.Contains(AbilityMetaCategory.MagnificusRulebook) || x.metaCategories.Contains(AbilityMetaCategory.Part1Modular)
-                || x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
+                                              || x.metaCategories.Contains(AbilityMetaCategory.MagnificusRulebook) || x.metaCategories.Contains(AbilityMetaCategory.Part1Modular)
+                                              || x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
                 if (ArchipelagoManager.HasItem(APItem.DrownedSoulCard))
                     cardsInfoRandomPool.Add(CardLoader.GetCardByName("DrownedSoul"));
-                foreach (CardInfo c in SaveData.Data.deck.Cards)
+
+                for (int i = 0; i < SaveData.Data.deck.Cards.Count - cardAdded; i++)
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
-                    if (StoryEventsData.EventCompleted(StoryEvent.GBCObolFound) || (!c.specialAbilities.Contains(SpecialTriggeredAbility.BrokenCoinRight) && !c.specialAbilities.Contains(SpecialTriggeredAbility.BrokenCoinLeft)))
-                        card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-                    else
-                        card = c;
-                    card.mods = c.mods;
+                    card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
+                    if (newCardsIds.Contains("DrownedSoul"))
+                    {
+                        while (card.name == "DrownedSoul")
+                            card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
+                    }
                     if (ArchipelagoOptions.randomizeAbilities == RandomizeAbilities.RandomizeAll)
                     {
                         int rand = 0;
@@ -444,7 +469,6 @@ namespace Archipelago_Inscryption.Patches
                         for (int t = 0; t < abilityCount; t++)
                         {
                             rand = UnityEngine.Random.Range(0, 4);
-                            Console.WriteLine($"Random : {rand}");
                             if (rand == 0)
                                 card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.MagnificusRulebook));
                             else if (rand == 1)
@@ -455,7 +479,6 @@ namespace Archipelago_Inscryption.Patches
                                 card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.Part1Modular));
                         }
                     }
-                    card.decals = c.decals;
                     newCardsIds.Add(card.name);
                     newCards.Add(card);
                 }
@@ -466,6 +489,7 @@ namespace Archipelago_Inscryption.Patches
             return true;
         }
 
+
         [HarmonyPatch(typeof(HoloMapNode), "OnSelected")]
         [HarmonyPrefix]
         static bool RandomizeDeckAct3()
@@ -475,17 +499,48 @@ namespace Archipelago_Inscryption.Patches
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
                 List<CardInfo> newCards = new List<CardInfo>();
                 List<string> newCardsIds = new List<string>();
-                List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Part3Random)
-                && x.temple == CardTemple.Tech && ConceptProgressionTree.Tree.CardUnlocked(x, false));
+                List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll((CardInfo x) => x.metaCategories.Contains(CardMetaCategory.Part3Random));
                 if (ArchipelagoManager.HasItem(APItem.LonelyWizbotCard))
                     cardsInfoRandomPool.Add(CardLoader.GetCardByName("BlueMage_Talking"));
                 if (ArchipelagoManager.HasItem(APItem.FishbotCard))
                     cardsInfoRandomPool.Add(CardLoader.GetCardByName("Angler_Talking"));
-
                 foreach (CardInfo c in Part3SaveData.Data.deck.Cards)
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
-                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+                    card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
+                    if (newCardsIds.Contains("BlueMage_Talking"))
+                    {
+                        while (card.name == "BlueMage_Talking")
+                            card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone(); ;
+                    }
+                    if (newCardsIds.Contains("Angler_Talking"))
+                    {
+                        while (card.name == "Angler_Talking")
+                            card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone(); ;
+                    }
+                    foreach (var modCurrent in c.Mods)
+                    {
+                        if (ArchipelagoOptions.randomizeAbilities != RandomizeAbilities.Disable)
+                        {
+                            if (modCurrent.fromCardMerge)
+                            {
+                                List<Ability> newAbilityMod = new List<Ability>();
+                                if (modCurrent.abilities.Count > 0)
+                                {
+                                    for (int l = 0; l < modCurrent.abilities.Count; l++)
+                                    {
+                                        Ability abil = AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.Part3Modular);
+                                        while (card.HasAbility(abil))
+                                            abil = AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.Part3Modular);
+                                        newAbilityMod.Add(abil);
+                                    }
+                                    modCurrent.abilities = newAbilityMod;
+                                }
+                            }
+                        }
+                        card.mods.Add(modCurrent);
+                    }
+                    card.decals = c.decals;
                     newCardsIds.Add(card.name);
                     newCards.Add(card);
                 }
