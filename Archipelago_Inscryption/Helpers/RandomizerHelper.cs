@@ -106,7 +106,7 @@ namespace Archipelago_Inscryption.Helpers
 
         internal static GenericUIButton packButton;
 
-        private static GameObject packPile;
+        internal static GameObject packPile;
         private static List<GameObject> packs = new List<GameObject>();
         private static bool doDeathCard = true;
 
@@ -413,6 +413,7 @@ namespace Archipelago_Inscryption.Helpers
             CardPackPile pileScript = packPile.AddComponent<CardPackPile>();
             pileScript.topPackBasePosition = new Vector3(0, 0.1f * (ArchipelagoData.Data.availableCardPacks - 1), 0);
             pileScript.pileTop = packs.Last();
+            pileScript.enabled = false;
         }
 
         internal static void DestroyPackPile()
