@@ -617,7 +617,6 @@ namespace Archipelago_Inscryption.Helpers
 
         private static void GoToMainMenu()
         {
-            Singleton<MenuController>.Instance.TransitioningToScene = true;
             StartScreenController.startedGame = true;
             MenuController.ReturnToStartScreen();
         }
