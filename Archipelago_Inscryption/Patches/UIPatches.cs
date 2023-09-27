@@ -202,7 +202,7 @@ namespace Archipelago_Inscryption.Patches
                 if (ArchipelagoOptions.goal == Goal.Act1Only || !StoryEventsData.EventCompleted(StoryEvent.Part2Completed))
                     __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
             }
-            if (!StoryEventsData.EventCompleted(StoryEvent.Part3Completed))
+            if (!ArchipelagoData.Data.act1Completed || !ArchipelagoData.Data.act2Completed || !ArchipelagoData.Data.act3Completed)
                 __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (4)").gameObject.SetActive(false);
         }
 

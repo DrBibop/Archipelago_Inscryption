@@ -92,7 +92,8 @@ namespace Archipelago_Inscryption.Helpers
             }
 
             StoryEventsData.EraseEvent(StoryEvent.FullGameCompleted);
-            StoryEventsData.EraseEvent(StoryEvent.Part3Completed);
+            if (chapter != 4)
+                StoryEventsData.EraseEvent(StoryEvent.Part3Completed);
 
             switch (chapter)
             {

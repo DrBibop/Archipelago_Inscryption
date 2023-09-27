@@ -75,6 +75,7 @@ namespace Archipelago_Inscryption.Archipelago
             { APItem.CagedWolfCard,                     new UnlockableCardInfo(false, new string[1] { "CagedWolf" }) },
             { APItem.LonelyWizbotCard,                  new UnlockableCardInfo(true, new string[1] { "BlueMage_Talking" }) },
             { APItem.FishbotCard,                       new UnlockableCardInfo(true, new string[1] { "Angler_Talking" }) },
+            { APItem.Ourobot,                           new UnlockableCardInfo(true, new string[1] { "Ouroboros_Part3" }) }
         };
 
         // When one of the following items is received, add the associated card(s) to the act 2 deck.

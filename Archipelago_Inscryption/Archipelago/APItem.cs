@@ -46,6 +46,7 @@
         GemsModule,
         LonelyWizbotCard,
         FishbotCard,
+        Ourobot,
         HoloPelt,
         Quill,
         Currency,

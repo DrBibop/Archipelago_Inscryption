@@ -799,6 +799,14 @@ namespace Archipelago_Inscryption.Patches
 
             return true;
         }
+
+        [HarmonyPatch(typeof(FactoryGemsDrone), "OnGemsTaken")]
+        [HarmonyPrefix]
+        static bool PreventDroneFlyOff(FactoryGemsDrone __instance)
+        {
+            __instance.shelf.SetEnabled(false);
+            return false;
+        }
     }
 
     [HarmonyPatch]
