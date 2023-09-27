@@ -437,8 +437,7 @@ namespace Archipelago_Inscryption.Archipelago
         internal static void VerifyGoalCompletion()
         {
             if (!ArchipelagoData.Data.goalCompletedAndSent &&
-                (ArchipelagoOptions.goal == Goal.AllActsInOrder && ArchipelagoData.Data.epilogueCompleted) ||
-                (ArchipelagoOptions.goal == Goal.AllActsAnyOrder && ArchipelagoData.Data.act1Completed && ArchipelagoData.Data.act2Completed && ArchipelagoData.Data.act3Completed) ||
+                ((ArchipelagoOptions.goal == Goal.AllActsInOrder || ArchipelagoOptions.goal == Goal.AllActsAnyOrder) && ArchipelagoData.Data.epilogueCompleted) ||
                 (ArchipelagoOptions.goal == Goal.Act1Only && ArchipelagoData.Data.act1Completed))
             {
                 ArchipelagoClient.SendGoalCompleted();

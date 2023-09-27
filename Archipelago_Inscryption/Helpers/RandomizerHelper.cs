@@ -628,5 +628,33 @@ namespace Archipelago_Inscryption.Helpers
             ArchipelagoData.Data.epilogueCompleted = true;
             ArchipelagoManager.VerifyGoalCompletion();
         }
+
+        private static void OnStartLoadEpilogue()
+        {
+            Singleton<ArchipelagoUI>.Instance.StartCoroutine(LoadAppropriateSceneAfterAct3());
+        }
+
+        private static void GoToMainMenu()
+        {
+            Singleton<MenuController>.Instance.TransitioningToScene = true;
+            StartScreenController.startedGame = true;
+            MenuController.ReturnToStartScreen();
+        }
+
+        private static IEnumerator LoadAppropriateSceneAfterAct3()
+        {
+            if (ArchipelagoOptions.goal != Goal.AllActsAnyOrder)
+            {
+                AsyncOperation asyncOp = SceneLoader.StartAsyncLoad("finale_grimora");
+                asyncOp.allowSceneActivation = false;
+                yield return new WaitForSeconds(7.55f);
+                SceneLoader.CompleteAsyncLoad(asyncOp);
+            }
+            else
+            {
+                yield return new WaitForSeconds(7.55f);
+                GoToMainMenu();
+            }
+        }
     }
 }

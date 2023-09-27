@@ -563,4 +563,60 @@ namespace Archipelago_Inscryption.Patches
             return false;
         }
     }
+
+    [HarmonyPatch]
+    class GoalPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(FinaleRedactedScene).GetNestedType("<OldDataScreenSequence>d__17", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> TriggerGoalWhenOldDataClicked(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.StoresField(AccessTools.Field(typeof(PauseMenu), "pausingDisabled")));
+
+            index++;
+
+            codes.Insert(index, new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "OldDataOpened")));
+
+            return codes.AsEnumerable();
+        }
+    }
+
+    [HarmonyPatch]
+    class Act3EndingPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(Part3FinaleAreaSequencer).GetNestedType("<FallSequence>d__2", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> GoToMenuIfAnyOrder(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(SceneLoader), "StartAsyncLoad")));
+
+            index--;
+
+            codes.RemoveRange(index, 7);
+
+            codes.Insert(index, new CodeInstruction(OpCodes.Pop));
+
+            codes.Insert(index + 1, new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "OnStartLoadEpilogue")));
+
+            index = codes.FindIndex(x => x.Calls(AccessTools.Method(typeof(SceneLoader), "CompleteAsyncLoad")));
+
+            index -= 2;
+
+            codes.RemoveRange(index, 3);
+
+            return codes.AsEnumerable();
+        }
+    }
 }
