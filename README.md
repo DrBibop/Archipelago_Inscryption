@@ -2,19 +2,47 @@
 
 The ArchipelagoMod is a randomizer mod that will change how you play the story of Inscryption. With all items used to progress the game now shuffled, the order in which you complete the game won't be familiar.
 
+**Our implementation is not officially included in Archipelago for now. You need to download our apworld and our settings file template [here](https://github.com/DrBibop/Archipelago_Inscryption/releases).**
+
 This mod is meant to be used alongside Archipelago. To know more about Archipelago, you can visit their website [here](https://archipelago.gg/). To give you a quick rundown, Archipelago allows you to connect to a multiworld server which will shuffle items from different players and their respective game. This means that you can find items from other games belonging to your friends. Once found, these items will be sent to the appropriate player. Likewise, your friends can find your items in their own game and send them to you to help you progress. This essentially turns your singleplayer game into a coop experience. It can also be used with only one player if you just want to shuffle items within your own world.
 
+## Where is the settings page?
+Since our implementation isn't officially included with Archipelago yet, you need to configure your settings using our [template settings file](https://github.com/DrBibop/Archipelago_Inscryption/releases). You can then edit it to your liking, find your Archipelago installation directory, create a `Players` folder inside, then put it in there before generating your multiworld.
+
+Here are the different settings:
+ - **deathlink**:
+	- **false**: Only die when you die (vanilla).
+	- **true**: When other players using deathlink die, you die as well.
+ - **goal**:
+	- **0**: Complete each act and the epilogue in order. You can return to previously completed acts.
+	- **1**: Complete each act in any order, then the epilogue. All acts are available from the start.
+	- **2**: Complete Act 1 by finding the New Game button. Great for a smaller scale randomizer.
+ - **randomize_codes**: 
+	- **false**: No code randomization (vanilla)
+	- **true**: randomizes certain codes and passwords so that you can't unlock everything by memory.
+ - **randomize_deck**: 
+	- **0**: No deck randomization (vanilla).
+	- **1**: Randomize cards within their type (Common/Rare, only works on act 1 for now).
+	- **2**: Randomize cards completely.
+ - **randomize_abilities**: 
+	- **0**: No ability randomization (vanilla).
+	- **1**: Randomize modded abilities only (like those gained from sacrifices).
+ - **optional_death_card**: 
+	- **0**: Make a death card on every act 1 death (vanilla).
+	- **1**: Gain the option to skip death cards on every act 1 death.
+	- **2**: Gain the option to skip death cards only when dying from death link in act 1.
+
 ## What does randomization do to this game?
-Due to the nature of the randomizer, you are allowed to return to a previous act you've previously completed if there are location checks you've missed. The "New Game" option is replaced with a "Chapter Select" option and is enabled after you beat act 1. All items that you can find lying around, in containers or from puzzles are randomized and replaced with location checks. Encounters that offer you a card can also contain a location check if you have chosen so in the settings. Boss fights from all acts and battles from act 2 also count as location checks.
+Due to the nature of the randomizer, you are allowed to return to a previous act you've previously completed if there are location checks you've missed. The "New Game" option is replaced with a "Chapter Select" option and is enabled after you beat act 1. If you prefer, you can also make all acts available from the start by changing the goal option. All items that you can find lying around, in containers or from puzzles are randomized and replaced with location checks. Encounters that offer you a card can also contain a location check if you have chosen so in the settings. Boss fights from all acts and battles from act 2 also count as location checks.
 
 ## What is the goal of Inscryption when randomized?
-The goal is considered reached once you open the OLD_DATA file. This means playing through all three acts and the epilogue.
+By default, the goal is considered reached once you open the OLD_DATA file. This means playing through all three acts and the epilogue. You can change the goal option to instead only complete act 1.
 
 ## Which items can be in another player's world?
 All key items necessary for progression such as the film roll, the dagger, Grimora's epitaphs, etc. Unique cards that aren't randomly found in the base game (e. g. talking cards) are also included. For filler items, you can also receive currency or card packs that you can open at any time when inspecting your deck.
 
 ## What does another world's item look like in Inscryption?
-Apart from a few exceptions, items from other worlds take the appearance of a normal card from the current act you're playing. The card's name contains the item that will be sent when picked up and its portrait is the Archipelago logo (a ring of six circles). Picking up these cards does not add them to your deck.
+Apart from bosses during act 1 and 3, items from other worlds take the appearance of a normal card from the current act you're playing. The card's name contains the item that will be sent when picked up and its portrait is the Archipelago logo (a ring of six circles). Picking up these cards does not add them to your deck.
 
 ## When the player receives an item, what happens?
 A yellow message appears in the Archipelago logs at the top-right of your screen. An audio cue is also played.
