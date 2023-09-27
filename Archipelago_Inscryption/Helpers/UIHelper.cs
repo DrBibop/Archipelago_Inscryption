@@ -86,7 +86,7 @@ namespace Archipelago_Inscryption.Helpers
         {
             SaveManager.LoadFromFile();
 
-            if (FinaleDeletionWindowManager.instance != null && chapter != 4)
+            if (FinaleDeletionWindowManager.instance != null)
             {
                 GameObject.Destroy(FinaleDeletionWindowManager.instance.gameObject);
             }
@@ -136,8 +136,8 @@ namespace Archipelago_Inscryption.Helpers
                     SaveManager.SaveFile.currentScene = "Part3_Cabin";
                     break;
                 case 4:
-                    SaveManager.SaveFile.currentScene = "finale_grimora";
-                    GameObject.Instantiate<GameObject>(ResourceBank.Get<GameObject>("Prefabs/UI/FinaleDeletionCanvas"));
+                    SaveManager.SaveFile.currentScene = "Part3_Cabin";
+                    SaveManager.SaveFile.part3Data.playerPos = new Part3SaveData.WorldPosition("!FINALE_CHAPTER_SELECT", 2, 1);
                     break;
                 default:
                     break;
