@@ -642,7 +642,7 @@ namespace Archipelago_Inscryption.Helpers
 
         private static IEnumerator LoadAppropriateSceneAfterAct3()
         {
-            if (ArchipelagoOptions.goal != Goal.AllActsAnyOrder)
+            if (ArchipelagoData.Data.act1Completed && ArchipelagoData.Data.act2Completed)
             {
                 AsyncOperation asyncOp = SceneLoader.StartAsyncLoad("finale_grimora");
                 asyncOp.allowSceneActivation = false;
