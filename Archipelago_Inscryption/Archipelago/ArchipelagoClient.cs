@@ -6,6 +6,8 @@ using Archipelago.MultiClient.Net.MessageLog.Messages;
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago_Inscryption.Components;
+using Archipelago_Inscryption.Helpers;
+using DiskCardGame;
 using System;
 using System.Linq;
 using System.Threading;
@@ -143,18 +145,20 @@ namespace Archipelago_Inscryption.Archipelago
 
                 var slotData = successfulResult.SlotData;
 
-                if (slotData.TryGetValue("deathlink", out var DeathLink))
-                    ArchipelagoOptions.deathlink = Convert.ToInt32(DeathLink) == 1;
+                if (slotData.TryGetValue("deathlink", out var deathlink))
+                    ArchipelagoOptions.deathlink = Convert.ToInt32(deathlink) != 0;
                 if (slotData.TryGetValue("optional_death_card", out var optionalDeathCard))
                     ArchipelagoOptions.optionalDeathCard = (OptionalDeathCard)Convert.ToInt32(optionalDeathCard);
                 if (slotData.TryGetValue("goal", out var goal))
                     ArchipelagoOptions.goal = (Goal)Convert.ToInt32(goal);
                 if (slotData.TryGetValue("randomize_codes", out var randomizeCodes))
-                    ArchipelagoOptions.randomizeCodes = Convert.ToInt32(randomizeCodes) == 1;
+                    ArchipelagoOptions.randomizeCodes = Convert.ToInt32(randomizeCodes) != 0;
                 if (slotData.TryGetValue("randomize_deck", out var randomizeDeck))
                     ArchipelagoOptions.randomizeDeck = (RandomizeDeck)Convert.ToInt32(randomizeDeck);
                 if (slotData.TryGetValue("randomize_abilities", out var randomizeAbilities))
                     ArchipelagoOptions.randomizeAbilities = (RandomizeAbilities)Convert.ToInt32(randomizeAbilities);
+                if (slotData.TryGetValue("skip_tutorial", out var skipTutorial))
+                    ArchipelagoOptions.skipTutorial = Convert.ToInt32(skipTutorial) != 0;
 
                 DeathLinkManager.DeathLinkService = session.CreateDeathLinkService();
                 DeathLinkManager.Init();
@@ -165,6 +169,9 @@ namespace Archipelago_Inscryption.Archipelago
 
                     ArchipelagoOptions.RandomizeCodes(seed);
                 }
+
+                if (ArchipelagoOptions.skipTutorial && !StoryEventsData.EventCompleted(StoryEvent.TutorialRun3Completed))
+                    RandomizerHelper.SkipTutorial();
 
                 Singleton<ArchipelagoUI>.Instance.QueueSave();
                 isConnected = true;
