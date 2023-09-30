@@ -11,7 +11,7 @@ namespace Archipelago_Inscryption.Archipelago
         internal static RandomizeDeck randomizeDeck = RandomizeDeck.Disable;
         internal static RandomizeAbilities randomizeAbilities = RandomizeAbilities.Disable;
         internal static Goal goal;
-        internal static List<int> factoryClockCode = new List<int>();
+        internal static bool skipTutorial = false;
 
         internal static void RandomizeCodes(int seed)
         {

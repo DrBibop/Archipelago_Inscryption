@@ -643,7 +643,7 @@ namespace Archipelago_Inscryption.Patches
                     break;
                 case "HoloMapArea_TempleWizardSide(Clone)":
                     Transform clue = __instance.transform.Find("Splatter/clue");
-                    clue.GetComponent<MeshRenderer>().material.mainTexture = AssetsManager.factoryClockClueTexs[ArchipelagoOptions.factoryClockCode[2]];
+                    clue.GetComponent<MeshRenderer>().material.mainTexture = AssetsManager.factoryClockClueTexs[ArchipelagoData.Data.factoryClockCode[2]];
                     break;
             }
         }
