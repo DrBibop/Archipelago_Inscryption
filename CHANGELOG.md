@@ -1,3 +1,7 @@
+### 0.1.1
+ - Added skip tutorial setting.
+ - Fixed a bug that showed the wrong clock clue in act 3 with randomized codes.
+
 ### 0.1.0
  - Removed API dependency.
  - Changed internal saving system to use json instead of the API.

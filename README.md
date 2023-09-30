@@ -31,6 +31,9 @@ Here are the different settings:
 	- **0**: Make a death card on every act 1 death (vanilla).
 	- **1**: Gain the option to skip death cards on every act 1 death.
 	- **2**: Gain the option to skip death cards only when dying from death link in act 1.
+ - **skip_tutorial**:
+	- **false**: Play through the tutorial (vanilla)
+	- **true**: Skip the first few tutorial runs. Bones are available from the start.
 
 ## What does randomization do to this game?
 Due to the nature of the randomizer, you are allowed to return to a previous act you've previously completed if there are location checks you've missed. The "New Game" option is replaced with a "Chapter Select" option and is enabled after you beat act 1. If you prefer, you can also make all acts available from the start by changing the goal option. All items that you can find lying around, in containers or from puzzles are randomized and replaced with location checks. Encounters that offer you a card can also contain a location check if you have chosen so in the settings. Boss fights from all acts and battles from act 2 also count as location checks.
