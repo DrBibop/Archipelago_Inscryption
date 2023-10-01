@@ -432,6 +432,8 @@ namespace Archipelago_Inscryption.Patches
                 List<CardInfo> cardsInfoRandomPoolTech = new List<CardInfo>();
                 List<CardInfo> cardsInfoRandomPoolWizard = new List<CardInfo>();
                 int cardAdded = 0;
+                cardsInfoRandomPoolAll = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.metaCategories.Contains(CardMetaCategory.GBCPlayable)
+                                         && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
                 if (!StoryEventsData.EventCompleted(StoryEvent.GBCObolFound))
                 {
                     CardInfo obolLeft = CardLoader.GetCardByName("CoinLeft");
@@ -449,58 +451,82 @@ namespace Archipelago_Inscryption.Patches
                     cardsInfoRandomPoolTech = cardsInfoRandomPoolAll.FindAll(x =>  x.temple == CardTemple.Tech);
                     cardsInfoRandomPoolWizard = cardsInfoRandomPoolAll.FindAll(x =>  x.temple == CardTemple.Wizard);
                 }
-                else
-                {
-                    cardsInfoRandomPoolAll = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.metaCategories.Contains(CardMetaCategory.GBCPlayable)
-                                          && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
-
-                }
                 if (ArchipelagoManager.HasItem(APItem.DrownedSoulCard))
                 {
                     cardsInfoRandomPoolAll.Add(CardLoader.GetCardByName("DrownedSoul"));
-                    cardsInfoRandomPoolNature.Add(CardLoader.GetCardByName("DrownedSoul"));
-                    cardsInfoRandomPoolUndead.Add(CardLoader.GetCardByName("DrownedSoul"));
-                    cardsInfoRandomPoolTech.Add(CardLoader.GetCardByName("DrownedSoul"));
-                    cardsInfoRandomPoolWizard.Add(CardLoader.GetCardByName("DrownedSoul"));
+                    if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
+                    {
+                        cardsInfoRandomPoolNature.Add(CardLoader.GetCardByName("DrownedSoul"));
+                        cardsInfoRandomPoolUndead.Add(CardLoader.GetCardByName("DrownedSoul"));
+                        cardsInfoRandomPoolTech.Add(CardLoader.GetCardByName("DrownedSoul"));
+                        cardsInfoRandomPoolWizard.Add(CardLoader.GetCardByName("DrownedSoul"));
+                    }
 
                 }
                 List<AbilityInfo> abilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(x => x.metaCategories.Contains(AbilityMetaCategory.GrimoraRulebook)
                                               || x.metaCategories.Contains(AbilityMetaCategory.MagnificusRulebook) || x.metaCategories.Contains(AbilityMetaCategory.Part1Modular)
                                               || x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
-                int i = 0;
+                foreach (var ability in cardsInfoRandomPoolNature)
+                {
+                    Console.WriteLine($"card name : {ability.name}");
+                }
                 foreach (var c in SaveData.Data.deck.Cards)
                 {
-                    if (i == SaveData.Data.deck.Cards.Count - cardAdded)
-                        break;
+                    if (cardAdded > 0)
+                    {
+                        cardAdded--;
+                        continue;
+                    }
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
                     if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
                     {
                         switch (c.temple)
                         {
                             case CardTemple.Nature:
-                                card = (CardInfo)cardsInfoRandomPoolNature[SeededRandom.Range(0, cardsInfoRandomPoolAll.Count, seed++)].Clone();
+                                card = (CardInfo)cardsInfoRandomPoolNature[SeededRandom.Range(0, cardsInfoRandomPoolNature.Count, seed++)].Clone();
                                 break;
                             case CardTemple.Undead:
-                                card = (CardInfo)cardsInfoRandomPoolUndead[SeededRandom.Range(0, cardsInfoRandomPoolAll.Count, seed++)].Clone();
+                                card = (CardInfo)cardsInfoRandomPoolUndead[SeededRandom.Range(0, cardsInfoRandomPoolUndead.Count, seed++)].Clone();
                                 break;
                             case CardTemple.Tech:
-                                card = (CardInfo)cardsInfoRandomPoolTech[SeededRandom.Range(0, cardsInfoRandomPoolAll.Count, seed++)].Clone();
+                                card = (CardInfo)cardsInfoRandomPoolTech[SeededRandom.Range(0, cardsInfoRandomPoolTech.Count, seed++)].Clone();
                                 break;
                             case CardTemple.Wizard:
-                                card = (CardInfo)cardsInfoRandomPoolWizard[SeededRandom.Range(0, cardsInfoRandomPoolAll.Count, seed++)].Clone();
+                                card = (CardInfo)cardsInfoRandomPoolWizard[SeededRandom.Range(0, cardsInfoRandomPoolWizard.Count, seed++)].Clone();
                                 break;
                             default:
                                 break;
                         }
                     }
                     else
-                    {
                         card = (CardInfo)cardsInfoRandomPoolAll[SeededRandom.Range(0, cardsInfoRandomPoolAll.Count, seed++)].Clone();
-                    }
                     if (newCardsIds.Contains("DrownedSoul"))
                     {
                         while (card.name == "DrownedSoul")
-                            card = (CardInfo)cardsInfoRandomPoolAll[SeededRandom.Range(0, cardsInfoRandomPoolAll.Count, seed++)].Clone();
+                        {
+                            if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
+                            {
+                                switch (c.temple)
+                                {
+                                    case CardTemple.Nature:
+                                        card = (CardInfo)cardsInfoRandomPoolNature[SeededRandom.Range(0, cardsInfoRandomPoolNature.Count, seed++)].Clone();
+                                        break;
+                                    case CardTemple.Undead:
+                                        card = (CardInfo)cardsInfoRandomPoolUndead[SeededRandom.Range(0, cardsInfoRandomPoolUndead.Count, seed++)].Clone();
+                                        break;
+                                    case CardTemple.Tech:
+                                        card = (CardInfo)cardsInfoRandomPoolTech[SeededRandom.Range(0, cardsInfoRandomPoolTech.Count, seed++)].Clone();
+                                        break;
+                                    case CardTemple.Wizard:
+                                        card = (CardInfo)cardsInfoRandomPoolWizard[SeededRandom.Range(0, cardsInfoRandomPoolWizard.Count, seed++)].Clone();
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            else
+                                card = (CardInfo)cardsInfoRandomPoolAll[SeededRandom.Range(0, cardsInfoRandomPoolAll.Count, seed++)].Clone();
+                        }
                     }
                     if (ArchipelagoOptions.randomizeAbilities == RandomizeAbilities.RandomizeAll)
                     {
@@ -522,7 +548,6 @@ namespace Archipelago_Inscryption.Patches
                     }
                     newCardsIds.Add(card.name);
                     newCards.Add(card);
-                    i++;
                 }
                 //for (int i = 0; i < SaveData.Data.deck.Cards.Count - cardAdded; i++)
                 //{
