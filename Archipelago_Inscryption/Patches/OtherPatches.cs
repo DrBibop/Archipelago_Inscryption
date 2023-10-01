@@ -549,36 +549,6 @@ namespace Archipelago_Inscryption.Patches
                     newCardsIds.Add(card.name);
                     newCards.Add(card);
                 }
-                //for (int i = 0; i < SaveData.Data.deck.Cards.Count - cardAdded; i++)
-                //{
-                //    CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
-                //    card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
-                //    if (newCardsIds.Contains("DrownedSoul"))
-                //    {
-                //        while (card.name == "DrownedSoul")
-                //            card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
-                //    }
-                //    if (ArchipelagoOptions.randomizeAbilities == RandomizeAbilities.RandomizeAll)
-                //    {
-                //        int rand = 0;
-                //        int abilityCount = card.abilities.Count;
-                //        card.abilities.Clear();
-                //        for (int t = 0; t < abilityCount; t++)
-                //        {
-                //            rand = UnityEngine.Random.Range(0, 4);
-                //            if (rand == 0)
-                //                card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.MagnificusRulebook));
-                //            else if (rand == 1)
-                //                card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.GrimoraRulebook));
-                //            else if (rand == 2)
-                //                card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.Part3Modular));
-                //            else
-                //                card.abilities.Add(AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.Part1Modular));
-                //        }
-                //    }
-                //    newCardsIds.Add(card.name);
-                //    newCards.Add(card);
-                //}
                 SaveData.Data.deck.CardInfos = newCards;
                 SaveData.Data.deck.cardIds = newCardsIds;
                 SaveData.Data.deck.UpdateModDictionary();
