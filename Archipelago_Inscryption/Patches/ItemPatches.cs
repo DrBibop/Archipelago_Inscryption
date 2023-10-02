@@ -101,7 +101,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPostfix]
         static void SpawnCardPackPile(DeckReviewSequencer __instance)
         {
-            if (ArchipelagoData.Data.availableCardPacks <= 0 || Singleton<GameFlowManager>.Instance.CurrentGameState != GameState.Map) return;
+            if (ArchipelagoData.Data.availableCardPacks <= 0 || Singleton<GameFlowManager>.Instance.CurrentGameState != GameState.Map || !Singleton<GameMap>.Instance.FullyUnrolled) return;
 
             RandomizerHelper.SpawnPackPile(__instance);
         }
