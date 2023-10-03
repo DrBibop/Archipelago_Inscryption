@@ -174,6 +174,17 @@ namespace Archipelago_Inscryption.Patches
 
             return true;
         }
+
+        [HarmonyPatch(typeof(Part1BossOpponent), "HasGrizzlyGlitchPhase")]
+        [HarmonyPrefix]
+        static bool RemoveGrizzlyScriptedDeath(ref bool __result)
+        {
+            if (!ArchipelagoOptions.skipTutorial && !ArchipelagoOptions.deathlink)
+                return true;
+
+            __result = false;
+            return false;
+        }
     }
 
     [HarmonyPatch]
