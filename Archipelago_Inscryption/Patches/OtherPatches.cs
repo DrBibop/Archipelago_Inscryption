@@ -174,14 +174,6 @@ namespace Archipelago_Inscryption.Patches
 
             return true;
         }
-
-        [HarmonyPatch(typeof(Part1BossOpponent), "HasGrizzlyGlitchPhase")]
-        [HarmonyPrefix]
-        static bool NoGrizzlyWall(ref bool __result)
-        {
-            __result = false;
-            return false;
-        }
     }
 
     [HarmonyPatch]
@@ -439,9 +431,13 @@ namespace Archipelago_Inscryption.Patches
                 List<string> newCardsIds = new List<string>();
                 List<CardInfo> cardsInfoRandomPoolAll = new List<CardInfo>();
                 List<CardInfo> cardsInfoRandomPoolNature = new List<CardInfo>();
+                List<CardInfo> cardsInfoRandomPoolNatureRare = new List<CardInfo>();
                 List<CardInfo> cardsInfoRandomPoolUndead = new List<CardInfo>();
+                List<CardInfo> cardsInfoRandomPoolUndeadRare = new List<CardInfo>();
                 List<CardInfo> cardsInfoRandomPoolTech = new List<CardInfo>();
+                List<CardInfo> cardsInfoRandomPoolTechRare = new List<CardInfo>();
                 List<CardInfo> cardsInfoRandomPoolWizard = new List<CardInfo>();
+                List<CardInfo> cardsInfoRandomPoolWizardRare = new List<CardInfo>();
                 int cardAdded = 0;
                 cardsInfoRandomPoolAll = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.metaCategories.Contains(CardMetaCategory.GBCPlayable)
                                          && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
@@ -458,9 +454,13 @@ namespace Archipelago_Inscryption.Patches
                 if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
                 {
                     cardsInfoRandomPoolNature = cardsInfoRandomPoolAll.FindAll(x =>  x.temple == CardTemple.Nature);
+                    cardsInfoRandomPoolNatureRare = cardsInfoRandomPoolNature.FindAll(x => x.metaCategories.Contains(CardMetaCategory.Rare));
                     cardsInfoRandomPoolUndead = cardsInfoRandomPoolAll.FindAll(x =>  x.temple == CardTemple.Undead);
+                    cardsInfoRandomPoolUndeadRare = cardsInfoRandomPoolUndead.FindAll(x => x.metaCategories.Contains(CardMetaCategory.Rare));
                     cardsInfoRandomPoolTech = cardsInfoRandomPoolAll.FindAll(x =>  x.temple == CardTemple.Tech);
+                    cardsInfoRandomPoolTechRare = cardsInfoRandomPoolTech.FindAll(x => x.metaCategories.Contains(CardMetaCategory.Rare));
                     cardsInfoRandomPoolWizard = cardsInfoRandomPoolAll.FindAll(x =>  x.temple == CardTemple.Wizard);
+                    cardsInfoRandomPoolWizardRare = cardsInfoRandomPoolWizard.FindAll(x => x.metaCategories.Contains(CardMetaCategory.Rare));
                 }
                 if (ArchipelagoManager.HasItem(APItem.DrownedSoulCard))
                 {
@@ -477,10 +477,6 @@ namespace Archipelago_Inscryption.Patches
                 List<AbilityInfo> abilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(x => x.metaCategories.Contains(AbilityMetaCategory.GrimoraRulebook)
                                               || x.metaCategories.Contains(AbilityMetaCategory.MagnificusRulebook) || x.metaCategories.Contains(AbilityMetaCategory.Part1Modular)
                                               || x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
-                foreach (var ability in cardsInfoRandomPoolNature)
-                {
-                    Console.WriteLine($"card name : {ability.name}");
-                }
                 foreach (var c in SaveData.Data.deck.Cards)
                 {
                     if (cardAdded > 0)
@@ -491,22 +487,45 @@ namespace Archipelago_Inscryption.Patches
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
                     if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
                     {
-                        switch (c.temple)
+                        if (c.metaCategories.Contains(CardMetaCategory.Rare))
                         {
-                            case CardTemple.Nature:
-                                card = (CardInfo)cardsInfoRandomPoolNature[SeededRandom.Range(0, cardsInfoRandomPoolNature.Count, seed++)].Clone();
-                                break;
-                            case CardTemple.Undead:
-                                card = (CardInfo)cardsInfoRandomPoolUndead[SeededRandom.Range(0, cardsInfoRandomPoolUndead.Count, seed++)].Clone();
-                                break;
-                            case CardTemple.Tech:
-                                card = (CardInfo)cardsInfoRandomPoolTech[SeededRandom.Range(0, cardsInfoRandomPoolTech.Count, seed++)].Clone();
-                                break;
-                            case CardTemple.Wizard:
-                                card = (CardInfo)cardsInfoRandomPoolWizard[SeededRandom.Range(0, cardsInfoRandomPoolWizard.Count, seed++)].Clone();
-                                break;
-                            default:
-                                break;
+                            switch (c.temple)
+                            {
+                                case CardTemple.Nature:
+                                    card = (CardInfo)cardsInfoRandomPoolNatureRare[SeededRandom.Range(0, cardsInfoRandomPoolNatureRare.Count, seed++)].Clone();
+                                    break;
+                                case CardTemple.Undead:
+                                    card = (CardInfo)cardsInfoRandomPoolUndeadRare[SeededRandom.Range(0, cardsInfoRandomPoolUndeadRare.Count, seed++)].Clone();
+                                    break;
+                                case CardTemple.Tech:
+                                    card = (CardInfo)cardsInfoRandomPoolTechRare[SeededRandom.Range(0, cardsInfoRandomPoolTechRare.Count, seed++)].Clone();
+                                    break;
+                                case CardTemple.Wizard:
+                                    card = (CardInfo)cardsInfoRandomPoolWizardRare[SeededRandom.Range(0, cardsInfoRandomPoolWizardRare.Count, seed++)].Clone();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            switch (c.temple)
+                            {
+                                case CardTemple.Nature:
+                                    card = (CardInfo)cardsInfoRandomPoolNature[SeededRandom.Range(0, cardsInfoRandomPoolNature.Count, seed++)].Clone();
+                                    break;
+                                case CardTemple.Undead:
+                                    card = (CardInfo)cardsInfoRandomPoolUndead[SeededRandom.Range(0, cardsInfoRandomPoolUndead.Count, seed++)].Clone();
+                                    break;
+                                case CardTemple.Tech:
+                                    card = (CardInfo)cardsInfoRandomPoolTech[SeededRandom.Range(0, cardsInfoRandomPoolTech.Count, seed++)].Clone();
+                                    break;
+                                case CardTemple.Wizard:
+                                    card = (CardInfo)cardsInfoRandomPoolWizard[SeededRandom.Range(0, cardsInfoRandomPoolWizard.Count, seed++)].Clone();
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                     }
                     else
