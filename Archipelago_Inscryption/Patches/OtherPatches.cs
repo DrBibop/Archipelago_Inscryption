@@ -722,4 +722,33 @@ namespace Archipelago_Inscryption.Patches
             return codes.AsEnumerable();
         }
     }
+
+    [HarmonyPatch]
+    class CampfirePatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return typeof(CardStatBoostSequencer).GetNestedType("<StatBoostSequence>d__12", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> CheckForSkipTutorial(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.LoadsField(AccessTools.Field(typeof(SaveFile), "pastRuns")));
+
+            index += 5;
+
+            var newCodes = new List<CodeInstruction>()
+            {
+                new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(ArchipelagoOptions), "skipTutorial")),
+                new CodeInstruction(OpCodes.Or)
+            };
+
+            codes.InsertRange(index, newCodes);
+
+            return codes.AsEnumerable();
+        }
+    }
 }
