@@ -3,7 +3,6 @@ using Archipelago_Inscryption.Assets;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using System;
 using System.Reflection;
 
 namespace Archipelago_Inscryption
@@ -13,7 +12,7 @@ namespace Archipelago_Inscryption
     {
         internal const string PluginGuid = "ballininc.inscryption.archipelagomod";
         internal const string PluginName = "ArchipelagoMod";
-        internal const string PluginVersion = "0.1.1";
+        internal const string PluginVersion = "0.1.2";
 
         internal static ManualLogSource Log;
 

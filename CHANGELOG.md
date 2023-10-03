@@ -1,3 +1,11 @@
+### 0.1.2
+ - The randomize type option now works in act 2 within the same temple and rarity.
+ - Removed grizzly scripted deaths in act 1.
+ - Card packs are no longer available while Leshy displays the starting deck in act 1.
+ - You can now push your luck in campfires if the skip tutorial option is enabled.
+ - Fixed currency item not applying correctly on every act.
+ - Fixed Ouroboros card not appearing with deck randomization in act 1.
+
 ### 0.1.1
  - Added skip tutorial setting.
  - Fixed a bug that showed the wrong clock clue in act 3 with randomized codes.
