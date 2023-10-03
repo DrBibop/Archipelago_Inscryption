@@ -563,9 +563,9 @@ namespace Archipelago_Inscryption.Helpers
 
         internal static CardInfo RandomRareCardInAct1(int seed)
         {
-            List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.metaCategories.Contains(CardMetaCategory.Rare)
+            List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => (x.metaCategories.Contains(CardMetaCategory.Rare)
             && x.temple == CardTemple.Nature && x.portraitTex != null && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false)
-            && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
+            && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken")) || x.name == "Ouroboros");
             return (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
         }
 
