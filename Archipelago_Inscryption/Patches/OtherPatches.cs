@@ -174,6 +174,14 @@ namespace Archipelago_Inscryption.Patches
 
             return true;
         }
+
+        [HarmonyPatch(typeof(Part1BossOpponent), "HasGrizzlyGlitchPhase")]
+        [HarmonyPrefix]
+        static bool NoGrizzlyWall(ref bool __result)
+        {
+            __result = false;
+            return false;
+        }
     }
 
     [HarmonyPatch]

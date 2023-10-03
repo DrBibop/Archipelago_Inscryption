@@ -159,10 +159,9 @@ namespace Archipelago_Inscryption.Archipelago
 
             if (receivedItem == APItem.Currency)
             {
-                if (SaveManager.SaveFile.IsPart2)
-                    SaveData.Data.currency++;
-                else
-                    RunState.Run.currency++;
+                RunState.Run.currency++;
+                SaveData.Data.currency++;
+                Part3SaveData.Data.currency++;
             }
             else if (receivedItem == APItem.CardPack)
             {
