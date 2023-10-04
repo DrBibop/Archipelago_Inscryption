@@ -1,3 +1,6 @@
+### 0.1.3
+ - Removed grizzly scripted deaths in act 1 (for real this time). Now only removed if the tutorial is skipped or deathlink is on.
+
 ### 0.1.2
  - The randomize type option now works in act 2 within the same temple and rarity.
  - Removed grizzly scripted deaths in act 1.
