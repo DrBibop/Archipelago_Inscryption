@@ -569,47 +569,16 @@ namespace Archipelago_Inscryption.Helpers
             return (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
         }
 
-        internal static void OnlyPutOneTalkingCardInDeckAct1(ref int seed, List<string> newCardsIds, List<CardInfo> cardsInfoRandomPool, ref CardInfo card)
+        internal static void OnlyPutOneTalkingCardInDeckAct1(ref List<CardInfo> cardsInfoRandomPool, ref CardInfo card)
         {
-            if (newCardsIds.Contains("Stoat_Talking"))
-            {
-                while (card.name == "Stoat_Talking")
-                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-            }
-            if (newCardsIds.Contains("Stinkbug_Talking"))
-            {
-                while (card.name == "Stinkbug_Talking")
-                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-            }
-            if (newCardsIds.Contains("Wolf_Talking"))
-            {
-                while (card.name == "Wolf_Talking")
-                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-            }
-            if (newCardsIds.Contains("CagedWolf"))
-            {
-                while (card.name == "CagedWolf")
-                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-            }
+            if (card.name == "Stoat_Talking" || card.name == "Stinkbug_Talking" || card.name == "Wolf_Talking" || card.name == "CagedWolf")
+                cardsInfoRandomPool.Remove(card);
         }
 
         internal static void OnlyPutOneTalkingCardInDeckAct3(ref int seed, List<string> newCardsIds, List<CardInfo> cardsInfoRandomPool, ref CardInfo card)
         {
-            if (newCardsIds.Contains("BlueMage_Talking"))
-            {
-                while (card.name == "BlueMage_Talking")
-                    card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone(); ;
-            }
-            if (newCardsIds.Contains("Angler_Talking"))
-            {
-                while (card.name == "Angler_Talking")
-                    card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone(); ;
-            }
-            if (newCardsIds.Contains("Ouroboros_Part3"))
-            {
-                while (card.name == "Ouroboros_Part3")
-                    card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone(); ;
-            }
+            if (card.name == "BlueMage_Talking" || card.name == "Angler_Talking" || card.name == "Ouroboros_Part3")
+                cardsInfoRandomPool.Remove(card);
         }
 
         internal static void UpdateItemsWhenDoneDiscovering(DiscoverableCheckInteractable discoveringCard)

@@ -358,7 +358,7 @@ namespace Archipelago_Inscryption.Patches
                             if (!card.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
                                 card = (CardInfo)card.Clone();
 
-                            RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(ref seed, newCardsIds, cardsInfoRandomPool, ref card);
+                            RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(ref cardsInfoRandomPool, ref card);
                         }
                     }
                     else if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
@@ -367,7 +367,7 @@ namespace Archipelago_Inscryption.Patches
                         if (!card.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
                             card = (CardInfo)card.Clone();
 
-                        RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(ref seed, newCardsIds, cardsInfoRandomPool, ref card);
+                        RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(ref cardsInfoRandomPool, ref card);
                     }
                     else
                     {
@@ -441,7 +441,7 @@ namespace Archipelago_Inscryption.Patches
                 int cardAdded = 0;
                 cardsInfoRandomPoolAll = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.metaCategories.Contains(CardMetaCategory.GBCPlayable)
                                          && ConceptProgressionTree.Tree.CardUnlocked(x, false) && x.pixelPortrait != null && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken"));
-                if (!StoryEventsData.EventCompleted(StoryEvent.GBCObolFound))
+                if (!ArchipelagoManager.HasCompletedCheck(APCheck.GBCAncientObol))
                 {
                     CardInfo obolLeft = CardLoader.GetCardByName("CoinLeft");
                     newCards.Add(obolLeft);
@@ -530,32 +530,21 @@ namespace Archipelago_Inscryption.Patches
                     }
                     else
                         card = (CardInfo)cardsInfoRandomPoolAll[SeededRandom.Range(0, cardsInfoRandomPoolAll.Count, seed++)].Clone();
-                    if (newCardsIds.Contains("DrownedSoul"))
+                    if (card.name == "DrownedSoul")
                     {
-                        while (card.name == "DrownedSoul")
+                        if (card.name == "DrownedSoul")
                         {
                             if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
                             {
-                                switch (c.temple)
-                                {
-                                    case CardTemple.Nature:
-                                        card = (CardInfo)cardsInfoRandomPoolNature[SeededRandom.Range(0, cardsInfoRandomPoolNature.Count, seed++)].Clone();
-                                        break;
-                                    case CardTemple.Undead:
-                                        card = (CardInfo)cardsInfoRandomPoolUndead[SeededRandom.Range(0, cardsInfoRandomPoolUndead.Count, seed++)].Clone();
-                                        break;
-                                    case CardTemple.Tech:
-                                        card = (CardInfo)cardsInfoRandomPoolTech[SeededRandom.Range(0, cardsInfoRandomPoolTech.Count, seed++)].Clone();
-                                        break;
-                                    case CardTemple.Wizard:
-                                        card = (CardInfo)cardsInfoRandomPoolWizard[SeededRandom.Range(0, cardsInfoRandomPoolWizard.Count, seed++)].Clone();
-                                        break;
-                                    default:
-                                        break;
-                                }
+                                cardsInfoRandomPoolNature.Remove(card);
+                                cardsInfoRandomPoolTech.Remove(card);
+                                cardsInfoRandomPoolUndead.Remove(card);
+                                cardsInfoRandomPoolWizard.Remove(card);
                             }
-                            else
-                                card = (CardInfo)cardsInfoRandomPoolAll[SeededRandom.Range(0, cardsInfoRandomPoolAll.Count, seed++)].Clone();
+                            else 
+                            {
+                                cardsInfoRandomPoolAll.Remove(card);
+                            }
                         }
                     }
                     if (ArchipelagoOptions.randomizeAbilities == RandomizeAbilities.RandomizeAll)
@@ -613,7 +602,8 @@ namespace Archipelago_Inscryption.Patches
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
                     card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
-                    RandomizerHelper.OnlyPutOneTalkingCardInDeckAct3(ref seed, newCardsIds, cardsInfoRandomPool, ref card);
+                    if (card.name == "BlueMage_Talking" || card.name == "Angler_Talking" || card.name == "Ouroboros_Part3")
+                        cardsInfoRandomPool.Remove(card);
                     foreach (var modCurrent in c.Mods)
                     {
                         if (ArchipelagoOptions.randomizeAbilities != RandomizeAbilities.Disable)
