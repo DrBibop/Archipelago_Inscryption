@@ -575,12 +575,6 @@ namespace Archipelago_Inscryption.Helpers
                 cardsInfoRandomPool.Remove(card);
         }
 
-        internal static void OnlyPutOneTalkingCardInDeckAct3(ref int seed, List<string> newCardsIds, List<CardInfo> cardsInfoRandomPool, ref CardInfo card)
-        {
-            if (card.name == "BlueMage_Talking" || card.name == "Angler_Talking" || card.name == "Ouroboros_Part3")
-                cardsInfoRandomPool.Remove(card);
-        }
-
         internal static void UpdateItemsWhenDoneDiscovering(DiscoverableCheckInteractable discoveringCard)
         {
             CustomCoroutine.Instance.StartCoroutine(UpdateItemsWhenDoneDiscoveringSequence(discoveringCard));

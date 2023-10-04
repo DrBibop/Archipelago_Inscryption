@@ -366,19 +366,21 @@ namespace Archipelago_Inscryption.Patches
                         else
                         {
                             card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-                            if (!card.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
-                                card = (CardInfo)card.Clone();
 
                             RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(ref cardsInfoRandomPool, ref card);
+
+                            if (!card.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
+                                card = (CardInfo)card.Clone();
                         }
                     }
                     else if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
                     {
                         card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-                        if (!card.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
-                            card = (CardInfo)card.Clone();
 
                         RandomizerHelper.OnlyPutOneTalkingCardInDeckAct1(ref cardsInfoRandomPool, ref card);
+
+                        if (!card.mods.Any((CardModificationInfo x) => x.deathCardInfo != null))
+                            card = (CardInfo)card.Clone();
                     }
                     else
                     {
