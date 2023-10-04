@@ -539,23 +539,20 @@ namespace Archipelago_Inscryption.Patches
                             }
                         }
                     }
-                    else
+                    else 
                         card = (CardInfo)cardsInfoRandomPoolAll[SeededRandom.Range(0, cardsInfoRandomPoolAll.Count, seed++)].Clone();
                     if (card.name == "DrownedSoul")
                     {
-                        if (card.name == "DrownedSoul")
+                        if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
                         {
-                            if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
-                            {
-                                cardsInfoRandomPoolNature.Remove(card);
-                                cardsInfoRandomPoolTech.Remove(card);
-                                cardsInfoRandomPoolUndead.Remove(card);
-                                cardsInfoRandomPoolWizard.Remove(card);
-                            }
-                            else 
-                            {
-                                cardsInfoRandomPoolAll.Remove(card);
-                            }
+                            cardsInfoRandomPoolNature.Remove(card);
+                            cardsInfoRandomPoolTech.Remove(card);
+                            cardsInfoRandomPoolUndead.Remove(card);
+                            cardsInfoRandomPoolWizard.Remove(card);
+                        }
+                        else 
+                        {
+                            cardsInfoRandomPoolAll.Remove(card);
                         }
                     }
                     if (ArchipelagoOptions.randomizeAbilities == RandomizeAbilities.RandomizeAll)
