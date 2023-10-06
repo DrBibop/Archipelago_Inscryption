@@ -505,16 +505,16 @@ namespace Archipelago_Inscryption.Patches
                             switch (c.temple)
                             {
                                 case CardTemple.Nature:
-                                    card = (CardInfo)cardsInfoRandomPoolNatureRare[SeededRandom.Range(0, cardsInfoRandomPoolNatureRare.Count, seed++)].Clone();
+                                    card = cardsInfoRandomPoolNatureRare[SeededRandom.Range(0, cardsInfoRandomPoolNatureRare.Count, seed++)];
                                     break;
                                 case CardTemple.Undead:
-                                    card = (CardInfo)cardsInfoRandomPoolUndeadRare[SeededRandom.Range(0, cardsInfoRandomPoolUndeadRare.Count, seed++)].Clone();
+                                    card = cardsInfoRandomPoolUndeadRare[SeededRandom.Range(0, cardsInfoRandomPoolUndeadRare.Count, seed++)];
                                     break;
                                 case CardTemple.Tech:
-                                    card = (CardInfo)cardsInfoRandomPoolTechRare[SeededRandom.Range(0, cardsInfoRandomPoolTechRare.Count, seed++)].Clone();
+                                    card = cardsInfoRandomPoolTechRare[SeededRandom.Range(0, cardsInfoRandomPoolTechRare.Count, seed++)];
                                     break;
                                 case CardTemple.Wizard:
-                                    card = (CardInfo)cardsInfoRandomPoolWizardRare[SeededRandom.Range(0, cardsInfoRandomPoolWizardRare.Count, seed++)].Clone();
+                                    card = cardsInfoRandomPoolWizardRare[SeededRandom.Range(0, cardsInfoRandomPoolWizardRare.Count, seed++)];
                                     break;
                                 default:
                                     break;
@@ -525,16 +525,16 @@ namespace Archipelago_Inscryption.Patches
                             switch (c.temple)
                             {
                                 case CardTemple.Nature:
-                                    card = (CardInfo)cardsInfoRandomPoolNature[SeededRandom.Range(0, cardsInfoRandomPoolNature.Count, seed++)].Clone();
+                                    card = cardsInfoRandomPoolNature[SeededRandom.Range(0, cardsInfoRandomPoolNature.Count, seed++)];
                                     break;
                                 case CardTemple.Undead:
-                                    card = (CardInfo)cardsInfoRandomPoolUndead[SeededRandom.Range(0, cardsInfoRandomPoolUndead.Count, seed++)].Clone();
+                                    card = cardsInfoRandomPoolUndead[SeededRandom.Range(0, cardsInfoRandomPoolUndead.Count, seed++)];
                                     break;
                                 case CardTemple.Tech:
-                                    card = (CardInfo)cardsInfoRandomPoolTech[SeededRandom.Range(0, cardsInfoRandomPoolTech.Count, seed++)].Clone();
+                                    card = cardsInfoRandomPoolTech[SeededRandom.Range(0, cardsInfoRandomPoolTech.Count, seed++)];
                                     break;
                                 case CardTemple.Wizard:
-                                    card = (CardInfo)cardsInfoRandomPoolWizard[SeededRandom.Range(0, cardsInfoRandomPoolWizard.Count, seed++)].Clone();
+                                    card = cardsInfoRandomPoolWizard[SeededRandom.Range(0, cardsInfoRandomPoolWizard.Count, seed++)];
                                     break;
                                 default:
                                     break;
@@ -557,6 +557,7 @@ namespace Archipelago_Inscryption.Patches
                             cardsInfoRandomPoolAll.Remove(card);
                         }
                     }
+                    card = (CardInfo)card.Clone();
                     if (ArchipelagoOptions.randomizeAbilities == RandomizeAbilities.RandomizeAll)
                     {
                         int rand = 0;
@@ -598,7 +599,7 @@ namespace Archipelago_Inscryption.Patches
                 List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.temple == CardTemple.Tech && x.portraitTex != null 
                                                      && x.name != "!BOUNTYHUNTER_BASE" && x.name != "Librarian" && !x.name.Contains("EmptyVessel") && x.name != "!MYCOCARD_BASE" 
                                                      && x.name != "CaptiveFile");
-                if (!ArchipelagoManager.HasItem(APItem.GemsModule))
+                if (!StoryEventsData.EventCompleted(StoryEvent.GemsModuleFetched))
                     cardsInfoRandomPool.RemoveAll(x => x.name.Contains("Sentinel") || x.name.Contains("Gem"));
                 if (!Part3SaveData.Data.sideDeckAbilities.Contains(Ability.ConduitNull))
                     cardsInfoRandomPool.RemoveAll(x => x.name.Contains("Conduit") || x.name.Contains("Cell"));
@@ -611,9 +612,10 @@ namespace Archipelago_Inscryption.Patches
                 foreach (CardInfo c in Part3SaveData.Data.deck.Cards)
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
-                    card = (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
+                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
                     if (card.name == "BlueMage_Talking" || card.name == "Angler_Talking" || card.name == "Ouroboros_Part3")
                         cardsInfoRandomPool.Remove(card);
+                    card = (CardInfo)card.Clone();
                     foreach (var modCurrent in c.Mods)
                     {
                         if (ArchipelagoOptions.randomizeAbilities != RandomizeAbilities.Disable)
