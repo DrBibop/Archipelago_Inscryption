@@ -1,3 +1,8 @@
+### 0.1.4
+ - Fixed broken obol cards not staying in the randomized deck in act 2 if the obol check wasn't done and the obol object was received.
+ - Fixed campfire buffs in act 1 applying to multiple cards in rare occasions with the randomized deck.
+ - Fixed a bug that added gems related cards to the randomized deck pool in act 3 if the gems module item was received but not fetched.
+
 ### 0.1.3
  - Removed grizzly scripted deaths in act 1 (for real this time). Now only removed if the tutorial is skipped or deathlink is on.
 
