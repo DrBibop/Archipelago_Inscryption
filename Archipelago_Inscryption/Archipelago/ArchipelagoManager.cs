@@ -91,6 +91,8 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static Queue<NetworkItem> itemQueue = new Queue<NetworkItem>();
 
+        private static bool playedSoundThisFrame = false;
+
         internal static void Init()
         {
             ArchipelagoClient.onConnectAttemptDone += OnConnectAttempt;
@@ -99,7 +101,11 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void OnItemReceived(NetworkItem item)
         {
-            AudioController.Instance.PlaySound2D("creepy_rattle_lofi");
+            if (!playedSoundThisFrame)
+            {
+                playedSoundThisFrame= true;
+                AudioController.Instance.PlaySound2D("creepy_rattle_lofi");
+            }
 
             Singleton<ArchipelagoUI>.Instance.StartCoroutine(ShowItemMessageOneFrameLater(item));
 
@@ -130,6 +136,7 @@ namespace Archipelago_Inscryption.Archipelago
             else
                 message = "Received " + ArchipelagoClient.GetItemName(item.Item) + " from " + ArchipelagoClient.GetPlayerName(item.Player);
 
+            playedSoundThisFrame = false;
             Singleton<ArchipelagoUI>.Instance.LogImportant(message);
             ArchipelagoModPlugin.Log.LogMessage(message);
         }
