@@ -115,6 +115,8 @@ namespace Archipelago_Inscryption.Archipelago
                 APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
 
                 ApplyItemReceived(receivedItem);
+
+                Singleton<ArchipelagoUI>.Instance.QueueSave();
             }
         }
 
@@ -132,7 +134,7 @@ namespace Archipelago_Inscryption.Archipelago
             ArchipelagoModPlugin.Log.LogMessage(message);
         }
 
-        private static void ApplyItemReceived(APItem receivedItem)
+        internal static void ApplyItemReceived(APItem receivedItem)
         {
             if (itemStoryPairs.TryGetValue(receivedItem, out StoryEvent storyEvent))
             {
@@ -309,8 +311,6 @@ namespace Archipelago_Inscryption.Archipelago
 
             if (onItemReceived != null)
                 onItemReceived(receivedItem);
-
-            Singleton<ArchipelagoUI>.Instance.QueueSave();
         }
 
         private static void OnConnectAttempt(LoginResult result)

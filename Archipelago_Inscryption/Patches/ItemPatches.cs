@@ -45,6 +45,15 @@ namespace Archipelago_Inscryption.Patches
             {
                 __instance.natureTemple.hasCamera = true;
             }
+
+            if (ArchipelagoManager.HasItem(APItem.DrownedSoulCard))
+                ArchipelagoManager.ApplyItemReceived(APItem.DrownedSoulCard);
+            if (ArchipelagoManager.HasItem(APItem.SalmonCard))
+                ArchipelagoManager.ApplyItemReceived(APItem.SalmonCard);
+            if (ArchipelagoManager.HasItem(APItem.GreatKrakenCard))
+                ArchipelagoManager.ApplyItemReceived(APItem.GreatKrakenCard);
+            if (ArchipelagoManager.HasItem(APItem.BoneLordHorn))
+                ArchipelagoManager.ApplyItemReceived(APItem.BoneLordHorn);
         }
 
         [HarmonyPatch(typeof(SaveFile), "ResetGBCSaveData")]
