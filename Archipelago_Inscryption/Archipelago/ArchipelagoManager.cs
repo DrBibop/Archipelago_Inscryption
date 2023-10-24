@@ -101,44 +101,36 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void OnItemReceived(NetworkItem item)
         {
-            if (!playedSoundThisFrame)
-            {
-                playedSoundThisFrame= true;
-                AudioController.Instance.PlaySound2D("creepy_rattle_lofi");
-            }
-
-            Singleton<ArchipelagoUI>.Instance.StartCoroutine(ShowItemMessageOneFrameLater(item));
-
             itemQueue.Enqueue(item);
         }
 
-        internal static void ProcessNextItem()
+        internal static bool ProcessNextItem()
         {
             if (itemQueue.Count > 0)
             {
+                AudioController.Instance.PlaySound2D("creepy_rattle_lofi");
+
                 NetworkItem item = itemQueue.Dequeue();
+
+                string message;
+                if (item.Player == ArchipelagoClient.session.ConnectionInfo.Slot)
+                    message = "You have found your " + ArchipelagoClient.GetItemName(item.Item);
+                else
+                    message = "Received " + ArchipelagoClient.GetItemName(item.Item) + " from " + ArchipelagoClient.GetPlayerName(item.Player);
+
+                Singleton<ArchipelagoUI>.Instance.LogImportant(message);
+                ArchipelagoModPlugin.Log.LogMessage(message);
 
                 APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
 
                 ApplyItemReceived(receivedItem);
 
                 Singleton<ArchipelagoUI>.Instance.QueueSave();
+
+                return true;
             }
-        }
 
-        private static IEnumerator ShowItemMessageOneFrameLater(NetworkItem item)
-        {
-            yield return null;
-
-            string message;
-            if (item.Player == ArchipelagoClient.session.ConnectionInfo.Slot)
-                message = "You have found your " + ArchipelagoClient.GetItemName(item.Item);
-            else
-                message = "Received " + ArchipelagoClient.GetItemName(item.Item) + " from " + ArchipelagoClient.GetPlayerName(item.Player);
-
-            playedSoundThisFrame = false;
-            Singleton<ArchipelagoUI>.Instance.LogImportant(message);
-            ArchipelagoModPlugin.Log.LogMessage(message);
+            return false;
         }
 
         internal static void ApplyItemReceived(APItem receivedItem)
@@ -326,9 +318,6 @@ namespace Archipelago_Inscryption.Archipelago
             if (result.Successful)
             {
                 AudioController.Instance.PlaySound2D("creepy_rattle_glassy", MixerGroup.None, 0.5f);
-                ScoutChecks();
-                VerifyGoalCompletion();
-                UIHelper.UpdateChapterSelectButton();
             }
             else
             {
@@ -416,6 +405,8 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static void SendCheck(APCheck check)
         {
+            if (ArchipelagoData.Data == null) return;
+
             long checkID = CHECK_ID_OFFSET + (long)check;
 
             if (!ArchipelagoData.Data.completedChecks.Contains(checkID))
@@ -428,6 +419,8 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static bool HasCompletedCheck(APCheck check)
         {
+            if (ArchipelagoData.Data == null) return false;
+
             long checkID = CHECK_ID_OFFSET + (long)check;
 
             return ArchipelagoData.Data.completedChecks.Contains(checkID);
@@ -435,6 +428,8 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static bool HasItem(APItem item)
         {
+            if (ArchipelagoData.Data == null) return false;
+
             long itemID = ITEM_ID_OFFSET + (long)item;
 
             return ArchipelagoData.Data.receivedItems.Any(x => x.Item == itemID);
@@ -442,6 +437,8 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static void VerifyGoalCompletion()
         {
+            if (ArchipelagoData.Data == null) return;
+
             if (!ArchipelagoData.Data.goalCompletedAndSent &&
                 ((ArchipelagoOptions.goal == Goal.AllActsInOrder || ArchipelagoOptions.goal == Goal.AllActsAnyOrder) && ArchipelagoData.Data.epilogueCompleted) ||
                 (ArchipelagoOptions.goal == Goal.Act1Only && ArchipelagoData.Data.act1Completed))

@@ -37,5 +37,59 @@ namespace Archipelago_Inscryption.Archipelago
 
             ArchipelagoData.Data.factoryClockCode = new List<int> { 0, 0, SeededRandom.Range(0, 11, seed++) };
         }
+
+        internal static void SkipTutorial()
+        {
+            StoryEventsData.SetEventCompleted(StoryEvent.BasicTutorialCompleted, false, false);
+            StoryEventsData.SetEventCompleted(StoryEvent.TutorialRunCompleted, false, false);
+            StoryEventsData.SetEventCompleted(StoryEvent.TutorialRun2Completed, false, false);
+            StoryEventsData.SetEventCompleted(StoryEvent.TutorialRun3Completed, false, false);
+            StoryEventsData.SetEventCompleted(StoryEvent.BonesTutorialCompleted, false, false);
+            StoryEventsData.SetEventCompleted(StoryEvent.StoatIntroduction, false, false);
+            StoryEventsData.SetEventCompleted(StoryEvent.StoatIntroduction2, false, false);
+            StoryEventsData.SetEventCompleted(StoryEvent.StoatIntroduction3, false, false);
+            StoryEventsData.SetEventCompleted(StoryEvent.StoatSaysFindWolf, false, false);
+            StoryEventsData.SetEventCompleted(StoryEvent.FigurineFetched, false, false);
+            StoryEventsData.SetEventCompleted(StoryEvent.LeshyLostCamera, false, false);
+            StoryEventsData.SetEventCompleted(StoryEvent.WoodcarverMet, false, false);
+
+            ProgressionData.SetMechanicLearned(MechanicsConcept.SacrificingNotPermanent);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.EndingTurn);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.LosingLife);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.OpponentQueue);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.CardChoice);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.IntermediateCards);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.FirstPersonNavigation);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.DeathCardCreation);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.GainConsumables);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.CardMerging);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.DeathCardSelection);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.Bones);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.CostBasedCardChoice);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.AdvancedCards);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.OpponentTotems);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.BuyingPelts);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.TradingPelts);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.OverkillDamage);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.BuildingTotems);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.TribeBasedCardChoice);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.Rulebook);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.RulebookPageFlipping);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.AltInput);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.ViewHand);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.ViewQueue);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.BossSuddenDeath);
+            ProgressionData.SetMechanicLearned(MechanicsConcept.GetUpFromTableAnyTime);
+
+            ProgressionData.SetAbilityLearned(Ability.Evolve);
+            ProgressionData.SetAbilityLearned(Ability.Flying);
+            ProgressionData.SetAbilityLearned(Ability.Deathtouch);
+
+            ProgressionData.SetConsumableIntroduced("SquirrelBottle");
+            ProgressionData.SetConsumableIntroduced("Pliers");
+
+            SaveManager.SaveFile.RefreshOilPaintingPuzzle();
+            SaveManager.SaveFile.ResetPart1Run();
+        }
     }
 }

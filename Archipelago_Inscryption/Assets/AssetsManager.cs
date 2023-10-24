@@ -25,6 +25,7 @@ namespace Archipelago_Inscryption.Assets
         internal static GameObject clockCluesPrefab;
         internal static GameObject smallClockCluePrefab;
         internal static GameObject gbcSafeCluePrefab;
+        internal static GameObject saveEntryPrefab;
 
         internal static Mesh checkCardHoloNodeMesh;
 
@@ -74,6 +75,8 @@ namespace Archipelago_Inscryption.Assets
             archipelagoUIPrefab = assetBundle.LoadAsset<GameObject>("ArchipelagoUI");
             smallClockCluePrefab = assetBundle.LoadAsset<GameObject>("SmallClockClue");
             gbcSafeCluePrefab = assetBundle.LoadAsset<GameObject>("GBCSafeClue");
+
+            saveEntryPrefab = assetBundle.LoadAsset<GameObject>("SaveFileEntry");
 
             checkCardHoloNodeMesh = assetBundle.LoadAsset<Mesh>("CheckCard_mesh");
         }

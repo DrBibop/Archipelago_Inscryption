@@ -31,6 +31,8 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPostfix]
         static void InitializeItemNewGame(SaveData __instance)
         {
+            if (ArchipelagoData.Data == null) return;
+
             List<NetworkItem> receivedItem = ArchipelagoData.Data.receivedItems;
             int countCurrency = receivedItem.Count(item => item.Item == (ArchipelagoManager.ITEM_ID_OFFSET + (long)APItem.Currency));
             __instance.currency = countCurrency;
@@ -45,6 +47,8 @@ namespace Archipelago_Inscryption.Patches
             {
                 __instance.natureTemple.hasCamera = true;
             }
+
+            if (SaveManager.SaveFile.gbcCardsCollected == null) return;
 
             if (ArchipelagoManager.HasItem(APItem.DrownedSoulCard))
                 ArchipelagoManager.ApplyItemReceived(APItem.DrownedSoulCard);

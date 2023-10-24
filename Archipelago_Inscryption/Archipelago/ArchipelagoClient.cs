@@ -9,6 +9,7 @@ using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -25,16 +26,18 @@ namespace Archipelago_Inscryption.Archipelago
 
         private const string ArchipelagoVersion = "0.4.1";
 
-        private delegate void OnConnectAttempt(LoginResult result, Action<LoginResult> oneOffCallback);
+        private delegate void OnConnectAttempt(LoginResult result);
 
         private static bool isConnecting = false;
         private static bool isConnected = false;
 
         internal static ArchipelagoSession session;
 
-        internal static bool ConnectAsync(string hostName, int port, string slotName, string password, Action<LoginResult> oneOffCallback = null)
+        internal static Dictionary<string, object> slotData = new Dictionary<string, object>();
+
+        internal static void ConnectAsync(string hostName, int port, string slotName, string password)
         {
-            if (isConnecting || isConnected) return false;
+            if (isConnecting || isConnected) return;
 
             ArchipelagoData.Data.hostName = hostName;
             ArchipelagoData.Data.port = port;
@@ -45,9 +48,7 @@ namespace Archipelago_Inscryption.Archipelago
 
             ArchipelagoModPlugin.Log.LogInfo($"Connecting to {hostName}:{port} as {slotName}...");
 
-            ThreadPool.QueueUserWorkItem(_ => Connect(OnConnected, oneOffCallback));
-
-            return true;
+            ThreadPool.QueueUserWorkItem(_ => Connect(OnConnected));
         }
 
         internal static void Disconnect()
@@ -93,10 +94,8 @@ namespace Archipelago_Inscryption.Archipelago
             return session;
         }
 
-        private static void Connect(OnConnectAttempt attempt, Action<LoginResult> oneOffCallback)
+        private static void Connect(OnConnectAttempt attempt)
         {
-            if (isConnected) return;
-
             LoginResult result;
 
             try
@@ -116,66 +115,15 @@ namespace Archipelago_Inscryption.Archipelago
                 result = new LoginFailure(e.Message);
             }
 
-            attempt(result, oneOffCallback);
-
-            
+            attempt(result);
         }
 
-        private static void OnConnected(LoginResult result, Action<LoginResult> oneOffCallback)
+        private static void OnConnected(LoginResult result)
         {
-            isConnecting = false;
-
             if (result.Successful)
             {
-                if (ArchipelagoData.Data.seed != session.RoomState.Seed)
-                {
-                    if (ArchipelagoData.Data.seed != "")
-                    {
-                        string resetMessage = "New MultiWorld detected! Reset your save file properly before starting.";
-                        ArchipelagoModPlugin.Log.LogWarning(resetMessage);
-                        Singleton<ArchipelagoUI>.Instance.LogImportant(resetMessage);
-
-                        ArchipelagoData.Data.Reset();
-                    }
-
-                    ArchipelagoData.Data.seed = session.RoomState.Seed;
-                }
-
-                LoginSuccessful successfulResult = (LoginSuccessful)result;
-
-                var slotData = successfulResult.SlotData;
-
-                if (slotData.TryGetValue("deathlink", out var deathlink))
-                    ArchipelagoOptions.deathlink = Convert.ToInt32(deathlink) != 0;
-                if (slotData.TryGetValue("optional_death_card", out var optionalDeathCard))
-                    ArchipelagoOptions.optionalDeathCard = (OptionalDeathCard)Convert.ToInt32(optionalDeathCard);
-                if (slotData.TryGetValue("goal", out var goal))
-                    ArchipelagoOptions.goal = (Goal)Convert.ToInt32(goal);
-                if (slotData.TryGetValue("randomize_codes", out var randomizeCodes))
-                    ArchipelagoOptions.randomizeCodes = Convert.ToInt32(randomizeCodes) != 0;
-                if (slotData.TryGetValue("randomize_deck", out var randomizeDeck))
-                    ArchipelagoOptions.randomizeDeck = (RandomizeDeck)Convert.ToInt32(randomizeDeck);
-                if (slotData.TryGetValue("randomize_abilities", out var randomizeAbilities))
-                    ArchipelagoOptions.randomizeAbilities = (RandomizeAbilities)Convert.ToInt32(randomizeAbilities);
-                if (slotData.TryGetValue("skip_tutorial", out var skipTutorial))
-                    ArchipelagoOptions.skipTutorial = Convert.ToInt32(skipTutorial) != 0;
-
-                DeathLinkManager.DeathLinkService = session.CreateDeathLinkService();
-                DeathLinkManager.Init();
-
-                if (ArchipelagoOptions.randomizeCodes && ArchipelagoData.Data.cabinClockCode.Count <= 0)
-                {
-                    int seed = int.Parse(session.RoomState.Seed.Substring(session.RoomState.Seed.Length - 6)) + 20 * session.ConnectionInfo.Slot;
-
-                    ArchipelagoOptions.RandomizeCodes(seed);
-                }
-
-                if (ArchipelagoOptions.skipTutorial && !StoryEventsData.EventCompleted(StoryEvent.TutorialRun3Completed))
-                    RandomizerHelper.SkipTutorial();
-
-                Singleton<ArchipelagoUI>.Instance.QueueSave();
+                slotData = ((LoginSuccessful)result).SlotData;
                 isConnected = true;
-                SendChecksToServerAsync();
             }
             else
             {
@@ -184,11 +132,17 @@ namespace Archipelago_Inscryption.Archipelago
                 errorMessage = failure.Errors.Aggregate(errorMessage, (current, error) => current + $"\n    {error}");
 
                 ArchipelagoModPlugin.Log.LogError(errorMessage);
+                for (int i = 0; i < failure.Errors.Length; i++)
+                {
+                    Singleton<ArchipelagoUI>.Instance.LogError(failure.Errors[i]);
+                }
 
                 Disconnect();
             }
+
             onConnectAttemptDone?.Invoke(result);
-            oneOffCallback?.Invoke(result);
+
+            isConnecting = false;
         }
 
         private static void SessionSocketClosed(string reason)
@@ -200,9 +154,12 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void SessionErrorReceived(Exception e, string message)
         {
+            if (Singleton<ArchipelagoUI>.Instance == null || ArchipelagoModPlugin.Log == null) return;
+
             Singleton<ArchipelagoUI>.Instance.LogError(message);
             ArchipelagoModPlugin.Log.LogError($"Archipelago error: {message}");
-            Disconnect();
+            if (session != null)
+                Disconnect();
         }
 
         private static void OnMessageReceived(LogMessage message)

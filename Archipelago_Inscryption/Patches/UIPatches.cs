@@ -17,10 +17,11 @@ namespace Archipelago_Inscryption.Patches
     [HarmonyPatch]
     internal class UIPatches
     {
-        [HarmonyPatch(typeof(TabbedUIPanel), "Awake")]
+        /*[HarmonyPatch(typeof(TabbedUIPanel), "Awake")]
         [HarmonyPrefix]
         static bool AddArchipelagoOptionTab(TabbedUIPanel __instance)
         {
+            
             if (!__instance.gameObject.name.Contains("Options")) return true;
 
             // Setup tab button
@@ -90,31 +91,20 @@ namespace Archipelago_Inscryption.Patches
             archipelagoMenu.SetFields(hostNameField, portField, slotNameField, passwordField, statusBox, connectButton.GetComponent<GenericUIButton>());
 
             return true;
-        }
+        }*/
 
-        [HarmonyPatch(typeof(MenuController), "Start")]
-        [HarmonyPostfix]
-        static void CreateStatusAndLogsUI()
+        [HarmonyPatch(typeof(StartScreenController), "Start")]
+        [HarmonyPrefix]
+        static bool CreateStatusAndLogsUI(StartScreenController __instance)
         {
-            if (ArchipelagoUI.exists) return;
+            if (ArchipelagoUI.exists) return true;
 
             GameObject uiObj = Object.Instantiate(AssetsManager.archipelagoUIPrefab);
-            uiObj.AddComponent<ArchipelagoUI>();
             Object.DontDestroyOnLoad(uiObj);
-        }
+            __instance.gameObject.SetActive(false);
+            Singleton<ArchipelagoUI>.Instance.startScreen = __instance;
 
-        [HarmonyPatch(typeof(MenuController), "OnStartGameCardReachedSlot")]
-        [HarmonyPrefix]
-        static bool PreventPlayIfNotConnected(MenuController __instance)
-        {
-            if (!ArchipelagoClient.IsConnected)
-            {
-                UIHelper.ConnectFromMenu(UIHelper.OnConnectAttemptDoneFromMainMenu);
-
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
         [HarmonyPatch(typeof(GenericUIButton), "UpdateInputButton")]
@@ -161,16 +151,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool ChooseChapterWithSameSaveFile(ChapterSelectMenu __instance)
         {
-            __instance.confirmPrompt.SetActive(true);
-
-            if (!ArchipelagoClient.IsConnected)
-            {
-                UIHelper.ConnectFromMenu(result => UIHelper.OnConnectAttemptDoneFromChapterSelect(result, __instance));
-            }
-            else
-            {
-                UIHelper.LoadSelectedChapter(__instance.currentSelectedChapter);
-            }
+            UIHelper.LoadSelectedChapter(__instance.currentSelectedChapter);
 
             return false;
         }
@@ -195,15 +176,7 @@ namespace Archipelago_Inscryption.Patches
         {
             __instance.transform.Find("Clips_Row").gameObject.SetActive(false);
             __instance.transform.Find("Chapter_Row/ChapterSelectItemUI").gameObject.SetActive(false);
-            if (ArchipelagoOptions.goal != Goal.AllActsAnyOrder)
-            {
-                if (ArchipelagoOptions.goal == Goal.Act1Only || !StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked))
-                    __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject.SetActive(false);
-                if (ArchipelagoOptions.goal == Goal.Act1Only || !StoryEventsData.EventCompleted(StoryEvent.Part2Completed))
-                    __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(false);
-            }
-            if (!ArchipelagoData.Data.act1Completed || !ArchipelagoData.Data.act2Completed || !ArchipelagoData.Data.act3Completed)
-                __instance.transform.Find("Chapter_Row/ChapterSelectItemUI (4)").gameObject.SetActive(false);
+            UIHelper.UpdateChapterButtons();
         }
 
         [HarmonyPatch(typeof(MenuController), "OnCardReachedSlot")]

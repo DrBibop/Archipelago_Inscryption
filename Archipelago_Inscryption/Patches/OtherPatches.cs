@@ -5,16 +5,13 @@ using DiskCardGame;
 using GBC;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using TMPro;
 using UnityEngine;
-using Unity;
-using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
-using System;
-using Archipelago.MultiClient.Net.Models;
+using BepInEx;
+using System.IO;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -25,6 +22,17 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool PreventAchievementUnlock()
         {
+            return false;
+        }
+
+        [HarmonyPatch(typeof(SaveManager), "get_SaveFolderPath")]
+        [HarmonyPrefix]
+        static bool ReplaceSaveFilePath(ref string __result)
+        {
+            if (ArchipelagoData.saveName == "") return true;
+
+            __result = Path.Combine(Paths.GameRootPath, "ArchipelagoSaveFiles", ArchipelagoData.saveName) + "/";
+
             return false;
         }
 
@@ -73,17 +81,6 @@ namespace Archipelago_Inscryption.Patches
                 __result += (SaveManager.saveFile.gbcData.npcAttempts + 1) * 50;
             if (__instance.IsPart3)
                 __result += (Part3SaveData.Data.bounty + 1) * 50;
-        }
-
-        [HarmonyPatch(typeof(SaveManager), "CreateNewSaveFile")]
-        [HarmonyPrefix]
-        static bool EraseArchipelagoData()
-        {
-            if (ArchipelagoClient.IsConnected)
-                ArchipelagoClient.Disconnect();
-            ArchipelagoData.Data.Reset();
-            ArchipelagoData.Data.seed = "";
-            return true;
         }
 
         [HarmonyPatch(typeof(PageContentLoader), "LoadPage")]
