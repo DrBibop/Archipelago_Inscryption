@@ -534,6 +534,9 @@ namespace Archipelago_Inscryption.Helpers
             }
             else
             {
+                if (ArchipelagoOptions.act1DeathLinkBehaviour == Act1DeathLink.CandleExtinguished)
+                    DeathLinkManager.SendDeathLink();
+
                 yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence(fromBoss);
             }
         }
