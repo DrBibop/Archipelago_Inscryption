@@ -433,7 +433,7 @@ namespace Archipelago_Inscryption.Helpers
 
         internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
         {
-            if (!DeathLinkManager.receivedDeath)
+            if (!DeathLinkManager.receivedDeath && ArchipelagoOptions.act1DeathLinkBehaviour == Act1DeathLink.Sacrificed)
                 DeathLinkManager.SendDeathLink();
             if ((!DeathLinkManager.receivedDeath && ArchipelagoOptions.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
                 || ArchipelagoOptions.optionalDeathCard == OptionalDeathCard.Disable)
@@ -444,13 +444,13 @@ namespace Archipelago_Inscryption.Helpers
             }
             if (Singleton<GameMap>.Instance.FullyUnrolled)
                 Singleton<GameMap>.Instance.HideMapImmediate();
-            yield return Singleton<TextDisplayer>.Instance.ShowUntilInput("Choose if you want to create a new deathcard");
+            yield return Singleton<TextDisplayer>.Instance.ShowUntilInput("Choose if you want to create a new death card.");
             CardChoicesNodeData choice = new CardChoicesNodeData();
             choice.gemifyChoices = true;
             CardChoice c1 = new CardChoice();
-            c1.CardInfo = GenerateCardInfoWithName("Yes", "You will restart the game normally");
+            c1.CardInfo = GenerateCardInfoWithName("Yes", "You will create a death card before restarting.");
             CardChoice c2 = new CardChoice();
-            c2.CardInfo = GenerateCardInfoWithName("No", "You will restart without creating a new death card");
+            c2.CardInfo = GenerateCardInfoWithName("No", "You will restart without creating a new death card.");
             choice.overrideChoices = new List<CardChoice> {c1, c2};
             Singleton<ViewManager>.Instance.SwitchToView(View.BoardCentered, false, true);
             yield return Singleton<CardSingleChoicesSequencer>.Instance.CardSelectionSequence(choice);

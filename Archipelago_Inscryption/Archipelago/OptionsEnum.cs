@@ -35,4 +35,19 @@ namespace Archipelago_Inscryption.Archipelago
         Act1Only,
         COUNT
     }
+
+    internal enum Act1DeathLink
+    {
+        Sacrificed,
+        CandleExtinguished,
+        COUNT
+    }
+
+    internal enum EpitaphPiecesRandomization
+    {
+        AllPieces,
+        Groups,
+        AsOneItem,
+        COUNT
+    }
 }

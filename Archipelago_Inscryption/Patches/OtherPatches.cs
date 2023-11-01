@@ -182,6 +182,20 @@ namespace Archipelago_Inscryption.Patches
             __result = false;
             return false;
         }
+
+        [HarmonyPatch(typeof(Part3GameFlowManager), "SceneSpecificInitialization")]
+        [HarmonyPostfix]
+        static void FixPart3TransitionAfterPart2()
+        {
+            if (!StoryEventsData.EventCompleted(StoryEvent.Part3Intro)) return;
+
+            PauseMenu.pausingDisabled = false;
+            GameObject transitionSound = GameObject.Find("GlitchTransitionSound");
+            if (transitionSound != null)
+            {
+                AudioController.Instance.FadeSourceVolume(transitionSound.GetComponent<AudioSource>(), 0f, 4f);
+            }
+        }
     }
 
     [HarmonyPatch]

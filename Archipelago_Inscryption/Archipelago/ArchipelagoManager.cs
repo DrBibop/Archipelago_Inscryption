@@ -1,4 +1,5 @@
 ﻿using Archipelago.MultiClient.Net;
+using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago_Inscryption.Components;
@@ -239,7 +240,22 @@ namespace Archipelago_Inscryption.Archipelago
             }
             else if (receivedItem.ToString().Contains("Epitaph"))
             {
-                SaveData.Data.undeadTemple.epitaphPieces[(int)receivedItem - (int)APItem.EpitaphPiece1].found = true;
+                int pieceCount = 0;
+
+                if (receivedItem == APItem.EpitaphPiece)
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPiece);
+                else if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.Groups)
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPieces) * 3;
+                else
+                    pieceCount = 9;
+
+                for (int i = 0; i < pieceCount; i++)
+                {
+                    if (i >= 9) break;
+
+                    SaveData.Data.undeadTemple.epitaphPieces[i].found = true;
+                }
+                
             }
             else if (receivedItem == APItem.Monocle && Singleton<WizardMonocleEffect>.Instance)
             {
@@ -323,6 +339,51 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 AudioController.Instance.PlaySound2D("glitch", MixerGroup.None, 0.5f);
             }
+        }
+
+        internal static void InitializeFromServer()
+        {
+            if (ArchipelagoClient.slotData.TryGetValue("deathlink", out var deathlink))
+                ArchipelagoOptions.deathlink = Convert.ToInt32(deathlink) != 0;
+            if (ArchipelagoClient.slotData.TryGetValue("act1_deathlink_behaviour", out var act1Deathlink))
+                ArchipelagoOptions.act1DeathLinkBehaviour = (Act1DeathLink)Convert.ToInt32(act1Deathlink);
+            if (ArchipelagoClient.slotData.TryGetValue("optional_death_card", out var optionalDeathCard))
+                ArchipelagoOptions.optionalDeathCard = (OptionalDeathCard)Convert.ToInt32(optionalDeathCard);
+            if (ArchipelagoClient.slotData.TryGetValue("goal", out var goal))
+                ArchipelagoOptions.goal = (Goal)Convert.ToInt32(goal);
+            if (ArchipelagoClient.slotData.TryGetValue("randomize_codes", out var randomizeCodes))
+                ArchipelagoOptions.randomizeCodes = Convert.ToInt32(randomizeCodes) != 0;
+            if (ArchipelagoClient.slotData.TryGetValue("randomize_deck", out var randomizeDeck))
+                ArchipelagoOptions.randomizeDeck = (RandomizeDeck)Convert.ToInt32(randomizeDeck);
+            if (ArchipelagoClient.slotData.TryGetValue("randomize_abilities", out var randomizeAbilities))
+                ArchipelagoOptions.randomizeAbilities = (RandomizeAbilities)Convert.ToInt32(randomizeAbilities);
+            if (ArchipelagoClient.slotData.TryGetValue("skip_tutorial", out var skipTutorial))
+                ArchipelagoOptions.skipTutorial = Convert.ToInt32(skipTutorial) != 0;
+            if (ArchipelagoClient.slotData.TryGetValue("epitaph_pieces_randomization", out var piecesRandomization))
+                ArchipelagoOptions.epitaphPiecesRandomization = (EpitaphPiecesRandomization)Convert.ToInt32(piecesRandomization);
+
+            ArchipelagoData.Data.seed = ArchipelagoClient.session.RoomState.Seed;
+            ArchipelagoData.Data.playerCount = ArchipelagoClient.session.Players.AllPlayers.Count() - 1;
+            ArchipelagoData.Data.totalLocationsCount = ArchipelagoClient.session.Locations.AllLocations.Count();
+            ArchipelagoData.Data.totalItemsCount = ArchipelagoData.Data.totalLocationsCount;
+            ArchipelagoData.Data.goalType = ArchipelagoOptions.goal;
+
+            DeathLinkManager.DeathLinkService = ArchipelagoClient.session.CreateDeathLinkService();
+            DeathLinkManager.Init();
+
+            if (ArchipelagoOptions.randomizeCodes && ArchipelagoData.Data.cabinClockCode.Count <= 0)
+            {
+                int seed = int.Parse(ArchipelagoClient.session.RoomState.Seed.Substring(ArchipelagoClient.session.RoomState.Seed.Length - 6)) + 20 * ArchipelagoClient.session.ConnectionInfo.Slot;
+
+                ArchipelagoOptions.RandomizeCodes(seed);
+            }
+
+            if (ArchipelagoOptions.skipTutorial && !StoryEventsData.EventCompleted(StoryEvent.TutorialRun3Completed))
+                ArchipelagoOptions.SkipTutorial();
+
+            ScoutChecks();
+            VerifyGoalCompletion();
+            ArchipelagoClient.SendChecksToServerAsync();
         }
 
         internal static bool VerifyItem(NetworkItem item)

@@ -6,12 +6,14 @@ namespace Archipelago_Inscryption.Archipelago
     internal class ArchipelagoOptions
     {
         internal static bool deathlink = false;
+        internal static Act1DeathLink act1DeathLinkBehaviour = Act1DeathLink.Sacrificed;
         internal static OptionalDeathCard optionalDeathCard = OptionalDeathCard.Disable;
         internal static bool randomizeCodes = false;
         internal static RandomizeDeck randomizeDeck = RandomizeDeck.Disable;
         internal static RandomizeAbilities randomizeAbilities = RandomizeAbilities.Disable;
         internal static Goal goal;
         internal static bool skipTutorial = false;
+        internal static EpitaphPiecesRandomization epitaphPiecesRandomization = EpitaphPiecesRandomization.AllPieces;
 
         internal static void RandomizeCodes(int seed)
         {

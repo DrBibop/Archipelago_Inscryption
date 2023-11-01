@@ -117,22 +117,10 @@ namespace Archipelago_Inscryption.Components
                 try
                 {
                     Directory.CreateDirectory(savesPath);
-
-                    string oldSavePath = Path.Combine(Paths.GameRootPath, SAVE_FILE_NAME);
-                    string oldDataPath = Path.Combine(Paths.GameRootPath, DATA_FILE_NAME);
-
-                    if (File.Exists(oldSavePath) && File.Exists(oldDataPath))
-                    {
-                        ArchipelagoModPlugin.Log.LogInfo("Save file from previous version detected. Adjusting file to new save system...");
-                        string legacyPath = Path.Combine(savesPath, "Legacy Save File");
-                        Directory.CreateDirectory(legacyPath);
-                        File.Move(oldSavePath, Path.Combine(legacyPath, SAVE_FILE_NAME));
-                        File.Move(oldDataPath, Path.Combine(legacyPath, DATA_FILE_NAME));
-                    }
                 } 
                 catch (Exception e)
                 {
-                    ArchipelagoModPlugin.Log.LogError("Failed to initialize new save system: " + e.Message);
+                    ArchipelagoModPlugin.Log.LogError("Failed to create save directory: " + e.Message);
                     return;
                 }
             }
@@ -148,13 +136,33 @@ namespace Archipelago_Inscryption.Components
 
                 if (!File.Exists(savePath) || !File.Exists(dataPath)) continue;
 
-                string dataContent = File.ReadAllText(dataPath);
+                string dataContent = "";
+
+                try 
+                {
+                    dataContent = File.ReadAllText(dataPath);
+                }
+                catch (Exception e)
+                {
+                    ArchipelagoModPlugin.Log.LogError("Failed to load save data from " + dirInfo.Name + ": " + e.Message);
+                    continue;
+                }
+
                 ArchipelagoData loadedData = JsonConvert.DeserializeObject<ArchipelagoData>(dataContent);
 
                 if (loadedData != null)
                 {
                     loadedData.itemsUnaccountedFor = new List<NetworkItem>(loadedData.receivedItems);
-                    dataList.Add(File.GetLastWriteTime(dataPath), (dirInfo.Name, loadedData));
+
+                    try
+                    {
+                        dataList.Add(File.GetLastWriteTime(dataPath), (dirInfo.Name, loadedData));
+                    }
+                    catch (Exception e)
+                    {
+                        ArchipelagoModPlugin.Log.LogError("Failed to add save entry " + dirInfo.Name + ": " + e.Message);
+                        continue;
+                    }
                 }
                 else
                 {
@@ -387,7 +395,7 @@ namespace Archipelago_Inscryption.Components
                 postConnectText.text = "Connected";
                 yield return new WaitForSeconds(0.75f);
 
-                OnConnectionSuccessful();
+                ArchipelagoManager.InitializeFromServer();
 
                 postConnectText.text = "Collecting items...";
 
@@ -419,47 +427,6 @@ namespace Archipelago_Inscryption.Components
                 postConnectScreen.SetActive(false);
                 connectScreen.SetActive(true);
             }
-        }
-
-        private void OnConnectionSuccessful()
-        {
-            if (ArchipelagoClient.slotData.TryGetValue("deathlink", out var deathlink))
-                ArchipelagoOptions.deathlink = Convert.ToInt32(deathlink) != 0;
-            if (ArchipelagoClient.slotData.TryGetValue("optional_death_card", out var optionalDeathCard))
-                ArchipelagoOptions.optionalDeathCard = (OptionalDeathCard)Convert.ToInt32(optionalDeathCard);
-            if (ArchipelagoClient.slotData.TryGetValue("goal", out var goal))
-                ArchipelagoOptions.goal = (Goal)Convert.ToInt32(goal);
-            if (ArchipelagoClient.slotData.TryGetValue("randomize_codes", out var randomizeCodes))
-                ArchipelagoOptions.randomizeCodes = Convert.ToInt32(randomizeCodes) != 0;
-            if (ArchipelagoClient.slotData.TryGetValue("randomize_deck", out var randomizeDeck))
-                ArchipelagoOptions.randomizeDeck = (RandomizeDeck)Convert.ToInt32(randomizeDeck);
-            if (ArchipelagoClient.slotData.TryGetValue("randomize_abilities", out var randomizeAbilities))
-                ArchipelagoOptions.randomizeAbilities = (RandomizeAbilities)Convert.ToInt32(randomizeAbilities);
-            if (ArchipelagoClient.slotData.TryGetValue("skip_tutorial", out var skipTutorial))
-                ArchipelagoOptions.skipTutorial = Convert.ToInt32(skipTutorial) != 0;
-
-            ArchipelagoData.Data.seed = ArchipelagoClient.session.RoomState.Seed;
-            ArchipelagoData.Data.playerCount = ArchipelagoClient.session.Players.AllPlayers.Count() - 1;
-            ArchipelagoData.Data.totalLocationsCount = ArchipelagoClient.session.Locations.AllLocations.Count();
-            ArchipelagoData.Data.totalItemsCount = ArchipelagoData.Data.totalLocationsCount;
-            ArchipelagoData.Data.goalType = ArchipelagoOptions.goal;
-
-            DeathLinkManager.DeathLinkService = ArchipelagoClient.session.CreateDeathLinkService();
-            DeathLinkManager.Init();
-
-            if (ArchipelagoOptions.randomizeCodes && ArchipelagoData.Data.cabinClockCode.Count <= 0)
-            {
-                int seed = int.Parse(ArchipelagoClient.session.RoomState.Seed.Substring(ArchipelagoClient.session.RoomState.Seed.Length - 6)) + 20 * ArchipelagoClient.session.ConnectionInfo.Slot;
-
-                ArchipelagoOptions.RandomizeCodes(seed);
-            }
-
-            if (ArchipelagoOptions.skipTutorial && !StoryEventsData.EventCompleted(StoryEvent.TutorialRun3Completed))
-                ArchipelagoOptions.SkipTutorial();
-
-            ArchipelagoManager.ScoutChecks();
-            ArchipelagoManager.VerifyGoalCompletion();
-            ArchipelagoClient.SendChecksToServerAsync();
         }
 
         public void OnQuitButtonPressed()

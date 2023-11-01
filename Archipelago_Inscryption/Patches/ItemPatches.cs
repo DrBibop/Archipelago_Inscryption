@@ -36,13 +36,23 @@ namespace Archipelago_Inscryption.Patches
             List<NetworkItem> receivedItem = ArchipelagoData.Data.receivedItems;
             int countCurrency = receivedItem.Count(item => item.Item == (ArchipelagoManager.ITEM_ID_OFFSET + (long)APItem.Currency));
             __instance.currency = countCurrency;
-            for (APItem i = APItem.EpitaphPiece1; i <= APItem.EpitaphPiece9; i++)
+
+            int pieceCount = 0;
+
+            if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.AllPieces)
+                pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ArchipelagoManager.ITEM_ID_OFFSET + (int)APItem.EpitaphPiece);
+            else if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.Groups)
+                pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ArchipelagoManager.ITEM_ID_OFFSET + (int)APItem.EpitaphPieces) * 3;
+            else
+                pieceCount = 9;
+
+            for (int i = 0; i < pieceCount; i++)
             {
-                if (ArchipelagoManager.HasItem(i))
-                {
-                    __instance.undeadTemple.epitaphPieces[(int)(i - APItem.EpitaphPiece1)].found = true;
-                }
+                if (i >= 9) break;
+
+                SaveData.Data.undeadTemple.epitaphPieces[i].found = true;
             }
+
             if (ArchipelagoManager.HasItem(APItem.CameraReplica))
             {
                 __instance.natureTemple.hasCamera = true;
