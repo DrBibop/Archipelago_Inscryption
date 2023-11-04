@@ -196,6 +196,28 @@ namespace Archipelago_Inscryption.Patches
                 AudioController.Instance.FadeSourceVolume(transitionSound.GetComponent<AudioSource>(), 0f, 4f);
             }
         }
+
+        [HarmonyPatch(typeof(PedestalVolume), "Start")]
+        [HarmonyPostfix]
+        static void ChangePedestalCode(PedestalVolume __instance)
+        {
+            if (!ArchipelagoOptions.randomizeCodes) return;
+
+            if (__instance.Index == 0)
+                __instance.solution = ArchipelagoData.Data.wizardCode1.ToArray();
+            else if (__instance.Index == 1)
+                __instance.solution = ArchipelagoData.Data.wizardCode2.ToArray();
+            else if (__instance.Index == 2)
+            {
+                __instance.solution = ArchipelagoData.Data.wizardCode3.ToArray();
+
+                GameObject backroomClue = GameObject.Find("/Temple/BackRoom_3/WizardMarking_F3_2/icon");
+                ArchipelagoOptions.SetClueSprite(backroomClue.GetComponent<SpriteRenderer>(), 2, 1);
+
+                GameObject menuClue = GameObject.Find("/GBCCameras/UI/PauseMenu/MenuParent/Menu/OptionsUI/MainPanel/TabGroup_Audio/WizardMarking_F3_3/icon");
+                ArchipelagoOptions.SetClueSprite(menuClue.GetComponent<SpriteRenderer>(), 2, 2);
+            }
+        }
     }
 
     [HarmonyPatch]

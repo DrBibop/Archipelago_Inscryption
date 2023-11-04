@@ -420,7 +420,7 @@ namespace Archipelago_Inscryption.Components
                     }
                 }
 
-                SaveManager.SaveToFile();
+                SaveManager.SaveToFile(false);
             }
             else
             {

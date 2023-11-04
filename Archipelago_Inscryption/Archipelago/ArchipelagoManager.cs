@@ -371,11 +371,16 @@ namespace Archipelago_Inscryption.Archipelago
             DeathLinkManager.DeathLinkService = ArchipelagoClient.session.CreateDeathLinkService();
             DeathLinkManager.Init();
 
-            if (ArchipelagoOptions.randomizeCodes && ArchipelagoData.Data.cabinClockCode.Count <= 0)
+            if (ArchipelagoOptions.randomizeCodes)
             {
-                int seed = int.Parse(ArchipelagoClient.session.RoomState.Seed.Substring(ArchipelagoClient.session.RoomState.Seed.Length - 6)) + 20 * ArchipelagoClient.session.ConnectionInfo.Slot;
+                if (ArchipelagoData.Data.cabinClockCode.Count <= 0)
+                {
+                    int seed = int.Parse(ArchipelagoClient.session.RoomState.Seed.Substring(ArchipelagoClient.session.RoomState.Seed.Length - 6)) + 20 * ArchipelagoClient.session.ConnectionInfo.Slot;
 
-                ArchipelagoOptions.RandomizeCodes(seed);
+                    ArchipelagoOptions.RandomizeCodes(seed);
+                }
+
+                ArchipelagoOptions.SetupRandomizedCodes();
             }
 
             if (ArchipelagoOptions.skipTutorial && !StoryEventsData.EventCompleted(StoryEvent.TutorialRun3Completed))
@@ -400,9 +405,23 @@ namespace Archipelago_Inscryption.Archipelago
                 return false;
             }
 
-            if (receivedItem.ToString().Contains("Epitaph") && !SaveData.Data.undeadTemple.epitaphPieces[(int)receivedItem - (int)APItem.EpitaphPiece1].found)
+            if (receivedItem.ToString().Contains("Epitaph"))
             {
-                return false;
+                int pieceCount = 0;
+
+                if (receivedItem == APItem.EpitaphPiece)
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(i => i.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPiece);
+                else if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.Groups)
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(i => i.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPieces) * 3;
+                else
+                    pieceCount = 9;
+
+                for (int i = 0; i < pieceCount; i++)
+                {
+                    if (i >= 9) break;
+
+                    if (!SaveData.Data.undeadTemple.epitaphPieces[i].found) return false;
+                }
             }
 
             if (receivedItem == APItem.CameraReplica && !SaveData.Data.natureTemple.hasCamera)

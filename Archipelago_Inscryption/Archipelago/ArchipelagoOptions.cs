@@ -1,5 +1,8 @@
-﻿using DiskCardGame;
+﻿using Archipelago_Inscryption.Assets;
+using DiskCardGame;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace Archipelago_Inscryption.Archipelago
 {
@@ -14,6 +17,69 @@ namespace Archipelago_Inscryption.Archipelago
         internal static Goal goal;
         internal static bool skipTutorial = false;
         internal static EpitaphPiecesRandomization epitaphPiecesRandomization = EpitaphPiecesRandomization.AllPieces;
+
+        private static Sprite[] wizardClues;
+        private static GameObject[] floor1Clues;
+        private static GameObject[] floor2Clues;
+        private static GameObject[] floor3Clues;
+
+
+        internal static void SetupRandomizedCodes()
+        {
+            Sprite[] wizardSprites = Resources.LoadAll<Sprite>("art/gbc/temples/wizard/wizard_temple_objects");
+
+            wizardClues = new Sprite[]
+            {
+                wizardSprites.First(x => x.name == "wizard_temple_objects_23"),
+                wizardSprites.First(x => x.name == "wizard_temple_objects_22"),
+                wizardSprites.First(x => x.name == "wizard_temple_objects_21"),
+                AssetsManager.wizardTowerSubmergeClueSprite,
+                wizardSprites.First(x => x.name == "wizard_temple_objects_51"),
+                AssetsManager.wizardTowerLensClueSprite,
+                wizardSprites.First(x => x.name == "wizard_temple_objects_55")
+            };
+
+            floor1Clues = new GameObject[]
+            {
+                Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F1_1"),
+                Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F1_2"),
+                Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F1_3")
+            };
+
+            for (int i = 0; i < floor1Clues.Length; i++)
+            {
+                floor1Clues[i].transform.Find("icon").GetComponent<SpriteRenderer>().sprite = wizardClues[ArchipelagoData.Data.wizardCode1[i]];
+            }
+
+            floor2Clues = new GameObject[]
+            {
+                Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F2_1"),
+                Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F2_2"),
+                Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F2_3")
+            };
+
+            for (int i = 0; i < floor2Clues.Length; i++)
+            {
+                floor2Clues[i].transform.Find("icon").GetComponent<SpriteRenderer>().sprite = wizardClues[ArchipelagoData.Data.wizardCode2[i]];
+            }
+
+            floor3Clues = new GameObject[]
+            {
+                Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F3_1"),
+                Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F3_2"),
+                Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F3_3")
+            };
+
+            for (int i = 0; i < floor3Clues.Length; i++)
+            {
+                floor3Clues[i].transform.Find("icon").GetComponent<SpriteRenderer>().sprite = wizardClues[ArchipelagoData.Data.wizardCode3[i]];
+            }
+        }
+
+        internal static void SetClueSprite(SpriteRenderer renderer, int floorIndex, int codeIndex)
+        {
+            renderer.sprite = wizardClues[floorIndex == 0 ? ArchipelagoData.Data.wizardCode1[codeIndex] : (floorIndex == 1 ? ArchipelagoData.Data.wizardCode2[codeIndex] : ArchipelagoData.Data.wizardCode3[codeIndex])];
+        }
 
         internal static void RandomizeCodes(int seed)
         {
@@ -38,6 +104,10 @@ namespace Archipelago_Inscryption.Archipelago
             ArchipelagoData.Data.cabinSmallClockCode = new List<int> { 0, 0, SeededRandom.Range(0, 11, seed++) };
 
             ArchipelagoData.Data.factoryClockCode = new List<int> { 0, 0, SeededRandom.Range(0, 11, seed++) };
+
+            ArchipelagoData.Data.wizardCode1 = new List<int> { SeededRandom.Range(0, 6, seed++), SeededRandom.Range(0, 6, seed++), SeededRandom.Range(0, 6, seed++) };
+            ArchipelagoData.Data.wizardCode2 = new List<int> { SeededRandom.Range(0, 6, seed++), SeededRandom.Range(0, 6, seed++), SeededRandom.Range(0, 6, seed++) };
+            ArchipelagoData.Data.wizardCode3 = new List<int> { SeededRandom.Range(0, 6, seed++), SeededRandom.Range(0, 6, seed++), SeededRandom.Range(0, 6, seed++) };
         }
 
         internal static void SkipTutorial()

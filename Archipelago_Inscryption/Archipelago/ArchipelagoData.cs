@@ -59,6 +59,12 @@ namespace Archipelago_Inscryption.Archipelago
         internal List<int> cabinSmallClockCode = new List<int>();
         [JsonProperty("factoryClockCode")]
         internal List<int> factoryClockCode = new List<int>();
+        [JsonProperty("wizardCode1")]
+        internal List<int> wizardCode1 = new List<int>();
+        [JsonProperty("wizardCode2")]
+        internal List<int> wizardCode2 = new List<int>();
+        [JsonProperty("wizardCode3")]
+        internal List<int> wizardCode3 = new List<int>();
 
         [JsonProperty("act1Completed")]
         internal bool act1Completed = false;
