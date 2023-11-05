@@ -12,6 +12,8 @@ namespace Archipelago_Inscryption.Assets
         internal static Sprite editedNatureFloorSprite;
         internal static Sprite cardPortraitSprite;
         internal static Sprite cardPixelPortraitSprite;
+        internal static Sprite wizardTowerLensClueSprite;
+        internal static Sprite wizardTowerSubmergeClueSprite;
 
         internal static Texture2D boonTableTex;
         internal static Texture2D[] smallClockClueTexs;
@@ -25,6 +27,7 @@ namespace Archipelago_Inscryption.Assets
         internal static GameObject clockCluesPrefab;
         internal static GameObject smallClockCluePrefab;
         internal static GameObject gbcSafeCluePrefab;
+        internal static GameObject saveEntryPrefab;
 
         internal static Mesh checkCardHoloNodeMesh;
 
@@ -53,6 +56,10 @@ namespace Archipelago_Inscryption.Assets
 
             packButtonSprites = assetBundle.LoadAssetWithSubAssets<Sprite>("GBCCardPackButton");
 
+            var wizardClues = assetBundle.LoadAssetWithSubAssets<Sprite>("wizard_clues");
+            wizardTowerLensClueSprite = wizardClues[0];
+            wizardTowerSubmergeClueSprite = wizardClues[1];
+
             boonTableTex = assetBundle.LoadAsset<Texture2D>("BoonTableEdited");
             smallClockClueTexs = new Texture2D[12];
             for (int i = 0; i < 12; i++)
@@ -74,6 +81,8 @@ namespace Archipelago_Inscryption.Assets
             archipelagoUIPrefab = assetBundle.LoadAsset<GameObject>("ArchipelagoUI");
             smallClockCluePrefab = assetBundle.LoadAsset<GameObject>("SmallClockClue");
             gbcSafeCluePrefab = assetBundle.LoadAsset<GameObject>("GBCSafeClue");
+
+            saveEntryPrefab = assetBundle.LoadAsset<GameObject>("SaveFileEntry");
 
             checkCardHoloNodeMesh = assetBundle.LoadAsset<Mesh>("CheckCard_mesh");
         }

@@ -59,20 +59,33 @@ namespace Archipelago_Inscryption.Archipelago
 
                 if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
                 {
+                    int prevLives = RunState.Run.playerLives;
                     yield return new WaitUntil(() => Singleton<TurnManager>.Instance.IsPlayerTurn || Singleton<TurnManager>.Instance.GameIsOver());
                     Singleton<TurnManager>.Instance.PlayerSurrendered = true;
-                    yield return new WaitUntil(() => RunState.Run.playerLives == 0);
+
+                    if (ArchipelagoOptions.act1DeathLinkBehaviour == Act1DeathLink.Sacrificed)
+                        yield return new WaitUntil(() => RunState.Run.playerLives == 0);
+                    else
+                        yield return new WaitUntil(() => RunState.Run.playerLives == prevLives - 1);
                 }
                 else
                 {
-                    while (RunState.Run.playerLives > 0)
+                    if (ArchipelagoOptions.act1DeathLinkBehaviour == Act1DeathLink.Sacrificed)
+                    {
+                        while (RunState.Run.playerLives > 0)
+                            yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
+                        yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
+                    }
+                    else
+                    {
                         yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
-                    yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
+                    }
                 }
 
                 PauseMenu.pausingDisabled = false;
 
-                yield return new WaitUntil(() => RunState.Run != finishedRun);
+                if (ArchipelagoOptions.act1DeathLinkBehaviour == Act1DeathLink.Sacrificed)
+                    yield return new WaitUntil(() => RunState.Run != finishedRun);
             }
             else if (SaveManager.saveFile.IsPart2)
             {

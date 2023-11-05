@@ -8,27 +8,46 @@ namespace Archipelago_Inscryption.Archipelago
     {
         Disable,
         RandomizeType,
-        RandomizeAll
+        RandomizeAll,
+        COUNT
     }
 
     internal enum RandomizeAbilities
     {
         Disable,
         RandomizeModded,
-        RandomizeAll
+        RandomizeAll,
+        COUNT
     }
 
     internal enum OptionalDeathCard
     {
         Disable,
         Enable,
-        EnableOnlyOnDeathLink
+        EnableOnlyOnDeathLink,
+        COUNT
     }
 
     internal enum Goal
     {
         AllActsInOrder,
         AllActsAnyOrder,
-        Act1Only
+        Act1Only,
+        COUNT
+    }
+
+    internal enum Act1DeathLink
+    {
+        Sacrificed,
+        CandleExtinguished,
+        COUNT
+    }
+
+    internal enum EpitaphPiecesRandomization
+    {
+        AllPieces,
+        Groups,
+        AsOneItem,
+        COUNT
     }
 }

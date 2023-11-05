@@ -324,7 +324,6 @@ namespace Archipelago_Inscryption.Helpers
                 Singleton<PlayerMovementController>.Instance.SetEnabled(false);
                 yield return SingleCardGainUI.instance.GainCard(card, true);
                 Singleton<PlayerMovementController>.Instance.SetEnabled(true);
-                Singleton<ArchipelagoUI>.Instance.QueueSave();
             }
             else
             {
@@ -372,7 +371,6 @@ namespace Archipelago_Inscryption.Helpers
             {
                 ArchipelagoData.Data.availableCardPacks--;
                 yield return PackOpeningUI.instance.OpenPack((CardTemple)UnityEngine.Random.Range(0, (int)CardTemple.NUM_TEMPLES));
-                SaveManager.SaveToFile();
             }
 
             yield return new WaitForSeconds(0.05f);
@@ -435,7 +433,7 @@ namespace Archipelago_Inscryption.Helpers
 
         internal static IEnumerator PrePlayerDeathSequence(Part1GameFlowManager manager)
         {
-            if (!DeathLinkManager.receivedDeath)
+            if (!DeathLinkManager.receivedDeath && ArchipelagoOptions.act1DeathLinkBehaviour == Act1DeathLink.Sacrificed)
                 DeathLinkManager.SendDeathLink();
             if ((!DeathLinkManager.receivedDeath && ArchipelagoOptions.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
                 || ArchipelagoOptions.optionalDeathCard == OptionalDeathCard.Disable)
@@ -446,13 +444,13 @@ namespace Archipelago_Inscryption.Helpers
             }
             if (Singleton<GameMap>.Instance.FullyUnrolled)
                 Singleton<GameMap>.Instance.HideMapImmediate();
-            yield return Singleton<TextDisplayer>.Instance.ShowUntilInput("Choose if you want to create a new deathcard");
+            yield return Singleton<TextDisplayer>.Instance.ShowUntilInput("Choose if you want to create a new death card.");
             CardChoicesNodeData choice = new CardChoicesNodeData();
             choice.gemifyChoices = true;
             CardChoice c1 = new CardChoice();
-            c1.CardInfo = GenerateCardInfoWithName("Yes", "You will restart the game normally");
+            c1.CardInfo = GenerateCardInfoWithName("Yes", "You will create a death card before restarting.");
             CardChoice c2 = new CardChoice();
-            c2.CardInfo = GenerateCardInfoWithName("No", "You will restart without creating a new death card");
+            c2.CardInfo = GenerateCardInfoWithName("No", "You will restart without creating a new death card.");
             choice.overrideChoices = new List<CardChoice> {c1, c2};
             Singleton<ViewManager>.Instance.SwitchToView(View.BoardCentered, false, true);
             yield return Singleton<CardSingleChoicesSequencer>.Instance.CardSelectionSequence(choice);
@@ -536,6 +534,9 @@ namespace Archipelago_Inscryption.Helpers
             }
             else
             {
+                if (ArchipelagoOptions.act1DeathLinkBehaviour == Act1DeathLink.CandleExtinguished)
+                    DeathLinkManager.SendDeathLink();
+
                 yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence(fromBoss);
             }
         }
@@ -634,60 +635,6 @@ namespace Archipelago_Inscryption.Helpers
                 yield return new WaitForSeconds(7.55f);
                 GoToMainMenu();
             }
-        }
-
-        internal static void SkipTutorial()
-        {
-            StoryEventsData.SetEventCompleted(StoryEvent.BasicTutorialCompleted, false, false);
-            StoryEventsData.SetEventCompleted(StoryEvent.TutorialRunCompleted, false, false);
-            StoryEventsData.SetEventCompleted(StoryEvent.TutorialRun2Completed, false, false);
-            StoryEventsData.SetEventCompleted(StoryEvent.TutorialRun3Completed, false, false);
-            StoryEventsData.SetEventCompleted(StoryEvent.BonesTutorialCompleted, false, false);
-            StoryEventsData.SetEventCompleted(StoryEvent.StoatIntroduction, false, false);
-            StoryEventsData.SetEventCompleted(StoryEvent.StoatIntroduction2, false, false);
-            StoryEventsData.SetEventCompleted(StoryEvent.StoatIntroduction3, false, false);
-            StoryEventsData.SetEventCompleted(StoryEvent.StoatSaysFindWolf, false, false);
-            StoryEventsData.SetEventCompleted(StoryEvent.FigurineFetched, false, false);
-            StoryEventsData.SetEventCompleted(StoryEvent.LeshyLostCamera, false, false);
-            StoryEventsData.SetEventCompleted(StoryEvent.WoodcarverMet, false, false);
-
-            ProgressionData.SetMechanicLearned(MechanicsConcept.SacrificingNotPermanent);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.EndingTurn);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.LosingLife);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.OpponentQueue);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.CardChoice);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.IntermediateCards);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.FirstPersonNavigation);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.DeathCardCreation);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.GainConsumables);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.CardMerging);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.DeathCardSelection);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.Bones);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.CostBasedCardChoice);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.AdvancedCards);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.OpponentTotems);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.BuyingPelts);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.TradingPelts);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.OverkillDamage);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.BuildingTotems);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.TribeBasedCardChoice);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.Rulebook);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.RulebookPageFlipping);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.AltInput);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.ViewHand);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.ViewQueue);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.BossSuddenDeath);
-            ProgressionData.SetMechanicLearned(MechanicsConcept.GetUpFromTableAnyTime);
-
-            ProgressionData.SetAbilityLearned(Ability.Evolve);
-            ProgressionData.SetAbilityLearned(Ability.Flying);
-            ProgressionData.SetAbilityLearned(Ability.Deathtouch);
-
-            ProgressionData.SetConsumableIntroduced("SquirrelBottle");
-            ProgressionData.SetConsumableIntroduced("Pliers");
-
-            SaveManager.SaveFile.RefreshOilPaintingPuzzle();
-            SaveManager.SaveFile.ResetPart1Run();
         }
     }
 }

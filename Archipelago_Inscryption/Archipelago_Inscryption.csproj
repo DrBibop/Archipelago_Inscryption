@@ -106,7 +106,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(TargetDir)$(ProjectName).dll&quot; &quot;%25appdata%25\r2modmanPlus-local\Inscryption\profiles\Default\BepInEx\plugins\Ballin_Inc-ArchipelagoMod&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)$(ProjectName).dll&quot; &quot;%25appdata%25\r2modmanPlus-local\Inscryption\profiles\Default\BepInEx\plugins\Ballin_Inc-ArchipelagoMod&quot;&#xD;&#xA;copy /Y &quot;$(TargetDir)$(ProjectName).dll&quot; &quot;I:\Olivier\Unity\Inscryption Archipelago\Assets\ArchiScripts&quot;" />
   </Target>
 
 </Project>

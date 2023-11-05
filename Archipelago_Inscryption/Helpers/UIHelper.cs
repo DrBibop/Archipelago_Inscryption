@@ -1,17 +1,16 @@
-﻿using Archipelago.MultiClient.Net;
-using Archipelago_Inscryption.Archipelago;
+﻿using Archipelago_Inscryption.Archipelago;
 using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace Archipelago_Inscryption.Helpers
 {
     internal static class UIHelper
     {
+        private static string oldSeed = "";
+
         internal static InputField CreateInputField(GameObject prefab, Transform parent, string name, string label, string defaultContent, float yPosition, int characterLimit, bool censor = false)
         {
             GameObject inputFieldInstance = GameObject.Instantiate(prefab);
@@ -26,60 +25,6 @@ namespace Archipelago_Inscryption.Helpers
             inputField.Censor = censor;
 
             return inputField;
-        }
-
-        internal static void ConnectFromMenu(Action<LoginResult> callback)
-        {
-            if (ArchipelagoClient.IsConnecting) return;
-
-            if (ArchipelagoData.Data.hostName == "" || ArchipelagoData.Data.port <= 1024 || ArchipelagoData.Data.port > 65535)
-            {
-                Singleton<MenuController>.Instance.ResetToDefaultState();
-                Singleton<ArchipelagoUI>.Instance.LogImportant("Connect to Archipelago using the settings menu.");
-            }
-            else
-            {
-                Singleton<ArchipelagoUI>.Instance.LogMessage("Connecting...");
-                ArchipelagoClient.ConnectAsync(ArchipelagoData.Data.hostName, ArchipelagoData.Data.port, ArchipelagoData.Data.slotName, ArchipelagoData.Data.password, callback);
-            }
-        }
-
-        internal static void OnConnectAttemptDoneFromMainMenu(LoginResult result)
-        {
-            MenuController menu = Singleton<MenuController>.Instance;
-
-            if (result.Successful)
-            {
-                menu.StartCoroutine(menu.TransitionToGame());
-            }
-            else
-            {
-                menu.ResetToDefaultState();
-
-                string[] errors = ((LoginFailure)result).Errors;
-
-                for (int i = 0; i < errors.Length; i++)
-                {
-                    Singleton<ArchipelagoUI>.Instance.LogError(errors[i]);
-                }
-            }
-        }
-
-        internal static void OnConnectAttemptDoneFromChapterSelect(LoginResult result, ChapterSelectMenu menu)
-        {
-            if (result.Successful)
-            {
-                LoadSelectedChapter(menu.currentSelectedChapter);
-            }
-            else
-            {
-                string[] errors = ((LoginFailure)result).Errors;
-
-                for (int i = 0; i < errors.Length; i++)
-                {
-                    Singleton<ArchipelagoUI>.Instance.LogError(errors[i]);
-                }
-            }
         }
 
         internal static void LoadSelectedChapter(int chapter)
@@ -152,17 +97,16 @@ namespace Archipelago_Inscryption.Helpers
             Singleton<VideoCameraRig>.Instance.EnterChapterSelect();
         }
 
-        internal static void UpdateChapterSelectButton()
+        internal static void UpdateChapterButtons()
         {
-            if (ArchipelagoOptions.goal != Goal.AllActsAnyOrder) return;
+            ChapterSelectMenu menu = Singleton<VideoCameraRig>.Instance.chapterSelectMenu;
 
-            MenuCard chapterSelectCard = Singleton<MenuController>.Instance.cards.First(c => c.MenuAction == MenuAction.NewGame);
-
-            if (chapterSelectCard != null)
+            if (ArchipelagoOptions.goal != Goal.AllActsAnyOrder)
             {
-                chapterSelectCard.lockBeforeStoryEvent = false;
-                chapterSelectCard.SetGlitchedSpriteShown(false);
+                menu.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject.SetActive(ArchipelagoOptions.goal != Goal.Act1Only && StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked));
+                menu.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(ArchipelagoOptions.goal != Goal.Act1Only && StoryEventsData.EventCompleted(StoryEvent.Part2Completed));
             }
+            menu.transform.Find("Chapter_Row/ChapterSelectItemUI (4)").gameObject.SetActive(ArchipelagoData.Data.act1Completed && ArchipelagoData.Data.act2Completed && ArchipelagoData.Data.act3Completed);
         }
     }
 }

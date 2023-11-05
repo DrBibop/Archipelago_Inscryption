@@ -21,7 +21,6 @@ namespace Archipelago_Inscryption
             Log = Logger;
             Harmony harmony = new Harmony(PluginGuid);
             harmony.PatchAll(Assembly.GetExecutingAssembly());
-            ArchipelagoData.LoadData();
             AssetsManager.LoadAssets();
             ArchipelagoManager.Init();
         }

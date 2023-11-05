@@ -31,20 +31,43 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPostfix]
         static void InitializeItemNewGame(SaveData __instance)
         {
+            if (ArchipelagoData.Data == null) return;
+
             List<NetworkItem> receivedItem = ArchipelagoData.Data.receivedItems;
             int countCurrency = receivedItem.Count(item => item.Item == (ArchipelagoManager.ITEM_ID_OFFSET + (long)APItem.Currency));
             __instance.currency = countCurrency;
-            for (APItem i = APItem.EpitaphPiece1; i <= APItem.EpitaphPiece9; i++)
+
+            int pieceCount = 0;
+
+            if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.AllPieces)
+                pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ArchipelagoManager.ITEM_ID_OFFSET + (int)APItem.EpitaphPiece);
+            else if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.Groups)
+                pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ArchipelagoManager.ITEM_ID_OFFSET + (int)APItem.EpitaphPieces) * 3;
+            else
+                pieceCount = 9;
+
+            for (int i = 0; i < pieceCount; i++)
             {
-                if (ArchipelagoManager.HasItem(i))
-                {
-                    __instance.undeadTemple.epitaphPieces[(int)(i - APItem.EpitaphPiece1)].found = true;
-                }
+                if (i >= 9) break;
+
+                SaveData.Data.undeadTemple.epitaphPieces[i].found = true;
             }
+
             if (ArchipelagoManager.HasItem(APItem.CameraReplica))
             {
                 __instance.natureTemple.hasCamera = true;
             }
+
+            if (SaveManager.SaveFile.gbcCardsCollected == null) return;
+
+            if (ArchipelagoManager.HasItem(APItem.DrownedSoulCard))
+                ArchipelagoManager.ApplyItemReceived(APItem.DrownedSoulCard);
+            if (ArchipelagoManager.HasItem(APItem.SalmonCard))
+                ArchipelagoManager.ApplyItemReceived(APItem.SalmonCard);
+            if (ArchipelagoManager.HasItem(APItem.GreatKrakenCard))
+                ArchipelagoManager.ApplyItemReceived(APItem.GreatKrakenCard);
+            if (ArchipelagoManager.HasItem(APItem.BoneLordHorn))
+                ArchipelagoManager.ApplyItemReceived(APItem.BoneLordHorn);
         }
 
         [HarmonyPatch(typeof(SaveFile), "ResetGBCSaveData")]

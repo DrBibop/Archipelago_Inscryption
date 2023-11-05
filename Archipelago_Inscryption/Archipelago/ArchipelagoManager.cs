@@ -1,4 +1,5 @@
 ﻿using Archipelago.MultiClient.Net;
+using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago_Inscryption.Components;
@@ -91,6 +92,8 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static Queue<NetworkItem> itemQueue = new Queue<NetworkItem>();
 
+        private static bool playedSoundThisFrame = false;
+
         internal static void Init()
         {
             ArchipelagoClient.onConnectAttemptDone += OnConnectAttempt;
@@ -99,40 +102,39 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static void OnItemReceived(NetworkItem item)
         {
-            AudioController.Instance.PlaySound2D("creepy_rattle_lofi");
-
-            Singleton<ArchipelagoUI>.Instance.StartCoroutine(ShowItemMessageOneFrameLater(item));
-
             itemQueue.Enqueue(item);
         }
 
-        internal static void ProcessNextItem()
+        internal static bool ProcessNextItem()
         {
             if (itemQueue.Count > 0)
             {
+                AudioController.Instance.PlaySound2D("creepy_rattle_lofi");
+
                 NetworkItem item = itemQueue.Dequeue();
+
+                string message;
+                if (item.Player == ArchipelagoClient.session.ConnectionInfo.Slot)
+                    message = "You have found your " + ArchipelagoClient.GetItemName(item.Item);
+                else
+                    message = "Received " + ArchipelagoClient.GetItemName(item.Item) + " from " + ArchipelagoClient.GetPlayerName(item.Player);
+
+                Singleton<ArchipelagoUI>.Instance.LogImportant(message);
+                ArchipelagoModPlugin.Log.LogMessage(message);
 
                 APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
 
                 ApplyItemReceived(receivedItem);
+
+                Singleton<ArchipelagoUI>.Instance.QueueSave();
+
+                return true;
             }
+
+            return false;
         }
 
-        private static IEnumerator ShowItemMessageOneFrameLater(NetworkItem item)
-        {
-            yield return null;
-
-            string message;
-            if (item.Player == ArchipelagoClient.session.ConnectionInfo.Slot)
-                message = "You have found your " + ArchipelagoClient.GetItemName(item.Item);
-            else
-                message = "Received " + ArchipelagoClient.GetItemName(item.Item) + " from " + ArchipelagoClient.GetPlayerName(item.Player);
-
-            Singleton<ArchipelagoUI>.Instance.LogImportant(message);
-            ArchipelagoModPlugin.Log.LogMessage(message);
-        }
-
-        private static void ApplyItemReceived(APItem receivedItem)
+        internal static void ApplyItemReceived(APItem receivedItem)
         {
             if (itemStoryPairs.TryGetValue(receivedItem, out StoryEvent storyEvent))
             {
@@ -238,7 +240,22 @@ namespace Archipelago_Inscryption.Archipelago
             }
             else if (receivedItem.ToString().Contains("Epitaph"))
             {
-                SaveData.Data.undeadTemple.epitaphPieces[(int)receivedItem - (int)APItem.EpitaphPiece1].found = true;
+                int pieceCount = 0;
+
+                if (receivedItem == APItem.EpitaphPiece)
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPiece);
+                else if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.Groups)
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPieces) * 3;
+                else
+                    pieceCount = 9;
+
+                for (int i = 0; i < pieceCount; i++)
+                {
+                    if (i >= 9) break;
+
+                    SaveData.Data.undeadTemple.epitaphPieces[i].found = true;
+                }
+                
             }
             else if (receivedItem == APItem.Monocle && Singleton<WizardMonocleEffect>.Instance)
             {
@@ -309,8 +326,6 @@ namespace Archipelago_Inscryption.Archipelago
 
             if (onItemReceived != null)
                 onItemReceived(receivedItem);
-
-            Singleton<ArchipelagoUI>.Instance.QueueSave();
         }
 
         private static void OnConnectAttempt(LoginResult result)
@@ -319,14 +334,61 @@ namespace Archipelago_Inscryption.Archipelago
             if (result.Successful)
             {
                 AudioController.Instance.PlaySound2D("creepy_rattle_glassy", MixerGroup.None, 0.5f);
-                ScoutChecks();
-                VerifyGoalCompletion();
-                UIHelper.UpdateChapterSelectButton();
             }
             else
             {
                 AudioController.Instance.PlaySound2D("glitch", MixerGroup.None, 0.5f);
             }
+        }
+
+        internal static void InitializeFromServer()
+        {
+            if (ArchipelagoClient.slotData.TryGetValue("deathlink", out var deathlink))
+                ArchipelagoOptions.deathlink = Convert.ToInt32(deathlink) != 0;
+            if (ArchipelagoClient.slotData.TryGetValue("act1_deathlink_behaviour", out var act1Deathlink))
+                ArchipelagoOptions.act1DeathLinkBehaviour = (Act1DeathLink)Convert.ToInt32(act1Deathlink);
+            if (ArchipelagoClient.slotData.TryGetValue("optional_death_card", out var optionalDeathCard))
+                ArchipelagoOptions.optionalDeathCard = (OptionalDeathCard)Convert.ToInt32(optionalDeathCard);
+            if (ArchipelagoClient.slotData.TryGetValue("goal", out var goal))
+                ArchipelagoOptions.goal = (Goal)Convert.ToInt32(goal);
+            if (ArchipelagoClient.slotData.TryGetValue("randomize_codes", out var randomizeCodes))
+                ArchipelagoOptions.randomizeCodes = Convert.ToInt32(randomizeCodes) != 0;
+            if (ArchipelagoClient.slotData.TryGetValue("randomize_deck", out var randomizeDeck))
+                ArchipelagoOptions.randomizeDeck = (RandomizeDeck)Convert.ToInt32(randomizeDeck);
+            if (ArchipelagoClient.slotData.TryGetValue("randomize_abilities", out var randomizeAbilities))
+                ArchipelagoOptions.randomizeAbilities = (RandomizeAbilities)Convert.ToInt32(randomizeAbilities);
+            if (ArchipelagoClient.slotData.TryGetValue("skip_tutorial", out var skipTutorial))
+                ArchipelagoOptions.skipTutorial = Convert.ToInt32(skipTutorial) != 0;
+            if (ArchipelagoClient.slotData.TryGetValue("epitaph_pieces_randomization", out var piecesRandomization))
+                ArchipelagoOptions.epitaphPiecesRandomization = (EpitaphPiecesRandomization)Convert.ToInt32(piecesRandomization);
+
+            ArchipelagoData.Data.seed = ArchipelagoClient.session.RoomState.Seed;
+            ArchipelagoData.Data.playerCount = ArchipelagoClient.session.Players.AllPlayers.Count() - 1;
+            ArchipelagoData.Data.totalLocationsCount = ArchipelagoClient.session.Locations.AllLocations.Count();
+            ArchipelagoData.Data.totalItemsCount = ArchipelagoData.Data.totalLocationsCount;
+            ArchipelagoData.Data.goalType = ArchipelagoOptions.goal;
+
+            DeathLinkManager.DeathLinkService = ArchipelagoClient.session.CreateDeathLinkService();
+            DeathLinkManager.Init();
+
+            if (ArchipelagoOptions.randomizeCodes)
+            {
+                if (ArchipelagoData.Data.cabinClockCode.Count <= 0)
+                {
+                    int seed = int.Parse(ArchipelagoClient.session.RoomState.Seed.Substring(ArchipelagoClient.session.RoomState.Seed.Length - 6)) + 20 * ArchipelagoClient.session.ConnectionInfo.Slot;
+
+                    ArchipelagoOptions.RandomizeCodes(seed);
+                }
+
+                ArchipelagoOptions.SetupRandomizedCodes();
+            }
+
+            if (ArchipelagoOptions.skipTutorial && !StoryEventsData.EventCompleted(StoryEvent.TutorialRun3Completed))
+                ArchipelagoOptions.SkipTutorial();
+
+            ScoutChecks();
+            VerifyGoalCompletion();
+            ArchipelagoClient.SendChecksToServerAsync();
         }
 
         internal static bool VerifyItem(NetworkItem item)
@@ -343,9 +405,23 @@ namespace Archipelago_Inscryption.Archipelago
                 return false;
             }
 
-            if (receivedItem.ToString().Contains("Epitaph") && !SaveData.Data.undeadTemple.epitaphPieces[(int)receivedItem - (int)APItem.EpitaphPiece1].found)
+            if (receivedItem.ToString().Contains("Epitaph"))
             {
-                return false;
+                int pieceCount = 0;
+
+                if (receivedItem == APItem.EpitaphPiece)
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(i => i.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPiece);
+                else if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.Groups)
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(i => i.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPieces) * 3;
+                else
+                    pieceCount = 9;
+
+                for (int i = 0; i < pieceCount; i++)
+                {
+                    if (i >= 9) break;
+
+                    if (!SaveData.Data.undeadTemple.epitaphPieces[i].found) return false;
+                }
             }
 
             if (receivedItem == APItem.CameraReplica && !SaveData.Data.natureTemple.hasCamera)
@@ -409,6 +485,8 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static void SendCheck(APCheck check)
         {
+            if (ArchipelagoData.Data == null) return;
+
             long checkID = CHECK_ID_OFFSET + (long)check;
 
             if (!ArchipelagoData.Data.completedChecks.Contains(checkID))
@@ -421,6 +499,8 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static bool HasCompletedCheck(APCheck check)
         {
+            if (ArchipelagoData.Data == null) return false;
+
             long checkID = CHECK_ID_OFFSET + (long)check;
 
             return ArchipelagoData.Data.completedChecks.Contains(checkID);
@@ -428,6 +508,8 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static bool HasItem(APItem item)
         {
+            if (ArchipelagoData.Data == null) return false;
+
             long itemID = ITEM_ID_OFFSET + (long)item;
 
             return ArchipelagoData.Data.receivedItems.Any(x => x.Item == itemID);
@@ -435,6 +517,8 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static void VerifyGoalCompletion()
         {
+            if (ArchipelagoData.Data == null) return;
+
             if (!ArchipelagoData.Data.goalCompletedAndSent &&
                 ((ArchipelagoOptions.goal == Goal.AllActsInOrder || ArchipelagoOptions.goal == Goal.AllActsAnyOrder) && ArchipelagoData.Data.epilogueCompleted) ||
                 (ArchipelagoOptions.goal == Goal.Act1Only && ArchipelagoData.Data.act1Completed))

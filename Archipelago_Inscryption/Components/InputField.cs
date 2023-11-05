@@ -53,9 +53,13 @@ namespace Archipelago_Inscryption.Components
 
         public override bool CollisionIs2D => true;
 
-        private KeyboardInputHandler keyboardInput;
+        [SerializeField]
         private Text label;
+
+        [SerializeField]
         private Text text;
+
+        private KeyboardInputHandler keyboardInput;
         private string realText;
         private bool censor;
 
@@ -73,8 +77,11 @@ namespace Archipelago_Inscryption.Components
             keyboardInput.enabled = false;
             keyboardInput.EnterPressed += OnEnterPressed;
 
-            label = transform.Find("Title/Text").GetComponent<Text>();
-            text = transform.Find("TextFrame/Text/Text").GetComponent<Text>();
+            if (label == null)
+                label = transform.Find("Title/Text").GetComponent<Text>();
+
+            if (text == null)
+                text = transform.Find("TextFrame/Text/Text").GetComponent<Text>();
         }
 
         public override void OnEnable()

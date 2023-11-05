@@ -5,12 +5,12 @@ using DiskCardGame;
 using GBC;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using TMPro;
 using UnityEngine;
+using System.IO;
 using Unity;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using System;
@@ -26,6 +26,17 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool PreventAchievementUnlock()
         {
+            return false;
+        }
+
+        [HarmonyPatch(typeof(SaveManager), "get_SaveFolderPath")]
+        [HarmonyPrefix]
+        static bool ReplaceSaveFilePath(ref string __result)
+        {
+            if (ArchipelagoData.saveName == "") return true;
+
+            __result = Path.Combine(Paths.GameRootPath, "ArchipelagoSaveFiles", ArchipelagoData.saveName) + "/";
+
             return false;
         }
 
@@ -74,17 +85,6 @@ namespace Archipelago_Inscryption.Patches
                 __result += (SaveManager.saveFile.gbcData.npcAttempts + 1) * 50;
             if (__instance.IsPart3)
                 __result += (Part3SaveData.Data.bounty + 1) * 50;
-        }
-
-        [HarmonyPatch(typeof(SaveManager), "CreateNewSaveFile")]
-        [HarmonyPrefix]
-        static bool EraseArchipelagoData()
-        {
-            if (ArchipelagoClient.IsConnected)
-                ArchipelagoClient.Disconnect();
-            ArchipelagoData.Data.Reset();
-            ArchipelagoData.Data.seed = "";
-            return true;
         }
 
         [HarmonyPatch(typeof(PageContentLoader), "LoadPage")]
@@ -185,6 +185,42 @@ namespace Archipelago_Inscryption.Patches
 
             __result = false;
             return false;
+        }
+
+        [HarmonyPatch(typeof(Part3GameFlowManager), "SceneSpecificInitialization")]
+        [HarmonyPostfix]
+        static void FixPart3TransitionAfterPart2()
+        {
+            if (!StoryEventsData.EventCompleted(StoryEvent.Part3Intro)) return;
+
+            PauseMenu.pausingDisabled = false;
+            GameObject transitionSound = GameObject.Find("GlitchTransitionSound");
+            if (transitionSound != null)
+            {
+                AudioController.Instance.FadeSourceVolume(transitionSound.GetComponent<AudioSource>(), 0f, 4f);
+            }
+        }
+
+        [HarmonyPatch(typeof(PedestalVolume), "Start")]
+        [HarmonyPostfix]
+        static void ChangePedestalCode(PedestalVolume __instance)
+        {
+            if (!ArchipelagoOptions.randomizeCodes) return;
+
+            if (__instance.Index == 0)
+                __instance.solution = ArchipelagoData.Data.wizardCode1.ToArray();
+            else if (__instance.Index == 1)
+                __instance.solution = ArchipelagoData.Data.wizardCode2.ToArray();
+            else if (__instance.Index == 2)
+            {
+                __instance.solution = ArchipelagoData.Data.wizardCode3.ToArray();
+
+                GameObject backroomClue = GameObject.Find("/Temple/BackRoom_3/WizardMarking_F3_2/icon");
+                ArchipelagoOptions.SetClueSprite(backroomClue.GetComponent<SpriteRenderer>(), 2, 1);
+
+                GameObject menuClue = GameObject.Find("/GBCCameras/UI/PauseMenu/MenuParent/Menu/OptionsUI/MainPanel/TabGroup_Audio/WizardMarking_F3_3/icon");
+                ArchipelagoOptions.SetClueSprite(menuClue.GetComponent<SpriteRenderer>(), 2, 2);
+            }
         }
     }
 

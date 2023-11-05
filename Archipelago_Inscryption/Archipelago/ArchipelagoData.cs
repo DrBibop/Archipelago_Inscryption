@@ -3,7 +3,6 @@ using BepInEx;
 using DiskCardGame;
 using GracesGames.Common.Scripts;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -13,7 +12,13 @@ namespace Archipelago_Inscryption.Archipelago
     internal class ArchipelagoData
     {
         [JsonIgnore]
-        private static readonly string dataFilePath = Path.Combine(Paths.GameRootPath, "ArchipelagoData.json");
+        internal static string saveName = "";
+
+        [JsonIgnore]
+        internal static string saveFilePath = "";
+
+        [JsonIgnore]
+        internal static string dataFilePath = "";
 
         [JsonIgnore]
         internal static ArchipelagoData Data;
@@ -29,6 +34,15 @@ namespace Archipelago_Inscryption.Archipelago
 
         [JsonProperty("seed")]
         internal string seed = "";
+        [JsonProperty("playerCount")]
+        internal int playerCount = 0;
+        [JsonProperty("totalLocationsCount")]
+        internal int totalLocationsCount = 0;
+        [JsonProperty("totalItemsCount")]
+        internal int totalItemsCount = 0;
+        [JsonProperty("goalType")]
+        internal Goal goalType = Goal.COUNT;
+
         [JsonProperty("completedChecks")]
         internal List<long> completedChecks = new List<long>();
         [JsonProperty("receivedItems")]
@@ -52,6 +66,12 @@ namespace Archipelago_Inscryption.Archipelago
         internal List<int> cabinSmallClockCode = new List<int>();
         [JsonProperty("factoryClockCode")]
         internal List<int> factoryClockCode = new List<int>();
+        [JsonProperty("wizardCode1")]
+        internal List<int> wizardCode1 = new List<int>();
+        [JsonProperty("wizardCode2")]
+        internal List<int> wizardCode2 = new List<int>();
+        [JsonProperty("wizardCode3")]
+        internal List<int> wizardCode3 = new List<int>();
 
         [JsonProperty("act1Completed")]
         internal bool act1Completed = false;
