@@ -560,6 +560,23 @@ namespace Archipelago_Inscryption.Helpers
             }
             return list;
         }
+        internal static List<CardInfo> GetAllCustomCards()
+        {
+            List<CardInfo> list = new List<CardInfo>();
+            foreach (CardModificationInfo customCardMod in ArchipelagoData.Data.customCardsModsAct3)
+            {
+                CardInfo c = CardLoader.GetCardByName("!BUILDACARD_BASE");
+                c.mods.Add(customCardMod);
+                list.Add(c);
+            }
+            return list;
+        }
+
+        internal static void AddCustomMod(CardModificationInfo mod, string name)
+        {
+            ArchipelagoData.Data.customCardInfos.Add(new CustomCardInfo(mod.singletonId, name, mod.attackAdjustment, mod.healthAdjustment, mod.energyCostAdjustment, mod.abilities, mod.buildACardPortraitInfo.spriteIndices));
+            ArchipelagoData.Data.customCardsModsAct3.Add(mod);
+        }
 
         internal static CardInfo RandomRareCardInAct1(int seed)
         {

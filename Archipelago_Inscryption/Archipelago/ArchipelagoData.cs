@@ -1,5 +1,7 @@
 ﻿using Archipelago.MultiClient.Net.Models;
 using BepInEx;
+using DiskCardGame;
+using GracesGames.Common.Scripts;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -33,6 +35,11 @@ namespace Archipelago_Inscryption.Archipelago
         internal List<NetworkItem> receivedItems = new List<NetworkItem>();
         [JsonIgnore]
         internal List<NetworkItem> itemsUnaccountedFor = new List<NetworkItem>();
+
+        [JsonProperty("customCardInfos")]
+        internal List<CustomCardInfo> customCardInfos = new List<CustomCardInfo>();
+        [JsonIgnore]
+        internal List<CardModificationInfo> customCardsModsAct3 = new List<CardModificationInfo>();
 
         [JsonProperty("availableCardPacks")]
         internal int availableCardPacks = 0;
@@ -69,8 +76,22 @@ namespace Archipelago_Inscryption.Archipelago
                     string fileContent = File.ReadAllText(dataFilePath);
                     Data = JsonConvert.DeserializeObject<ArchipelagoData>(fileContent);
                     Data.itemsUnaccountedFor = new List<NetworkItem>(Data.receivedItems);
+                    foreach (var cI in Data.customCardInfos)
+                    {
+                        CardModificationInfo m = new CardModificationInfo();
+                        m.singletonId = cI.SingletonId;
+                        m.nameReplacement = cI.NameReplacement;
+                        m.attackAdjustment = cI.AttackAdjustment;
+                        m.healthAdjustment = cI.HealthAdjustment;
+                        m.energyCostAdjustment = cI.EnergyCostAdjustment;
+                        m.abilities = cI.Abilities;
+                        BuildACardPortraitInfo portraitInfo = new BuildACardPortraitInfo();
+                        portraitInfo.spriteIndices = cI.SpriteIndices;
+                        m.buildACardPortraitInfo = portraitInfo;
+                        Data.customCardsModsAct3.Add(m);
+                    }
                 }
-                catch (Exception e) 
+                catch (Exception e)
                 {
                     ArchipelagoModPlugin.Log.LogError("Error while loading ArchipelagoData.json: " + e.Message);
                 }
@@ -89,6 +110,7 @@ namespace Archipelago_Inscryption.Archipelago
             completedChecks.Clear();
             receivedItems.Clear();
             itemsUnaccountedFor.Clear();
+            itemsUnaccountedFor.Clear();
 
             cabinSafeCode.Clear();
             cabinClockCode.Clear();
@@ -106,6 +128,41 @@ namespace Archipelago_Inscryption.Archipelago
         {
             string json = JsonConvert.SerializeObject(Data);
             File.WriteAllText(dataFilePath, json);
+        }
+    }
+
+    internal struct CustomCardInfo
+    {
+        [JsonProperty("singletonId")]
+        public string SingletonId { get; set; }
+
+        [JsonProperty("nameReplacement")]
+        public string NameReplacement { get; set; }
+
+        [JsonProperty("attackAdjustment")]
+        public int AttackAdjustment { get; set; }
+
+        [JsonProperty("healthAdjustment")]
+        public int HealthAdjustment { get; set; }
+
+        [JsonProperty("energyCostAdjustment")]
+        public int EnergyCostAdjustment { get; set; }
+
+        [JsonProperty("abilities")]
+        public List<Ability> Abilities { get; set; }
+
+        [JsonProperty("spriteIndices")] 
+        public int[] SpriteIndices { get; set; }
+
+        public CustomCardInfo(string singletonId, string nameReplacement, int attackAdjustment, int healthAdjustment, int energyCostAdjustment, List<Ability> abilities, int[] spriteIndices)
+        {
+            SingletonId = singletonId;
+            NameReplacement = nameReplacement;
+            AttackAdjustment = attackAdjustment;
+            HealthAdjustment = healthAdjustment;
+            EnergyCostAdjustment = energyCostAdjustment;
+            Abilities = abilities;
+            SpriteIndices = spriteIndices;
         }
     }
 }
