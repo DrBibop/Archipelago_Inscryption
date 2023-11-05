@@ -665,26 +665,23 @@ namespace Archipelago_Inscryption.Patches
                                 }
                             }
                         }
-                        c.mods[0].abilities = abilityUnique;
                     }
                     if (abilityCount > 4)
                     {
                         int abilityToRemove = abilityCount - 4;
-                        Console.WriteLine($"name : {card.name}");
-                        Console.WriteLine($"nb ability : {card.abilities.Count}");
-                        Console.WriteLine($"nb ability total : {abilityCount}");
-                        foreach (var item in card.abilities)
+                        if (card.name == "!BUILDACARD_BASE")
                         {
-
+                            for (int i = 0; i < abilityToRemove; i++)
+                            {
+                                card.mods[0].abilities.RemoveAt(0);
+                            }
                         }
-                        while (card.abilities.Count > 0 && abilityToRemove > 0)
+                        else
                         {
-                            card.mods[0].abilities.RemoveAt(0);
-                            abilityToRemove--;
-                        }
-                        for (int i = 0; i < abilityToRemove; i++)
-                        {
-                            card.abilities.RemoveAt(0);
+                            for (int i = 0; i < abilityToRemove; i++)
+                            {
+                                card.abilities.RemoveAt(0);
+                            }
                         }
                     }
                     foreach (var modCurrent in c.Mods)
