@@ -807,6 +807,13 @@ namespace Archipelago_Inscryption.Patches
             __instance.shelf.SetEnabled(false);
             return false;
         }
+
+        [HarmonyPatch(typeof(BonelordNPC), "SetRewardsGiven")]
+        [HarmonyPostfix]
+        static void MoveFemurPedestal(BonelordNPC __instance)
+        {
+            __instance.bonelordRewardsParent.transform.Find("Pedestal/Femur").parent.position = new Vector3(9.22f, 15.07f, 0f);
+        }
     }
 
     [HarmonyPatch]
