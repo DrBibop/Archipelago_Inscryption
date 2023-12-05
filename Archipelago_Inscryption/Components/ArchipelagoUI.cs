@@ -1,8 +1,6 @@
-﻿using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
-using Archipelago.MultiClient.Net.Models;
+﻿using Archipelago.MultiClient.Net.Models;
 using Archipelago_Inscryption.Archipelago;
 using Archipelago_Inscryption.Assets;
-using Archipelago_Inscryption.Helpers;
 using BepInEx;
 using DiskCardGame;
 using Newtonsoft.Json;

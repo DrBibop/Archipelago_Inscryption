@@ -717,9 +717,18 @@ namespace Archipelago_Inscryption.Patches
 
         [HarmonyPatch(typeof(HoloMapLukeFile), "OnFolderHitMapKeyframe")]
         [HarmonyPostfix]
-        static void GiveLukeFileCheck()
+        static void GiveLukeFileCheck(HoloMapLukeFile __instance)
         {
-            APCheck check = APCheck.FactoryLukeFileEntry1 + (Mathf.Clamp(Part3SaveData.Data.lukeFileIndex, 0, HoloMapLukeFile.FILE_NAMES.Length) - 1);
+            APCheck check;
+
+            if (__instance.transform.parent.parent.gameObject.name == "HoloMapArea_NatureSidePath(Clone)")
+                check = APCheck.FactoryLukeFileEntry1;
+            else if (__instance.transform.parent.parent.gameObject.name == "HoloMapArea_NeutralWestSide_2(Clone)")
+                check = APCheck.FactoryLukeFileEntry2;
+            else if (__instance.transform.parent.parent.gameObject.name == "HoloMapArea_NeutralWest_LukeFile(Clone)")
+                check = APCheck.FactoryLukeFileEntry3;
+            else
+                check = APCheck.FactoryLukeFileEntry4;
 
             ArchipelagoManager.SendCheck(check);
         }

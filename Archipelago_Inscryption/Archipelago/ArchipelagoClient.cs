@@ -194,9 +194,6 @@ namespace Archipelago_Inscryption.Archipelago
                     ArchipelagoModPlugin.Log.LogWarning("Item ID " + nextItem.Item + " didn't apply properly. Retrying...");
                     if (onNewItemReceived != null)
                         onNewItemReceived(nextItem);
-
-                    if (!ArchipelagoManager.VerifyItem(nextItem))
-                        ArchipelagoModPlugin.Log.LogError("Item ID " + nextItem.Item + " has failed to apply. Contact us in the Archipelago Discord server or open an issue in our GitHub repository.");
                 }
             }
         }
