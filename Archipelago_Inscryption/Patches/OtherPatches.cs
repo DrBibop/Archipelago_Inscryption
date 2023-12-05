@@ -394,6 +394,8 @@ namespace Archipelago_Inscryption.Patches
                         if (c.HasTrait(Trait.Pelt))
                         {
                             card = c;
+                            newCardsIds.Add(card.name);
+                            newCards.Add(card);
                             continue;
                         }
                         else if (c.metaCategories.Contains(CardMetaCategory.Rare))
@@ -620,12 +622,13 @@ namespace Archipelago_Inscryption.Patches
             return true;
         }
 
+        public static bool deathCardGot = false;
 
         [HarmonyPatch(typeof(HoloMapNode), "OnSelected")]
         [HarmonyPrefix]
         static bool RandomizeDeckAct3()
         {
-            bool b = true;
+            deathCardGot = false;
             if (ArchipelagoOptions.randomizeDeck != RandomizeDeck.Disable)
             {
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
@@ -659,87 +662,42 @@ namespace Archipelago_Inscryption.Patches
                 foreach (CardInfo c in Part3SaveData.Data.deck.Cards)
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
-                    if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
+                    int abilityCount = 0;
+                    do
                     {
-                        if (c.name.Contains("Conduit") || c.name.Contains("Cell"))
-                        {
-                            card = cardsInfoRandomConduitPool[SeededRandom.Range(0, cardsInfoRandomConduitPool.Count, seed++)];
-                        }
-                        else if (c.name.Contains("Sentinel") || c.name.Contains("Gem"))
-                        {
-                            card = cardsInfoRandomGemPool[SeededRandom.Range(0, cardsInfoRandomGemPool.Count, seed++)];
-                        }
+                        card = RandomizerHelper.RandomizeOneCardAct3(ref seed, ref cardsInfoRandomPool, ref cardsInfoRandomGemPool, ref cardsInfoRandomConduitPool, c, ref deathCardGot);
+                        if (card.name == "!BUILDACARD_BASE")
+                            abilityCount = card.mods[0].abilities.Count;
                         else
-                        {
-                            card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-                        }
-                    }
-                    else
-                    {
-                        card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-                    }
-                    if (card.name == "BlueMage_Talking" || card.name == "Angler_Talking" || card.name == "Ouroboros_Part3" || card.name == "!BUILDACARD_BASE")
-                        cardsInfoRandomPool.Remove(card);
-                    if (card.name != "!BUILDACARD_BASE")
-                        card = (CardInfo)card.Clone();
-                    int abilityCount = card.abilities.Count;
-                    if (card.name == "!BUILDACARD_BASE")
-                    {
-                        abilityCount += card.mods[0].abilities.Count;
-                    }
-                    else
-                    {
-                        List<Ability> abilityUnique = new List<Ability>();
+                            abilityCount = card.abilities.Count;
                         foreach (var modCurrent in c.Mods)
                         {
-                            foreach (var item in modCurrent.abilities)
-                            {
-                                if (!abilityUnique.Contains(item))
-                                {
-                                    abilityUnique.Add(item);
-                                    abilityCount++;
-                                }
-                            }
-                        }
-                    }
-                    if (abilityCount > 4)
-                    {
-                        int abilityToRemove = abilityCount - 4;
-                        if (card.name == "!BUILDACARD_BASE")
-                        {
-                            for (int i = 0; i < abilityToRemove; i++)
-                            {
-                                card.mods[0].abilities.RemoveAt(0);
-                            }
-                        }
-                        else
-                        {
-                            for (int i = 0; i < abilityToRemove; i++)
-                            {
-                                card.abilities.RemoveAt(0);
-                            }
-                        }
-                    }
-                    foreach (var modCurrent in c.Mods)
-                    {
-                        if (ArchipelagoOptions.randomizeAbilities != RandomizeAbilities.Disable)
-                        {
                             if (modCurrent.buildACardPortraitInfo != null)
-                            {
                                 continue;
-                            }
-                            List<Ability> newAbilityMod = new List<Ability>();
                             if (modCurrent.abilities.Count > 0)
                             {
-                                for (int l = 0; l < modCurrent.abilities.Count; l++)
-                                {
-                                    Ability abil = AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.Part3Modular);
-                                    while (card.HasAbility(abil))
-                                        abil = AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.Part3Modular);
-                                    newAbilityMod.Add(abil);
-                                }
-                                modCurrent.abilities = newAbilityMod;
+                                foreach (var ability in modCurrent.abilities)
+                                    abilityCount++;
                             }
+                        }
+                    } while (abilityCount > 4);
+                    foreach (var modCurrent in c.Mods)
+                    {
+                        if (modCurrent.buildACardPortraitInfo != null)
+                        {
+                            continue;
+                        }
+                        List<Ability> newAbilityMod = new List<Ability>();
+                        if (modCurrent.abilities.Count > 0)
+                        {
+                            for (int l = 0; l < modCurrent.abilities.Count; l++)
+                            {
+                                Ability abil = AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.Part3Modular);
+                                while (card.HasAbility(abil))
+                                    abil = AbilitiesUtil.GetRandomLearnedAbility(seed++, false, 0, 5, AbilityMetaCategory.Part3Modular);
+                                newAbilityMod.Add(abil);
+                            }
+                            modCurrent.abilities = newAbilityMod;
                         }
                         card.mods.Add(modCurrent);
                     }
@@ -754,7 +712,26 @@ namespace Archipelago_Inscryption.Patches
             return true;
         }
 
-        [HarmonyPatch(typeof(FactoryScannerScreen), "CheckBuildACardMatch")]
+        [HarmonyPatch(typeof(CardAbilityIcons), "PositionModIcons")]
+        [HarmonyPostfix]
+        static void ModIconList(List<Ability> defaultAbilities, List<Ability> mergeAbilities, List<AbilityIconInteractable> mergeIcons, 
+                                List<Ability> totemAbilities, List<AbilityIconInteractable> totemIcons, CardAbilityIcons __instance)
+        {
+            if (defaultAbilities.Count == 0)
+            {
+                if (mergeAbilities.Count == 1 && mergeIcons.Count > 0)
+                {
+                    mergeIcons[0].transform.localPosition = __instance.DefaultIconPosition;
+                    return;
+                }
+                if (totemAbilities.Count == 1 && totemIcons.Count > 0)
+                {
+                    totemIcons[0].transform.localPosition = __instance.DefaultIconPosition;
+                }
+            }
+        }
+
+            [HarmonyPatch(typeof(FactoryScannerScreen), "CheckBuildACardMatch")]
         [HarmonyPostfix]
         static void RememberCustomCard(BuildACardInfo info)
         {

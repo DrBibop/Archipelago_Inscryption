@@ -541,6 +541,33 @@ namespace Archipelago_Inscryption.Helpers
             }
         }
 
+        public static CardInfo RandomizeOneCardAct3(ref int seed, ref List<CardInfo> cardsInfoRandomPool, ref List<CardInfo> cardsInfoRandomGemPool, ref List<CardInfo> cardsInfoRandomConduitPool, CardInfo c, ref bool deathCardGot)
+        {
+            CardInfo card;
+            if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
+            {
+                if (c.name.Contains("Conduit") || c.name.Contains("Cell"))
+                    card = cardsInfoRandomConduitPool[SeededRandom.Range(0, cardsInfoRandomConduitPool.Count, seed++)];
+                else if (c.name.Contains("Sentinel") || c.name.Contains("Gem"))
+                    card = cardsInfoRandomGemPool[SeededRandom.Range(0, cardsInfoRandomGemPool.Count, seed++)];
+                else
+                    card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+            }
+            else
+                card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+            while (card.name != "!BUILDACARD_BASE" && !deathCardGot)
+            {
+                card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
+            }
+            deathCardGot = true;
+            Console.WriteLine($"name card : {card.name}");
+            if (card.name == "BlueMage_Talking" || card.name == "Angler_Talking" || card.name == "Ouroboros_Part3" || card.name == "!BUILDACARD_BASE")
+                cardsInfoRandomPool.Remove(card);
+            if (card.name != "!BUILDACARD_BASE")
+                card = (CardInfo)card.Clone();
+            return card;
+        }
+
         internal static List<CardInfo> GetAllDeathCards()
         {
             List<CardInfo> list = new List<CardInfo>();
@@ -566,6 +593,7 @@ namespace Archipelago_Inscryption.Helpers
             List<CardInfo> list = new List<CardInfo>();
             foreach (CardModificationInfo customCardMod in ArchipelagoData.Data.customCardsModsAct3)
             {
+                Console.WriteLine($"custom : {customCardMod.nameReplacement}");
                 CardInfo c = CardLoader.GetCardByName("!BUILDACARD_BASE");
                 c.mods.Add(customCardMod);
                 list.Add(c);

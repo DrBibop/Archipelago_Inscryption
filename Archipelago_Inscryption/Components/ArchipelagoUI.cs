@@ -153,7 +153,20 @@ namespace Archipelago_Inscryption.Components
                 if (loadedData != null)
                 {
                     loadedData.itemsUnaccountedFor = new List<NetworkItem>(loadedData.receivedItems);
-
+                    foreach (var cI in loadedData.customCardInfos)
+                    {
+                        CardModificationInfo m = new CardModificationInfo();
+                        m.singletonId = cI.SingletonId;
+                        m.nameReplacement = cI.NameReplacement;
+                        m.attackAdjustment = cI.AttackAdjustment;
+                        m.healthAdjustment = cI.HealthAdjustment;
+                        m.energyCostAdjustment = cI.EnergyCostAdjustment;
+                        m.abilities = cI.Abilities;
+                        BuildACardPortraitInfo portraitInfo = new BuildACardPortraitInfo();
+                        portraitInfo.spriteIndices = cI.SpriteIndices;
+                        m.buildACardPortraitInfo = portraitInfo;
+                        loadedData.customCardsModsAct3.Add(m);
+                    }
                     try
                     {
                         dataList.Add(File.GetLastWriteTime(dataPath), (dirInfo.Name, loadedData));

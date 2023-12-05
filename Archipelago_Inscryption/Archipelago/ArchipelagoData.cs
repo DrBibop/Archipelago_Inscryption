@@ -3,6 +3,7 @@ using BepInEx;
 using DiskCardGame;
 using GracesGames.Common.Scripts;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -86,63 +87,6 @@ namespace Archipelago_Inscryption.Archipelago
 
         [JsonIgnore]
         internal uint index = 0;
-
-        internal static void LoadData()
-        {
-            if (File.Exists(dataFilePath))
-            {
-                try
-                {
-                    string fileContent = File.ReadAllText(dataFilePath);
-                    Data = JsonConvert.DeserializeObject<ArchipelagoData>(fileContent);
-                    Data.itemsUnaccountedFor = new List<NetworkItem>(Data.receivedItems);
-                    foreach (var cI in Data.customCardInfos)
-                    {
-                        CardModificationInfo m = new CardModificationInfo();
-                        m.singletonId = cI.SingletonId;
-                        m.nameReplacement = cI.NameReplacement;
-                        m.attackAdjustment = cI.AttackAdjustment;
-                        m.healthAdjustment = cI.HealthAdjustment;
-                        m.energyCostAdjustment = cI.EnergyCostAdjustment;
-                        m.abilities = cI.Abilities;
-                        BuildACardPortraitInfo portraitInfo = new BuildACardPortraitInfo();
-                        portraitInfo.spriteIndices = cI.SpriteIndices;
-                        m.buildACardPortraitInfo = portraitInfo;
-                        Data.customCardsModsAct3.Add(m);
-                    }
-                }
-                catch (Exception e)
-                {
-                    ArchipelagoModPlugin.Log.LogError("Error while loading ArchipelagoData.json: " + e.Message);
-                }
-            }
-            else
-            {
-                Data = new ArchipelagoData();
-            }
-        }
-
-        internal void Reset()
-        {
-            availableCardPacks = 0;
-            index = 0;
-
-            completedChecks.Clear();
-            receivedItems.Clear();
-            itemsUnaccountedFor.Clear();
-            itemsUnaccountedFor.Clear();
-
-            cabinSafeCode.Clear();
-            cabinClockCode.Clear();
-            cabinSmallClockCode.Clear();
-            factoryClockCode.Clear();
-
-            act1Completed = false;
-            act2Completed = false;
-            act3Completed = false;
-            epilogueCompleted = false;
-            goalCompletedAndSent = false;
-        }
 
         internal static void SaveToFile()
         {
