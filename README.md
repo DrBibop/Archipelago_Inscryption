@@ -14,7 +14,7 @@ Here are the different settings:
 	- **false**: Only die when you die (vanilla).
 	- **true**: When other players using deathlink die, you die as well.
  - **act1_deathlink_behaviour**:
-	- **0**:  Send a death when sacrificed by Leshy. Receiving a death will extinguish all candles.
+	- **0**: Send a death when sacrificed by Leshy. Receiving a death will extinguish all candles.
 	- **1**: Send a death when a candle is extinguished. Receiving a death will extinguish a candle.
  - **goal**:
 	- **0**: Complete each act and the epilogue in order. You can return to previously completed acts.
