@@ -1,6 +1,6 @@
 {
     "name": "ArchipelagoMod",
-    "version_number": "0.1.4",
+    "version_number": "0.2.0",
     "website_url": "https://github.com/DrBibop/Archipelago_Inscryption",
     "description": "Archipelago Multiworld Randomizer integration for Inscryption.",
     "dependencies": [
