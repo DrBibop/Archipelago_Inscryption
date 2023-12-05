@@ -1,6 +1,9 @@
 ﻿using Archipelago.MultiClient.Net.Models;
 using BepInEx;
+using DiskCardGame;
+using GracesGames.Common.Scripts;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -48,6 +51,11 @@ namespace Archipelago_Inscryption.Archipelago
         [JsonIgnore]
         internal List<NetworkItem> itemsUnaccountedFor = new List<NetworkItem>();
 
+        [JsonProperty("customCardInfos")]
+        internal List<CustomCardInfo> customCardInfos = new List<CustomCardInfo>();
+        [JsonIgnore]
+        internal List<CardModificationInfo> customCardsModsAct3 = new List<CardModificationInfo>();
+
         [JsonProperty("availableCardPacks")]
         internal int availableCardPacks = 0;
 
@@ -80,31 +88,45 @@ namespace Archipelago_Inscryption.Archipelago
         [JsonIgnore]
         internal uint index = 0;
 
-        internal void Reset()
-        {
-            availableCardPacks = 0;
-            index = 0;
-
-            completedChecks.Clear();
-            receivedItems.Clear();
-            itemsUnaccountedFor.Clear();
-
-            cabinSafeCode.Clear();
-            cabinClockCode.Clear();
-            cabinSmallClockCode.Clear();
-            factoryClockCode.Clear();
-
-            act1Completed = false;
-            act2Completed = false;
-            act3Completed = false;
-            epilogueCompleted = false;
-            goalCompletedAndSent = false;
-        }
-
         internal static void SaveToFile()
         {
             string json = JsonConvert.SerializeObject(Data);
             File.WriteAllText(dataFilePath, json);
+        }
+    }
+
+    internal struct CustomCardInfo
+    {
+        [JsonProperty("singletonId")]
+        public string SingletonId { get; set; }
+
+        [JsonProperty("nameReplacement")]
+        public string NameReplacement { get; set; }
+
+        [JsonProperty("attackAdjustment")]
+        public int AttackAdjustment { get; set; }
+
+        [JsonProperty("healthAdjustment")]
+        public int HealthAdjustment { get; set; }
+
+        [JsonProperty("energyCostAdjustment")]
+        public int EnergyCostAdjustment { get; set; }
+
+        [JsonProperty("abilities")]
+        public List<Ability> Abilities { get; set; }
+
+        [JsonProperty("spriteIndices")] 
+        public int[] SpriteIndices { get; set; }
+
+        public CustomCardInfo(string singletonId, string nameReplacement, int attackAdjustment, int healthAdjustment, int energyCostAdjustment, List<Ability> abilities, int[] spriteIndices)
+        {
+            SingletonId = singletonId;
+            NameReplacement = nameReplacement;
+            AttackAdjustment = attackAdjustment;
+            HealthAdjustment = healthAdjustment;
+            EnergyCostAdjustment = energyCostAdjustment;
+            Abilities = abilities;
+            SpriteIndices = spriteIndices;
         }
     }
 }
