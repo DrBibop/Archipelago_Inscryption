@@ -423,13 +423,11 @@ namespace Archipelago_Inscryption.Archipelago
                     if (!SaveData.Data.undeadTemple.epitaphPieces[i].found) return false;
                 }
             }
-
-            if (receivedItem == APItem.CameraReplica && !SaveData.Data.natureTemple.hasCamera)
+            else if (receivedItem == APItem.CameraReplica && !SaveData.Data.natureTemple.hasCamera)
             {
                 return false;
             }
-
-            if (receivedItem == APItem.MrsBombRemote && !Part3SaveData.Data.unlockedItems.Contains(Part3SaveData.ItemUnlock.BombRemote))
+            else if (receivedItem == APItem.MrsBombRemote && !Part3SaveData.Data.unlockedItems.Contains(Part3SaveData.ItemUnlock.BombRemote))
             {
                 return false;
             }
@@ -441,8 +439,11 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 return false;
             }
-
-            if (receivedItem == APItem.Quill && !Part3SaveData.Data.foundUndeadTempleQuill)
+            else if (receivedItem == APItem.Quill && !Part3SaveData.Data.foundUndeadTempleQuill)
+            {
+                return false;
+            }
+            else if (receivedItem == APItem.HoloPelt && Part3SaveData.Data.pelts + Part3SaveData.Data.collectedTarots.Count < ArchipelagoData.Data.receivedItems.Count(i => i.Item == ITEM_ID_OFFSET + (int)APItem.HoloPelt))
             {
                 return false;
             }
