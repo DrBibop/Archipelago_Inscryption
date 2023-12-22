@@ -383,6 +383,8 @@ namespace Archipelago_Inscryption.Components
             postConnectScreen.SetActive(true);
             postConnectText.text = "Connecting...";
 
+            SaveManager.LoadFromFile();
+
             yield return new WaitUntil(() => !ArchipelagoClient.IsConnecting);
 
             if (ArchipelagoClient.IsConnected)
@@ -401,14 +403,14 @@ namespace Archipelago_Inscryption.Components
                     }
                 }
 
-                SaveManager.LoadFromFile();
-
                 postConnectText.text = "Connected";
                 yield return new WaitForSeconds(0.75f);
 
                 ArchipelagoManager.InitializeFromServer();
 
                 postConnectText.text = "Collecting items...";
+
+                ArchipelagoManager.VerifyAllItems();
 
                 canProcessItems = true;
 

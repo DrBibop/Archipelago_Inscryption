@@ -7,7 +7,6 @@ using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using GBC;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -92,17 +91,23 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static Queue<NetworkItem> itemQueue = new Queue<NetworkItem>();
 
-        private static bool playedSoundThisFrame = false;
+        private static Queue<NetworkItem> itemsToVerifyQueue = new Queue<NetworkItem>();
 
         internal static void Init()
         {
             ArchipelagoClient.onConnectAttemptDone += OnConnectAttempt;
             ArchipelagoClient.onNewItemReceived += OnItemReceived;
+            ArchipelagoClient.onProcessedItemReceived += OnItemToVerifyReceived;
         }
 
         private static void OnItemReceived(NetworkItem item)
         {
             itemQueue.Enqueue(item);
+        }
+
+        private static void OnItemToVerifyReceived(NetworkItem item)
+        {
+            itemsToVerifyQueue.Enqueue(item);
         }
 
         internal static bool ProcessNextItem()
@@ -389,6 +394,20 @@ namespace Archipelago_Inscryption.Archipelago
             ScoutChecks();
             VerifyGoalCompletion();
             ArchipelagoClient.SendChecksToServerAsync();
+        }
+
+        internal static void VerifyAllItems()
+        {
+            while (itemsToVerifyQueue.Count() > 0)
+            {
+                NetworkItem nextItem = itemsToVerifyQueue.Dequeue();
+
+                if (!VerifyItem(nextItem))
+                {
+                    ArchipelagoModPlugin.Log.LogWarning($"Item ID {nextItem.Item} ({ArchipelagoClient.GetItemName(nextItem.Item)}) didn't apply properly. Retrying...");
+                    itemQueue.Enqueue(nextItem);
+                }
+            }
         }
 
         internal static bool VerifyItem(NetworkItem item)
