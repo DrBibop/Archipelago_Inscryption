@@ -78,13 +78,32 @@ namespace Archipelago_Inscryption.Archipelago
                     }
                     else
                     {
-                        yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
+                        if (RunState.Run.playerLives > 1)
+                        {
+                            int smokeIndex = RunState.Run.playerLives;
+                            if (Singleton<CandleHolder>.Instance.activeSmoke != null && Singleton<CandleHolder>.Instance.activeSmoke.Count > smokeIndex)
+                            {
+                                Singleton<CandleHolder>.Instance.activeSmoke[smokeIndex].SetActive(true);
+                                CustomCoroutine.WaitThenExecute(20f, delegate
+                                {
+                                    if (Singleton<CandleHolder>.Instance.activeSmoke != null)
+                                    {
+                                        Singleton<CandleHolder>.Instance.activeSmoke[smokeIndex].SetActive(false);
+                                    }
+                                }, false);
+                            }
+                            Singleton<CandleHolder>.Instance.BlowOutCandle(RunState.Run.playerLives);
+                        }
+                        else
+                        {
+                            yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
+                        }
                     }
                 }
 
                 PauseMenu.pausingDisabled = false;
 
-                if (ArchipelagoOptions.act1DeathLinkBehaviour == Act1DeathLink.Sacrificed)
+                if (RunState.Run.playerLives <= 0)
                     yield return new WaitUntil(() => RunState.Run != finishedRun);
             }
             else if (SaveManager.saveFile.IsPart2)
