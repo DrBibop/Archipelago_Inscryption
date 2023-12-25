@@ -1,3 +1,9 @@
+### 0.2.1
+ - Single candle deathlink no longer forces a view switch towards the candles if more lives are still remaining.
+ - Fixed single candle deathlink soft-locking the game in certain situations.
+ - Fixed game freeze during screen transitions in act 3 when the deck is randomized.
+ - Fixed certain items that were being reapplied by mistake on connect.
+
 ### 0.2.0
  - A new save file system allows you to create and select save files on startup to facilitate playing in multiple multiworlds.
  - Added a new setting for how deathlink behaves in act 1. You can now choose to only lose a single candle when receiving a deathlink and send a deathlink when losing a candle.
