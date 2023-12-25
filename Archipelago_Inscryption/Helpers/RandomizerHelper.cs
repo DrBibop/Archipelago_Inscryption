@@ -555,7 +555,6 @@ namespace Archipelago_Inscryption.Helpers
             }
             else
                 card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-            Console.WriteLine($"name card : {card.name}");
             if (card.name == "BlueMage_Talking" || card.name == "Angler_Talking" || card.name == "Ouroboros_Part3" || card.name == "!BUILDACARD_BASE")
                 cardsInfoRandomPool.Remove(card);
             if (card.name != "!BUILDACARD_BASE")
