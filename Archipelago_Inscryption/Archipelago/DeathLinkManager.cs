@@ -45,7 +45,9 @@ namespace Archipelago_Inscryption.Archipelago
             if (Singleton<InteractionCursor>.Instance != null && Singleton<InteractionCursor>.Instance.InteractionDisabled == true)
                 yield return new WaitUntil(() => !Singleton<InteractionCursor>.Instance.InteractionDisabled);
 
-            if (Singleton<FirstPersonController>.Instance != null && Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.FirstPerson3D)
+            if (Singleton<FirstPersonController>.Instance != null && 
+                Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.FirstPerson3D &&
+                (SaveManager.SaveFile.IsPart3 || ArchipelagoOptions.act1DeathLinkBehaviour == Act1DeathLink.Sacrificed || RunState.Run.playerLives <= 1))
                 yield return Singleton<GameFlowManager>.Instance.DoTransitionSequence(GameState.Map, null);
 
             if (PauseMenu.instance && PauseMenu.instance.Paused)
@@ -72,6 +74,7 @@ namespace Archipelago_Inscryption.Archipelago
                 {
                     if (ArchipelagoOptions.act1DeathLinkBehaviour == Act1DeathLink.Sacrificed)
                     {
+                        Singleton<GameFlowManager>.Instance.CurrentGameState = GameState.CardBattle;
                         while (RunState.Run.playerLives > 0)
                             yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
                         yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
@@ -80,6 +83,7 @@ namespace Archipelago_Inscryption.Archipelago
                     {
                         if (RunState.Run.playerLives > 1)
                         {
+                            RunState.Run.playerLives--;
                             int smokeIndex = RunState.Run.playerLives;
                             if (Singleton<CandleHolder>.Instance.activeSmoke != null && Singleton<CandleHolder>.Instance.activeSmoke.Count > smokeIndex)
                             {
@@ -96,13 +100,14 @@ namespace Archipelago_Inscryption.Archipelago
                         }
                         else
                         {
+                            Singleton<GameFlowManager>.Instance.CurrentGameState = GameState.CardBattle;
                             yield return Singleton<CandleHolder>.Instance.BlowOutCandleSequence();
+                            yield return RandomizerHelper.PrePlayerDeathSequence(Singleton<Part1GameFlowManager>.Instance);
                         }
                     }
                 }
 
                 PauseMenu.pausingDisabled = false;
-
                 if (RunState.Run.playerLives <= 0)
                     yield return new WaitUntil(() => RunState.Run != finishedRun);
             }
