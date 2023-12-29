@@ -541,7 +541,7 @@ namespace Archipelago_Inscryption.Helpers
             }
         }
 
-        public static CardInfo RandomizeOneCardAct3(ref int seed, ref List<CardInfo> cardsInfoRandomPool, ref List<CardInfo> cardsInfoRandomGemPool, ref List<CardInfo> cardsInfoRandomConduitPool, CardInfo c, ref bool deathCardGot)
+        public static CardInfo RandomizeOneCardAct3(ref int seed, ref List<CardInfo> cardsInfoRandomPool, ref List<CardInfo> cardsInfoRandomGemPool, ref List<CardInfo> cardsInfoRandomConduitPool, CardInfo c)
         {
             CardInfo card;
             if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
@@ -555,12 +555,6 @@ namespace Archipelago_Inscryption.Helpers
             }
             else
                 card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-            while (card.name != "!BUILDACARD_BASE" && !deathCardGot)
-            {
-                card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-            }
-            deathCardGot = true;
-            Console.WriteLine($"name card : {card.name}");
             if (card.name == "BlueMage_Talking" || card.name == "Angler_Talking" || card.name == "Ouroboros_Part3" || card.name == "!BUILDACARD_BASE")
                 cardsInfoRandomPool.Remove(card);
             if (card.name != "!BUILDACARD_BASE")

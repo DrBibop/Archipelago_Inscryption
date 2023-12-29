@@ -20,6 +20,7 @@ namespace Archipelago_Inscryption.Archipelago
     {
         internal static Action<LoginResult> onConnectAttemptDone;
         internal static Action<NetworkItem> onNewItemReceived;
+        internal static Action<NetworkItem> onProcessedItemReceived;
 
         internal static bool IsConnecting => isConnecting;
         internal static bool IsConnected => isConnected;
@@ -182,22 +183,13 @@ namespace Archipelago_Inscryption.Archipelago
                 // This item is new
                 ArchipelagoData.Data.receivedItems.Add(nextItem);
 
-                if (onNewItemReceived != null)
-                    onNewItemReceived(nextItem);
+                onNewItemReceived?.Invoke(nextItem);
             }
             else
             {
                 ArchipelagoData.Data.itemsUnaccountedFor.Remove(matchedItem);
 
-                if (!ArchipelagoManager.VerifyItem(nextItem))
-                {
-                    ArchipelagoModPlugin.Log.LogWarning("Item ID " + nextItem.Item + " didn't apply properly. Retrying...");
-                    if (onNewItemReceived != null)
-                        onNewItemReceived(nextItem);
-
-                    if (!ArchipelagoManager.VerifyItem(nextItem))
-                        ArchipelagoModPlugin.Log.LogError("Item ID " + nextItem.Item + " has failed to apply. Contact us in the Archipelago Discord server or open an issue in our GitHub repository.");
-                }
+                onProcessedItemReceived?.Invoke(nextItem);
             }
         }
 

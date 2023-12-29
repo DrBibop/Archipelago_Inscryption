@@ -76,7 +76,8 @@ namespace Archipelago_Inscryption.Helpers
                         StoryEventsData.EventCompleted(StoryEvent.PhotographerDefeated) && 
                         StoryEventsData.EventCompleted(StoryEvent.TelegrapherDefeated) && 
                         StoryEventsData.EventCompleted(StoryEvent.CanvasDefeated) &&
-                        Part3SaveData.Data.playerPos.worldId == "StartingArea")
+                        Part3SaveData.Data.playerPos.worldId == "StartingArea" || 
+                        Part3SaveData.Data.playerPos.worldId == "!FINALE_CHAPTER_SELECT")
                         Part3SaveData.Data.playerPos = new Part3SaveData.WorldPosition("NorthNeutralPath", 2, 1);
                     SaveManager.SaveFile.currentScene = "Part3_Cabin";
                     break;

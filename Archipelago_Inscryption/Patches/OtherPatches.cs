@@ -503,13 +503,13 @@ namespace Archipelago_Inscryption.Patches
                     cardsInfoRandomPoolNature = cardsInfoRandomPoolNature.FindAll(x => !x.metaCategories.Contains(CardMetaCategory.Rare));
                     cardsInfoRandomPoolUndead = cardsInfoRandomPoolAll.FindAll(x =>  x.temple == CardTemple.Undead);
                     cardsInfoRandomPoolUndeadRare = cardsInfoRandomPoolUndead.FindAll(x => x.metaCategories.Contains(CardMetaCategory.Rare));
-                    cardsInfoRandomPoolNature = cardsInfoRandomPoolUndead.FindAll(x => !x.metaCategories.Contains(CardMetaCategory.Rare));
+                    cardsInfoRandomPoolUndead = cardsInfoRandomPoolUndead.FindAll(x => !x.metaCategories.Contains(CardMetaCategory.Rare));
                     cardsInfoRandomPoolTech = cardsInfoRandomPoolAll.FindAll(x =>  x.temple == CardTemple.Tech);
                     cardsInfoRandomPoolTechRare = cardsInfoRandomPoolTech.FindAll(x => x.metaCategories.Contains(CardMetaCategory.Rare));
-                    cardsInfoRandomPoolNature = cardsInfoRandomPoolTech.FindAll(x => !x.metaCategories.Contains(CardMetaCategory.Rare));
+                    cardsInfoRandomPoolTech = cardsInfoRandomPoolTech.FindAll(x => !x.metaCategories.Contains(CardMetaCategory.Rare));
                     cardsInfoRandomPoolWizard = cardsInfoRandomPoolAll.FindAll(x =>  x.temple == CardTemple.Wizard);
                     cardsInfoRandomPoolWizardRare = cardsInfoRandomPoolWizard.FindAll(x => x.metaCategories.Contains(CardMetaCategory.Rare));
-                    cardsInfoRandomPoolNature = cardsInfoRandomPoolWizard.FindAll(x => !x.metaCategories.Contains(CardMetaCategory.Rare));
+                    cardsInfoRandomPoolWizard = cardsInfoRandomPoolWizard.FindAll(x => !x.metaCategories.Contains(CardMetaCategory.Rare));
                 }
                 if (ArchipelagoManager.HasItem(APItem.DrownedSoulCard))
                 {
@@ -622,13 +622,10 @@ namespace Archipelago_Inscryption.Patches
             return true;
         }
 
-        public static bool deathCardGot = false;
-
         [HarmonyPatch(typeof(HoloMapNode), "OnSelected")]
         [HarmonyPrefix]
         static bool RandomizeDeckAct3()
         {
-            deathCardGot = false;
             if (ArchipelagoOptions.randomizeDeck != RandomizeDeck.Disable)
             {
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
@@ -665,7 +662,7 @@ namespace Archipelago_Inscryption.Patches
                     int abilityCount = 0;
                     do
                     {
-                        card = RandomizerHelper.RandomizeOneCardAct3(ref seed, ref cardsInfoRandomPool, ref cardsInfoRandomGemPool, ref cardsInfoRandomConduitPool, c, ref deathCardGot);
+                        card = RandomizerHelper.RandomizeOneCardAct3(ref seed, ref cardsInfoRandomPool, ref cardsInfoRandomGemPool, ref cardsInfoRandomConduitPool, c);
                         if (card.name == "!BUILDACARD_BASE")
                             abilityCount = card.mods[0].abilities.Count;
                         else

@@ -1,3 +1,25 @@
+### 0.2.1
+ - Single candle deathlink no longer forces a view switch towards the candles if more lives are still remaining.
+ - Fixed single candle deathlink soft-locking the game in certain situations.
+ - Fixed game freeze during screen transitions in act 3 when the deck is randomized.
+ - Fixed certain items that were being reapplied by mistake on connect.
+
+### 0.2.0
+ - A new save file system allows you to create and select save files on startup to facilitate playing in multiple multiworlds.
+ - Added a new setting for how deathlink behaves in act 1. You can now choose to only lose a single candle when receiving a deathlink and send a deathlink when losing a candle.
+ - Added a new setting for how epitaph pieces are randomized. You can now choose to group them in groups of three or group them all as a single item.
+ - Wizard pillars in act 2 now have a random code when randomizing codes.
+ - Custom built cards in act 3 are now added to the randomization pool when randomizing cards.
+ - Moved the femur pedestal further left in the Bone Lord's lair in act 2 to avoid a double pickup glitch.
+ - Luke's file entry locations are now consistent with the place they were found in.
+ - Fixed custom built cards acting as a card modification which would randomize into another card with the custom card's stats, abilities and cost on top.
+ - Fixed randomized cards in act 3 which could end up with more than the maximum amount of four sigils.
+ - Fixed act 2 card items not appearing in your collection if received before first starting act 2.
+ - Fixed common act 2 cards sometimes randomizing into rare cards when randomizing cards within the same type.
+ - Fixed pelt cards in act 1 randomizing into other rare cards when randomizing cards within same type.
+ - Fixed the chapter select option for act 3 sending the player in the starting area where they cannot leave if the epilogue was chosen in the past in the chapter select menu.
+ - Fixed some issues with item verification.
+
 ### 0.1.4
  - Fixed broken obol cards not staying in the randomized deck in act 2 if the obol check wasn't done and the obol object was received.
  - Fixed campfire buffs in act 1 applying to multiple cards in rare occasions with the randomized deck.

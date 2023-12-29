@@ -7,7 +7,6 @@ using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using GBC;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -92,17 +91,23 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static Queue<NetworkItem> itemQueue = new Queue<NetworkItem>();
 
-        private static bool playedSoundThisFrame = false;
+        private static Queue<NetworkItem> itemsToVerifyQueue = new Queue<NetworkItem>();
 
         internal static void Init()
         {
             ArchipelagoClient.onConnectAttemptDone += OnConnectAttempt;
             ArchipelagoClient.onNewItemReceived += OnItemReceived;
+            ArchipelagoClient.onProcessedItemReceived += OnItemToVerifyReceived;
         }
 
         private static void OnItemReceived(NetworkItem item)
         {
             itemQueue.Enqueue(item);
+        }
+
+        private static void OnItemToVerifyReceived(NetworkItem item)
+        {
+            itemsToVerifyQueue.Enqueue(item);
         }
 
         internal static bool ProcessNextItem()
@@ -391,6 +396,20 @@ namespace Archipelago_Inscryption.Archipelago
             ArchipelagoClient.SendChecksToServerAsync();
         }
 
+        internal static void VerifyAllItems()
+        {
+            while (itemsToVerifyQueue.Count() > 0)
+            {
+                NetworkItem nextItem = itemsToVerifyQueue.Dequeue();
+
+                if (!VerifyItem(nextItem))
+                {
+                    ArchipelagoModPlugin.Log.LogWarning($"Item ID {nextItem.Item} ({ArchipelagoClient.GetItemName(nextItem.Item)}) didn't apply properly. Retrying...");
+                    itemQueue.Enqueue(nextItem);
+                }
+            }
+        }
+
         internal static bool VerifyItem(NetworkItem item)
         {
             APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
@@ -423,13 +442,11 @@ namespace Archipelago_Inscryption.Archipelago
                     if (!SaveData.Data.undeadTemple.epitaphPieces[i].found) return false;
                 }
             }
-
-            if (receivedItem == APItem.CameraReplica && !SaveData.Data.natureTemple.hasCamera)
+            else if (receivedItem == APItem.CameraReplica && !SaveData.Data.natureTemple.hasCamera)
             {
                 return false;
             }
-
-            if (receivedItem == APItem.MrsBombRemote && !Part3SaveData.Data.unlockedItems.Contains(Part3SaveData.ItemUnlock.BombRemote))
+            else if (receivedItem == APItem.MrsBombRemote && !Part3SaveData.Data.unlockedItems.Contains(Part3SaveData.ItemUnlock.BombRemote))
             {
                 return false;
             }
@@ -441,8 +458,11 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 return false;
             }
-
-            if (receivedItem == APItem.Quill && !Part3SaveData.Data.foundUndeadTempleQuill)
+            else if (receivedItem == APItem.Quill && !Part3SaveData.Data.foundUndeadTempleQuill)
+            {
+                return false;
+            }
+            else if (receivedItem == APItem.HoloPelt && Part3SaveData.Data.pelts + Part3SaveData.Data.collectedTarots.Count < ArchipelagoData.Data.receivedItems.Count(i => i.Item == ITEM_ID_OFFSET + (int)APItem.HoloPelt))
             {
                 return false;
             }
