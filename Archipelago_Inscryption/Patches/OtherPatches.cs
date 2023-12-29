@@ -358,8 +358,6 @@ namespace Archipelago_Inscryption.Patches
                 List<CardInfo> cardsInfoRandomPool = new List<CardInfo>();
                 List<string> newCardsIds = new List<string>();
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
-                if (ArchipelagoManager.HasItem(APItem.CagedWolfCard) && !StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken))
-                    allAddedCards.Add(CardLoader.GetCardByName("CagedWolf"));
                 if (ArchipelagoManager.HasItem(APItem.StinkbugCard))
                     allAddedCards.Add(CardLoader.GetCardByName("Stinkbug_Talking"));
                 if (ArchipelagoManager.HasItem(APItem.StuntedWolfCard))
@@ -389,6 +387,8 @@ namespace Archipelago_Inscryption.Patches
                 foreach (CardInfo c in RunState.Run.playerDeck.Cards)
                 {
                     CardInfo card = ScriptableObject.CreateInstance<CardInfo>();
+                    if (c.name == "CagedWolf")
+                        continue;
                     if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
                     {
                         if (c.HasTrait(Trait.Pelt))
