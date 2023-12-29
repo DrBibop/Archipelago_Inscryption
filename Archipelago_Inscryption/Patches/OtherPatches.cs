@@ -358,14 +358,14 @@ namespace Archipelago_Inscryption.Patches
                 List<CardInfo> cardsInfoRandomPool = new List<CardInfo>();
                 List<string> newCardsIds = new List<string>();
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
-                if (ArchipelagoManager.HasItem(APItem.CagedWolfCard) && !StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && !(__instance.Data is CardRemoveNodeData))
+                if (ArchipelagoManager.HasItem(APItem.CagedWolfCard) && !StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken))
                     allAddedCards.Add(CardLoader.GetCardByName("CagedWolf"));
                 if (ArchipelagoManager.HasItem(APItem.StinkbugCard))
                     allAddedCards.Add(CardLoader.GetCardByName("Stinkbug_Talking"));
                 if (ArchipelagoManager.HasItem(APItem.StuntedWolfCard))
                     allAddedCards.Add(CardLoader.GetCardByName("Wolf_Talking"));
                 allAddedCards.AddRange(RandomizerHelper.GetAllDeathCards());
-                if (!StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && ArchipelagoManager.HasItem(APItem.CagedWolfCard) && __instance.Data is CardRemoveNodeData)
+                if (!StoryEventsData.EventCompleted(StoryEvent.WolfCageBroken) && ArchipelagoManager.HasItem(APItem.CagedWolfCard))
                 {
                     CardInfo card = CardLoader.GetCardByName("CagedWolf");
                     newCardsIds.Add(card.name);
