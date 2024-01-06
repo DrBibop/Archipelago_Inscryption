@@ -658,5 +658,10 @@ namespace Archipelago_Inscryption.Helpers
                 GoToMainMenu();
             }
         }
+
+        public static string GetPaintingAnimal()
+        {
+            return StoryEventsData.EventCompleted(StoryEvent.BeeFigurineFound) ? "Bee" : "Squirrel";
+        }
     }
 }
