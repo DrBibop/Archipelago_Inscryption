@@ -823,6 +823,23 @@ namespace Archipelago_Inscryption.Patches
         {
             __instance.bonelordRewardsParent.transform.Find("Pedestal/Femur").parent.position = new Vector3(9.22f, 15.07f, 0f);
         }
+
+        [HarmonyPatch(typeof(LeshyDialogueNPC), "ManagedLateUpdate")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> PreventLeshyBattleIfCameraCheckNotCompleted(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int index = codes.FindIndex(x => x.LoadsField(AccessTools.Field(typeof(LeshyDialogueNPC), "npcVolumes")));
+
+            index++;
+
+            codes.RemoveRange(index, 10);
+
+            codes.Insert(index, new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "IsLeshyNotReadyForBattle")));
+
+            return codes.AsEnumerable();
+        }
     }
 
     [HarmonyPatch]
