@@ -2,6 +2,7 @@
 using Archipelago_Inscryption.Assets;
 using BepInEx;
 using BepInEx.Logging;
+using DiskCardGame;
 using HarmonyLib;
 using System.Reflection;
 
@@ -23,6 +24,9 @@ namespace Archipelago_Inscryption
             harmony.PatchAll(Assembly.GetExecutingAssembly());
             AssetsManager.LoadAssets();
             ArchipelagoManager.Init();
+
+            // To remove the lag spike when obtaining a card during the connection screen
+            ScriptableObjectLoader<CardInfo>.LoadData();
         }
     }
 }

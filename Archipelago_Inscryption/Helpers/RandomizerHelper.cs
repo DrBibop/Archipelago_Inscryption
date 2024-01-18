@@ -658,5 +658,15 @@ namespace Archipelago_Inscryption.Helpers
                 GoToMainMenu();
             }
         }
+
+        public static string GetPaintingAnimal()
+        {
+            return StoryEventsData.EventCompleted(StoryEvent.BeeFigurineFound) ? "Bee" : "Squirrel";
+        }
+
+        public static bool IsLeshyNotReadyForBattle(List<CardBattleNPC> battleNPCs)
+        {
+            return battleNPCs.Exists((CardBattleNPC x) => !x.Defeated) || !ArchipelagoManager.HasCompletedCheck(APCheck.GBCCameraReplica);
+        }
     }
 }

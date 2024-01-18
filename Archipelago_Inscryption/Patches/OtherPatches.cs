@@ -11,10 +11,6 @@ using System.Reflection.Emit;
 using TMPro;
 using UnityEngine;
 using System.IO;
-using Unity;
-using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
-using System;
-using Archipelago.MultiClient.Net.Models;
 using BepInEx;
 
 namespace Archipelago_Inscryption.Patches
@@ -221,6 +217,21 @@ namespace Archipelago_Inscryption.Patches
                 GameObject menuClue = GameObject.Find("/GBCCameras/UI/PauseMenu/MenuParent/Menu/OptionsUI/MainPanel/TabGroup_Audio/WizardMarking_F3_3/icon");
                 ArchipelagoOptions.SetClueSprite(menuClue.GetComponent<SpriteRenderer>(), 2, 2);
             }
+        }
+
+        [HarmonyPatch(typeof(OilPaintingPuzzle), "GenerateSolution")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> ChangePaintingAnimal(IEnumerable<CodeInstruction> instructions)
+        {
+            var codes = new List<CodeInstruction>(instructions);
+
+            int codeIndex = codes.FindIndex(x => x.opcode == OpCodes.Ldstr && (string)x.operand == "Squirrel");
+
+            codes.RemoveAt(codeIndex);
+
+            codes.Insert(codeIndex, new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(RandomizerHelper), "GetPaintingAnimal")));
+
+            return codes.AsEnumerable();
         }
     }
 

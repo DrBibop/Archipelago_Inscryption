@@ -410,9 +410,13 @@ namespace Archipelago_Inscryption.Components
 
                 postConnectText.text = "Collecting items...";
 
-                ArchipelagoManager.VerifyAllItems();
-
                 canProcessItems = true;
+
+                yield return null;
+
+                yield return new WaitUntil(() => itemTimer <= 0);
+
+                ArchipelagoManager.VerifyAllItems();
 
                 yield return null;
 
