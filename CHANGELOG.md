@@ -1,3 +1,10 @@
+### 0.2.2
+ - The caged wolf card will always appear in your deck if you own it when randomizing your deck.
+ - The oil painting puzzles in act 1 will now contain a bee instead of a squirrel if you have the bee figurine.
+ - Fixed the camera replica check being impossible to get if all 3 of Leshy's subordinates were defeated before ever talking to Leshy in act 2.
+ - Fixed a lag spike that would occur when receiving a card item after connecting to the server.
+ - Fixed some items that would wrongfully be marked as "failed to apply".
+
 ### 0.2.1
  - Single candle deathlink no longer forces a view switch towards the candles if more lives are still remaining.
  - Fixed single candle deathlink soft-locking the game in certain situations.
