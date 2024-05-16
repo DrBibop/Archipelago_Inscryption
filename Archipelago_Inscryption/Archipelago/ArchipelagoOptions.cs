@@ -13,9 +13,10 @@ namespace Archipelago_Inscryption.Archipelago
         internal static OptionalDeathCard optionalDeathCard = OptionalDeathCard.Disable;
         internal static bool randomizeCodes = false;
         internal static RandomizeDeck randomizeDeck = RandomizeDeck.Disable;
-        internal static RandomizeAbilities randomizeAbilities = RandomizeAbilities.Disable;
+        internal static RandomizeSigils randomizeSigils = RandomizeSigils.Disable;
         internal static Goal goal;
         internal static bool skipTutorial = false;
+        internal static bool skipEpilogue = false;
         internal static EpitaphPiecesRandomization epitaphPiecesRandomization = EpitaphPiecesRandomization.AllPieces;
 
         private static Sprite[] wizardClues;
@@ -28,8 +29,8 @@ namespace Archipelago_Inscryption.Archipelago
         {
             Sprite[] wizardSprites = Resources.LoadAll<Sprite>("art/gbc/temples/wizard/wizard_temple_objects");
 
-            wizardClues = new Sprite[]
-            {
+            wizardClues =
+            [
                 wizardSprites.First(x => x.name == "wizard_temple_objects_23"),
                 wizardSprites.First(x => x.name == "wizard_temple_objects_22"),
                 wizardSprites.First(x => x.name == "wizard_temple_objects_21"),
@@ -37,38 +38,38 @@ namespace Archipelago_Inscryption.Archipelago
                 wizardSprites.First(x => x.name == "wizard_temple_objects_51"),
                 AssetsManager.wizardTowerLensClueSprite,
                 wizardSprites.First(x => x.name == "wizard_temple_objects_55")
-            };
+            ];
 
-            floor1Clues = new GameObject[]
-            {
+            floor1Clues =
+            [
                 Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F1_1"),
                 Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F1_2"),
                 Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F1_3")
-            };
+            ];
 
             for (int i = 0; i < floor1Clues.Length; i++)
             {
                 floor1Clues[i].transform.Find("icon").GetComponent<SpriteRenderer>().sprite = wizardClues[ArchipelagoData.Data.wizardCode1[i]];
             }
 
-            floor2Clues = new GameObject[]
-            {
+            floor2Clues =
+            [
                 Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F2_1"),
                 Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F2_2"),
                 Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F2_3")
-            };
+            ];
 
             for (int i = 0; i < floor2Clues.Length; i++)
             {
                 floor2Clues[i].transform.Find("icon").GetComponent<SpriteRenderer>().sprite = wizardClues[ArchipelagoData.Data.wizardCode2[i]];
             }
 
-            floor3Clues = new GameObject[]
-            {
+            floor3Clues =
+            [
                 Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F3_1"),
                 Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F3_2"),
                 Resources.Load<GameObject>("prefabs/gbcui/textadditive/WizardMarking_F3_3")
-            };
+            ];
 
             for (int i = 0; i < floor3Clues.Length; i++)
             {

@@ -117,8 +117,12 @@ namespace Archipelago_Inscryption.Archipelago
                 {
                     if (GBCEncounterManager.Instance != null && GBCEncounterManager.Instance.EncounterOccurring)
                     {
-                        yield return new WaitUntil(() => Singleton<TurnManager>.Instance != null && (Singleton<TurnManager>.Instance.IsPlayerTurn || Singleton<TurnManager>.Instance.GameIsOver()));
+                        yield return new WaitUntil(() => 
+                            Singleton<TurnManager>.Instance != null && 
+                            (Singleton<TurnManager>.Instance.IsPlayerTurn || (Singleton<TurnManager>.Instance.opponent != null && Singleton<TurnManager>.Instance.GameIsOver())));
+
                         Singleton<TurnManager>.Instance.PlayerSurrendered = true;
+
                         yield return new WaitUntil(() => !GBCEncounterManager.Instance.EncounterOccurring);
                     }
 

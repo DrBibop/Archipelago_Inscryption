@@ -28,12 +28,21 @@ namespace Archipelago_Inscryption.Patches
 
             ArchipelagoManager.SendStoryCheckIfApplicable(storyEvent);
 
-            if (storyEvent == StoryEvent.StartScreenNewGameUnlocked)
+            if (storyEvent == StoryEvent.StartScreenNewGameUnlocked && !ArchipelagoData.Data.act1Completed)
+            {
+                ArchipelagoUI.Instance.LogImportant("Act 1 completed!");
                 ArchipelagoData.Data.act1Completed = true;
-            else if (storyEvent == StoryEvent.Part2Completed)
+            }
+            else if (storyEvent == StoryEvent.Part2Completed && !ArchipelagoData.Data.act2Completed)
+            {
+                ArchipelagoUI.Instance.LogImportant("Act 2 completed!");
                 ArchipelagoData.Data.act2Completed = true;
-            else if (storyEvent == StoryEvent.Part3Completed)
+            }
+            else if (storyEvent == StoryEvent.Part3Completed && !ArchipelagoData.Data.act3Completed)
+            {
+                ArchipelagoUI.Instance.LogImportant("Act 3 completed!");
                 ArchipelagoData.Data.act3Completed = true;
+            }
 
             ArchipelagoManager.VerifyGoalCompletion();
 

@@ -438,7 +438,7 @@ namespace Archipelago_Inscryption.Patches
                         {
                             continue;
                         }
-                        if (ArchipelagoOptions.randomizeAbilities != RandomizeAbilities.Disable)
+                        if (ArchipelagoOptions.randomizeSigils != RandomizeSigils.Disable)
                         {
                             if (mod.fromCardMerge)
                             {
@@ -458,7 +458,7 @@ namespace Archipelago_Inscryption.Patches
                         }
                         card.mods.Add(mod);
                     }
-                    if (ArchipelagoOptions.randomizeAbilities == RandomizeAbilities.RandomizeAll)
+                    if (ArchipelagoOptions.randomizeSigils == RandomizeSigils.RandomizeAll)
                     {
                         int abilityCount = card.abilities.Count;
                         card.abilities.Clear();
@@ -605,7 +605,7 @@ namespace Archipelago_Inscryption.Patches
                         }
                     }
                     card = (CardInfo)card.Clone();
-                    if (ArchipelagoOptions.randomizeAbilities == RandomizeAbilities.RandomizeAll)
+                    if (ArchipelagoOptions.randomizeSigils == RandomizeSigils.RandomizeAll)
                     {
                         int rand = 0;
                         int abilityCount = card.abilities.Count;

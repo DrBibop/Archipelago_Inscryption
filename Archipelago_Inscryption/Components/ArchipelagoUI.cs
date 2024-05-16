@@ -196,7 +196,7 @@ namespace Archipelago_Inscryption.Components
 
             SaveEntry entry = entryIntance.GetComponent<SaveEntry>();
             int goalCount = (data.act1Completed ? 1: 0) + (data.act2Completed ? 1 : 0) + (data.act3Completed ? 1 : 0) + (data.epilogueCompleted ? 1 : 0);
-            entry.Init(entryName, lastSaveTime, data.playerCount, data.completedChecks.Count, data.totalLocationsCount, data.receivedItems.Count, data.totalItemsCount, goalCount, data.goalType);
+            entry.Init(entryName, lastSaveTime, data.playerCount, data.completedChecks.Count, data.totalLocationsCount, data.receivedItems.Count, data.totalItemsCount, goalCount, data.goalType, data.skipEpilogue);
 
             entry.onPlay.AddListener(delegate { OnSaveFileSelected(entryName); });
             entry.onDelete.AddListener(delegate { OnSaveFileDeleted(entryName); });

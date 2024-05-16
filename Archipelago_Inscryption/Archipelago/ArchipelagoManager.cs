@@ -360,10 +360,12 @@ namespace Archipelago_Inscryption.Archipelago
                 ArchipelagoOptions.randomizeCodes = Convert.ToInt32(randomizeCodes) != 0;
             if (ArchipelagoClient.slotData.TryGetValue("randomize_deck", out var randomizeDeck))
                 ArchipelagoOptions.randomizeDeck = (RandomizeDeck)Convert.ToInt32(randomizeDeck);
-            if (ArchipelagoClient.slotData.TryGetValue("randomize_abilities", out var randomizeAbilities))
-                ArchipelagoOptions.randomizeAbilities = (RandomizeAbilities)Convert.ToInt32(randomizeAbilities);
+            if (ArchipelagoClient.slotData.TryGetValue("randomize_sigils", out var randomizeSigils))
+                ArchipelagoOptions.randomizeSigils = (RandomizeSigils)Convert.ToInt32(randomizeSigils);
             if (ArchipelagoClient.slotData.TryGetValue("skip_tutorial", out var skipTutorial))
                 ArchipelagoOptions.skipTutorial = Convert.ToInt32(skipTutorial) != 0;
+            if (ArchipelagoClient.slotData.TryGetValue("skip_epilogue", out var skipEpilogue))
+                ArchipelagoOptions.skipEpilogue = Convert.ToInt32(skipEpilogue) != 0;
             if (ArchipelagoClient.slotData.TryGetValue("epitaph_pieces_randomization", out var piecesRandomization))
                 ArchipelagoOptions.epitaphPiecesRandomization = (EpitaphPiecesRandomization)Convert.ToInt32(piecesRandomization);
 
@@ -372,6 +374,7 @@ namespace Archipelago_Inscryption.Archipelago
             ArchipelagoData.Data.totalLocationsCount = ArchipelagoClient.session.Locations.AllLocations.Count();
             ArchipelagoData.Data.totalItemsCount = ArchipelagoData.Data.totalLocationsCount;
             ArchipelagoData.Data.goalType = ArchipelagoOptions.goal;
+            ArchipelagoData.Data.skipEpilogue = ArchipelagoOptions.skipEpilogue;
 
             DeathLinkManager.DeathLinkService = ArchipelagoClient.session.CreateDeathLinkService();
             DeathLinkManager.Init();
@@ -537,11 +540,15 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static void VerifyGoalCompletion()
         {
-            if (ArchipelagoData.Data == null) return;
+            if (ArchipelagoData.Data == null || ArchipelagoData.Data.goalCompletedAndSent) return;
 
-            if (!ArchipelagoData.Data.goalCompletedAndSent &&
-                ((ArchipelagoOptions.goal == Goal.AllActsInOrder || ArchipelagoOptions.goal == Goal.AllActsAnyOrder) && ArchipelagoData.Data.epilogueCompleted) ||
-                (ArchipelagoOptions.goal == Goal.Act1Only && ArchipelagoData.Data.act1Completed))
+            if ((ArchipelagoOptions.goal == Goal.AllActsInOrder || ArchipelagoOptions.goal == Goal.AllActsAnyOrder) && 
+                ArchipelagoData.Data.act1Completed && ArchipelagoData.Data.act2Completed && ArchipelagoData.Data.act3Completed &&
+                (ArchipelagoOptions.skipEpilogue || ArchipelagoData.Data.epilogueCompleted))
+            {
+                ArchipelagoClient.SendGoalCompleted();
+            }
+            else if (ArchipelagoOptions.goal == Goal.Act1Only && ArchipelagoData.Data.act1Completed)
             {
                 ArchipelagoClient.SendGoalCompleted();
             }

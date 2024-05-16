@@ -12,10 +12,10 @@ namespace Archipelago_Inscryption.Archipelago
         COUNT
     }
 
-    internal enum RandomizeAbilities
+    internal enum RandomizeSigils
     {
         Disable,
-        RandomizeModded,
+        RandomizeAddons,
         RandomizeAll,
         COUNT
     }
