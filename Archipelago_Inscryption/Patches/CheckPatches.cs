@@ -849,6 +849,20 @@ namespace Archipelago_Inscryption.Patches
 
             return codes.AsEnumerable();
         }
+
+        [HarmonyPatch(typeof(GhoulNPC), "SetPuzzleSolved")]
+        [HarmonyPrefix]
+        static bool KeepEnabledIfGhoulCheckNotDone(GhoulNPC __instance)
+        {
+            if (__instance.gameObject.name.Contains("Sawyer"))
+                return ArchipelagoManager.HasCompletedCheck(APCheck.GBCBattleSawyer);
+            if (__instance.gameObject.name.Contains("Royal"))
+                return ArchipelagoManager.HasCompletedCheck(APCheck.GBCBattleRoyal);
+            if (__instance.gameObject.name.Contains("Briar"))
+                return ArchipelagoManager.HasCompletedCheck(APCheck.GBCBattleKaycee);
+
+            return true;
+        }
     }
 
     [HarmonyPatch]
