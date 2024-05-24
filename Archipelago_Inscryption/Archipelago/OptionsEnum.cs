@@ -9,6 +9,7 @@ namespace Archipelago_Inscryption.Archipelago
         Disable,
         RandomizeType,
         RandomizeAll,
+        StarterOnly,
         COUNT
     }
 

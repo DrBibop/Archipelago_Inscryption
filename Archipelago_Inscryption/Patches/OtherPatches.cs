@@ -362,7 +362,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool RandomizeDeckAct1(MapNode __instance)
         {
-            if (ArchipelagoOptions.randomizeDeck != RandomizeDeck.Disable)
+            if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType || ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
             {
                 List<CardInfo> newCards = new List<CardInfo>();
                 List<CardInfo> allAddedCards = new List<CardInfo>();
@@ -480,7 +480,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool RandomizeDeckAct2()
         {
-            if (ArchipelagoOptions.randomizeDeck != RandomizeDeck.Disable)
+            if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType || ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
             {
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
                 List<CardInfo> newCards = new List<CardInfo>();
@@ -637,7 +637,7 @@ namespace Archipelago_Inscryption.Patches
         [HarmonyPrefix]
         static bool RandomizeDeckAct3()
         {
-            if (ArchipelagoOptions.randomizeDeck != RandomizeDeck.Disable)
+            if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType || ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
             {
                 int seed = SaveManager.SaveFile.GetCurrentRandomSeed();
                 List<CardInfo> newCards = new List<CardInfo>();
