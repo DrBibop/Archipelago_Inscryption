@@ -165,7 +165,7 @@ namespace Archipelago_Inscryption.Patches
             else if (chapter == 2)
                 __instance.confirmPromptText.text = StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUsed) ? "Continue act 2?" : "Start act 2?";
             else if (chapter == 3)
-                __instance.confirmPromptText.text = $"Continue act 3?";
+                __instance.confirmPromptText.text = StoryEventsData.EventCompleted(StoryEvent.Part3Intro) ? "Continue act 3?" : "Start act 3?";
 
             return true;
         }

@@ -36,9 +36,21 @@ namespace Archipelago_Inscryption.Components
 
         internal UnityEngine.UI.Button.ButtonClickedEvent onDelete => deleteButton.onClick;
 
-        internal void Init(string name, DateTime lastSaveTime, int playerCount, int locationsCount, int maxLocationsCount, int itemsCount, int maxItemsCount, int goalCount, Goal goalType, bool skipEpilogue)
+        internal void Init(string name, DateTime lastSaveTime, int playerCount, int locationsCount, int maxLocationsCount, int itemsCount, int maxItemsCount, int goalCount, Goal goalType, bool skipEpilogue, int version)
         {
-            nameText.text = name;
+            if (version != ArchipelagoData.currentVersion)
+            {
+                nameText.color = Color.red;
+                playButton.gameObject.SetActive(false);
+            }
+
+            if (version == ArchipelagoData.currentVersion)
+                nameText.text = name;
+            else if (version < ArchipelagoData.currentVersion)
+                nameText.text = name + " (Outdated)";
+            else if (version > ArchipelagoData.currentVersion)
+                nameText.text = name + " (Incompatible)";
+
             saveTimeText.text = "Last saved: " + lastSaveTime.ToString("dd-MM-yyyy H:mm");
             playerCountText.text = "MultiWorld player count: " + (playerCount == 0 ? "?" : playerCount.ToString());
             locationsText.text = "Locations: " + locationsCount.ToString() + "/" + (maxLocationsCount == 0 ? "?" : maxLocationsCount.ToString());

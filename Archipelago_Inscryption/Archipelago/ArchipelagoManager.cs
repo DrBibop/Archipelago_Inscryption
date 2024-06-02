@@ -68,17 +68,17 @@ namespace Archipelago_Inscryption.Archipelago
         // When one of the following items is received, add the associated card(s) to the deck.
         private static readonly Dictionary<APItem, UnlockableCardInfo> itemCardPair = new Dictionary<APItem, UnlockableCardInfo>()
         {
-            { APItem.StinkbugCard,                      new UnlockableCardInfo(false, new string[1] { "Stinkbug_Talking" }, new string[2] { "Stinkbug_Talking", "Stoat_Talking" }) },
-            { APItem.StuntedWolfCard,                   new UnlockableCardInfo(false, new string[1] { "Wolf_Talking" }, new string[2] { "Wolf_Talking", "Stoat_Talking" }) },
-            { APItem.SkinkCard,                         new UnlockableCardInfo(false, new string[1] { "Skink" }) },
-            { APItem.AntCards,                          new UnlockableCardInfo(false, new string[2] { "Ant", "AntQueen" }) },
-            { APItem.CagedWolfCard,                     new UnlockableCardInfo(false, new string[1] { "CagedWolf" }) },
-            { APItem.LonelyWizbotCard,                  new UnlockableCardInfo(true, new string[1] { "BlueMage_Talking" }) },
-            { APItem.FishbotCard,                       new UnlockableCardInfo(true, new string[1] { "Angler_Talking" }) },
-            { APItem.Ourobot,                           new UnlockableCardInfo(true, new string[1] { "Ouroboros_Part3" }) }
+            { APItem.StinkbugCard,                      new UnlockableCardInfo(false, ["Stinkbug_Talking"], ["Stinkbug_Talking", "Stoat_Talking"]) },
+            { APItem.StuntedWolfCard,                   new UnlockableCardInfo(false, ["Wolf_Talking"], ["Wolf_Talking", "Stoat_Talking"]) },
+            { APItem.SkinkCard,                         new UnlockableCardInfo(false, ["Skink"]) },
+            { APItem.AntCards,                          new UnlockableCardInfo(false, ["Ant", "AntQueen"]) },
+            { APItem.CagedWolfCard,                     new UnlockableCardInfo(false, ["CagedWolf"]) },
+            { APItem.LonelyWizbotCard,                  new UnlockableCardInfo(true, ["BlueMage_Talking"]) },
+            { APItem.FishbotCard,                       new UnlockableCardInfo(true, ["Angler_Talking"]) },
+            { APItem.Ourobot,                           new UnlockableCardInfo(true, ["Ouroboros_Part3"]) }
         };
 
-        // When one of the following items is received, add the associated card(s) to the act 2 deck.
+        // When one of the following items is received, add the associated card to the act 2 deck.
         private static readonly Dictionary<APItem, string> itemPixelCardPair = new Dictionary<APItem, string>()
         {
             { APItem.BoneLordHorn,                      "BonelordHorn" },

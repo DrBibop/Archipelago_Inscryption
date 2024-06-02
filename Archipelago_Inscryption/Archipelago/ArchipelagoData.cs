@@ -13,6 +13,9 @@ namespace Archipelago_Inscryption.Archipelago
     internal class ArchipelagoData
     {
         [JsonIgnore]
+        internal static int currentVersion = 1;
+
+        [JsonIgnore]
         internal static string saveName = "";
 
         [JsonIgnore]
@@ -23,6 +26,9 @@ namespace Archipelago_Inscryption.Archipelago
 
         [JsonIgnore]
         internal static ArchipelagoData Data;
+
+        [JsonProperty("version")]
+        internal int version = 0;
 
         [JsonProperty("hostName")]
         internal string hostName = "archipelago.gg";

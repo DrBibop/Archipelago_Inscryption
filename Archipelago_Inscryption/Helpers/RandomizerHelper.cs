@@ -523,7 +523,7 @@ namespace Archipelago_Inscryption.Helpers
 
         internal static IEnumerator BlowOutOneOrAllCandles(bool fromBoss)
         {
-            if (DeathLinkManager.receivedDeath)
+            if (DeathLinkManager.receivedDeath && ArchipelagoOptions.act1DeathLinkBehaviour == Act1DeathLink.Sacrificed)
             {
                 if (Singleton<GameMap>.Instance.FullyUnrolled)
                     Singleton<GameMap>.Instance.HideMapImmediate();
@@ -606,10 +606,10 @@ namespace Archipelago_Inscryption.Helpers
             List<CardInfo> cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => (x.metaCategories.Contains(CardMetaCategory.Rare)
             && x.temple == CardTemple.Nature && x.portraitTex != null && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false)
             && (ArchipelagoManager.HasItem(APItem.GreatKrakenCard) || x.name != "Kraken")) || x.name == "Ouroboros");
-            return (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)].Clone();
+            return (CardInfo)cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
         }
 
-        internal static void OnlyPutOneTalkingCardInDeckAct1(ref List<CardInfo> cardsInfoRandomPool, ref CardInfo card)
+        internal static void RemoveUniqueAct1CardIfApplicable(ref List<CardInfo> cardsInfoRandomPool, ref CardInfo card)
         {
             if (card.name == "Stoat_Talking" || card.name == "Stinkbug_Talking" || card.name == "Wolf_Talking" || card.name == "CagedWolf")
                 cardsInfoRandomPool.Remove(card);
@@ -667,6 +667,47 @@ namespace Archipelago_Inscryption.Helpers
         public static bool IsLeshyNotReadyForBattle(List<CardBattleNPC> battleNPCs)
         {
             return battleNPCs.Exists((CardBattleNPC x) => !x.Defeated) || !ArchipelagoManager.HasCompletedCheck(APCheck.GBCCameraReplica);
+        }
+
+        public static List<CardInfo> GenerateCardPoolAct1()
+        {
+            List<CardInfo> cardsInfoRandomPool;
+
+            if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeAll)
+            {
+                cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => ((x.metaCategories.Contains(CardMetaCategory.Rare) || x.metaCategories.Contains(CardMetaCategory.ChoiceNode))
+                                             && x.temple == CardTemple.Nature && x.portraitTex != null 
+                                             && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock) && ConceptProgressionTree.Tree.CardUnlocked(x, false)) 
+                                             || x.name == "Ouroboros");
+            }
+            else
+            {
+                cardsInfoRandomPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.temple == CardTemple.Nature && x.portraitTex != null
+                                      && x.metaCategories.Contains(CardMetaCategory.ChoiceNode) && !x.metaCategories.Contains(CardMetaCategory.AscensionUnlock)
+                                      && !x.metaCategories.Contains(CardMetaCategory.Rare) && ConceptProgressionTree.Tree.CardUnlocked(x, false));
+            }
+
+            if (!ArchipelagoManager.HasItem(APItem.GreatKrakenCard))
+            {
+                cardsInfoRandomPool.RemoveAll(c => c.name == "Kraken");
+            }
+            if (!ArchipelagoManager.HasItem(APItem.SkinkCard))
+            {
+                cardsInfoRandomPool.RemoveAll(c => c.name == "Skink");
+            }
+            if (!ArchipelagoManager.HasItem(APItem.AntCards))
+            {
+                cardsInfoRandomPool.RemoveAll(c => c.name == "Ant" || c.name == "AntQueen");
+            }
+
+            cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stoat_Talking"));
+            if (ArchipelagoManager.HasItem(APItem.StinkbugCard))
+                cardsInfoRandomPool.Add(CardLoader.GetCardByName("Stinkbug_Talking"));
+            if (ArchipelagoManager.HasItem(APItem.StuntedWolfCard))
+                cardsInfoRandomPool.Add(CardLoader.GetCardByName("Wolf_Talking"));
+            cardsInfoRandomPool.AddRange(GetAllDeathCards());
+
+            return cardsInfoRandomPool;
         }
     }
 }

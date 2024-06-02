@@ -3,6 +3,7 @@ using Archipelago_Inscryption.Archipelago;
 using Archipelago_Inscryption.Assets;
 using BepInEx;
 using DiskCardGame;
+using EasyFeedback.APIs;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -196,7 +197,7 @@ namespace Archipelago_Inscryption.Components
 
             SaveEntry entry = entryIntance.GetComponent<SaveEntry>();
             int goalCount = (data.act1Completed ? 1: 0) + (data.act2Completed ? 1 : 0) + (data.act3Completed ? 1 : 0) + (data.epilogueCompleted ? 1 : 0);
-            entry.Init(entryName, lastSaveTime, data.playerCount, data.completedChecks.Count, data.totalLocationsCount, data.receivedItems.Count, data.totalItemsCount, goalCount, data.goalType, data.skipEpilogue);
+            entry.Init(entryName, lastSaveTime, data.playerCount, data.completedChecks.Count, data.totalLocationsCount, data.receivedItems.Count, data.totalItemsCount, goalCount, data.goalType, data.skipEpilogue, data.version);
 
             entry.onPlay.AddListener(delegate { OnSaveFileSelected(entryName); });
             entry.onDelete.AddListener(delegate { OnSaveFileDeleted(entryName); });
@@ -368,6 +369,7 @@ namespace Archipelago_Inscryption.Components
             ArchipelagoData.saveFilePath = Path.Combine(savePath, SAVE_FILE_NAME);
             ArchipelagoData.dataFilePath = Path.Combine(savePath, DATA_FILE_NAME);
             ArchipelagoData.saveName = saveName;
+            ArchipelagoData.Data.version = ArchipelagoData.currentVersion;
         }
 
         public void OnConnectButtonPressed()

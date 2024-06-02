@@ -1,6 +1,7 @@
 ﻿using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Helpers;
+using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
 using System.Collections;
@@ -28,10 +29,10 @@ namespace Archipelago_Inscryption.Archipelago
             if (receivedDeath == true)
                 return;
             receivedDeath = true;
-            string message = $"Received DeathLink from: {deathLink.Source} due to {deathLink.Cause}";
+            string message = $"Received DeathLink from {deathLink.Source}: {deathLink.Cause}";
             ArchipelagoModPlugin.Log.LogMessage(message);
             Singleton<ArchipelagoUI>.Instance.LogMessage(message);
-            Singleton<ArchipelagoUI>.Instance.StartCoroutine(ApplyDeathLink());
+            FailsafeCoroutine.Start(Singleton<ArchipelagoUI>.Instance, ApplyDeathLink(), OnApplyDeathLinkDone);
         }
 
         static IEnumerator ApplyDeathLink()
@@ -159,6 +160,12 @@ namespace Archipelago_Inscryption.Archipelago
 
                 PauseMenu.pausingDisabled = false;
             }
+        }
+
+        private static void OnApplyDeathLinkDone(bool success)
+        {
+            if (!success)
+                ArchipelagoModPlugin.Log.LogError("DeathLink has failed to apply correctly due to an error.");
 
             receivedDeath = false;
         }
