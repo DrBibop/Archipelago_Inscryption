@@ -43,10 +43,12 @@ namespace Archipelago_Inscryption.Helpers
             switch (chapter)
             {
                 case 1:
+                    ScriptableObjectLoader<CardInfo>.AllData.Find(x => x.name == "Hrokkall").temple = CardTemple.Tech;
                     SaveManager.SaveFile.currentScene = "Part1_Cabin";
                     SaveManager.SaveFile.NewPart1Run();
                     break;
                 case 2:
+                    ScriptableObjectLoader<CardInfo>.AllData.Find(x => x.name == "Hrokkall").temple = CardTemple.Nature;
                     StoryEventsData.EraseEvent(StoryEvent.GBCUndeadFinaleChosen);
                     StoryEventsData.EraseEvent(StoryEvent.GBCNatureFinaleChosen);
                     StoryEventsData.EraseEvent(StoryEvent.GBCTechFinaleChosen);

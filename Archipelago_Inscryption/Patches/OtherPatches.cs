@@ -257,7 +257,7 @@ namespace Archipelago_Inscryption.Patches
             {
                 CardInfo card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
                 cardsInfoRandomPool.Remove(card);
-                __instance.AddCard(CardLoader.Clone(card));
+                __instance.AddCard(card.Mods.Any(x => x.deathCardInfo != null) ? card : CardLoader.Clone(card));
             }
 
             return false;
@@ -563,8 +563,10 @@ namespace Archipelago_Inscryption.Patches
             {
                 foreach (CardInfo c in RunState.Run.playerDeck.Cards)
                 {
-                    List<Ability> learnedAbilities = AbilitiesUtil.GetLearnedAbilities(false, 0, 5, AbilityMetaCategory.Part1Modular);
-                    learnedAbilities.RemoveAll(x => x == Ability.RandomAbility);
+                    List<AbilityInfo> learnedAbilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(
+                        x => x.metaCategories.Contains(AbilityMetaCategory.Part1Modular) 
+                        && x.metaCategories.Contains(AbilityMetaCategory.Part1Rulebook) 
+                        && x.ability != Ability.RandomAbility);
 
                     foreach (CardModificationInfo mod in c.Mods)
                     {
@@ -580,10 +582,10 @@ namespace Archipelago_Inscryption.Patches
                                 mod.abilities = new List<Ability>();
                                 for (int l = 0; l < abilityCount; l++)
                                 {
-                                    learnedAbilities.RemoveAll(c.HasAbility);
+                                    learnedAbilities.RemoveAll(x => c.HasAbility(x.ability));
                                     if (learnedAbilities.Count > 0)
                                     {
-                                        mod.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)]);
+                                        mod.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)].ability);
                                     }
                                 }
                             }
@@ -604,13 +606,13 @@ namespace Archipelago_Inscryption.Patches
 
                         for (int t = 0; t < abilityCount; t++)
                         {
-                            learnedAbilities.RemoveAll(x => c.HasAbility(x));
+                            learnedAbilities.RemoveAll(x => c.HasAbility(x.ability));
                             if (learnedAbilities.Count > 0)
                             {
                                 if (isDeathCard)
-                                    deathCardMod.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)]);
+                                    deathCardMod.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)].ability);
                                 else
-                                    c.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)]);
+                                    c.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)].ability);
                             }
                         }
                     }
@@ -881,7 +883,7 @@ namespace Archipelago_Inscryption.Patches
             {
                 foreach (CardInfo card in Part3SaveData.Data.deck.Cards)
                 {
-                    List<Ability> learnedAbilities = AbilitiesUtil.GetLearnedAbilities(false, 0, 5, AbilityMetaCategory.Part3BuildACard);
+                    List<AbilityInfo> learnedAbilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(x => x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
                     foreach (var modCurrent in card.Mods)
                     {
                         if (modCurrent.buildACardPortraitInfo != null)
@@ -898,10 +900,10 @@ namespace Archipelago_Inscryption.Patches
                                 modCurrent.abilities = new List<Ability>();
                                 for (int l = 0; l < moddedAbilityCount; l++)
                                 {
-                                    learnedAbilities.RemoveAll(x => card.HasAbility(x));
+                                    learnedAbilities.RemoveAll(x => card.HasAbility(x.ability));
                                     if (learnedAbilities.Count > 0)
                                     {
-                                        modCurrent.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)]);
+                                        modCurrent.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)].ability);
                                     }
                                 }
                             }
@@ -918,10 +920,10 @@ namespace Archipelago_Inscryption.Patches
 
                         for (int t = 0; t < baseAbilityCount; t++)
                         {
-                            learnedAbilities.RemoveAll(x => card.HasAbility(x));
+                            learnedAbilities.RemoveAll(x => card.HasAbility(x.ability));
                             if (learnedAbilities.Count > 0)
                             {
-                                card.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)]);
+                                card.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)].ability);
                             }
                         }
                     }
