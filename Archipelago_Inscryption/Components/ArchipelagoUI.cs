@@ -147,11 +147,20 @@ namespace Archipelago_Inscryption.Components
                     continue;
                 }
 
-                ArchipelagoData loadedData = JsonConvert.DeserializeObject<ArchipelagoData>(dataContent);
+                ArchipelagoData loadedData = null;
+
+                try
+                {
+                    loadedData = JsonConvert.DeserializeObject<ArchipelagoData>(dataContent);
+                }
+                catch
+                {
+                    loadedData = null;
+                }
 
                 if (loadedData != null)
                 {
-                    loadedData.itemsUnaccountedFor = new List<NetworkItem>(loadedData.receivedItems);
+                    loadedData.itemsUnaccountedFor = new List<InscryptionItemInfo>(loadedData.receivedItems);
                     foreach (var cI in loadedData.customCardInfos)
                     {
                         CardModificationInfo m = new CardModificationInfo();

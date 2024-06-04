@@ -55,9 +55,9 @@ namespace Archipelago_Inscryption.Archipelago
         [JsonProperty("completedChecks")]
         internal List<long> completedChecks = new List<long>();
         [JsonProperty("receivedItems")]
-        internal List<NetworkItem> receivedItems = new List<NetworkItem>();
+        internal List<InscryptionItemInfo> receivedItems = new List<InscryptionItemInfo>();
         [JsonIgnore]
-        internal List<NetworkItem> itemsUnaccountedFor = new List<NetworkItem>();
+        internal List<InscryptionItemInfo> itemsUnaccountedFor = new List<InscryptionItemInfo>();
 
         [JsonProperty("customCardInfos")]
         internal List<CustomCardInfo> customCardInfos = new List<CustomCardInfo>();

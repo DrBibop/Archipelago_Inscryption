@@ -1,7 +1,6 @@
 ﻿using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Models;
-using Archipelago.MultiClient.Net.Packets;
 using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
@@ -17,8 +16,7 @@ namespace Archipelago_Inscryption.Archipelago
     {
         internal static Action<APItem> onItemReceived;
 
-        internal const int CHECK_ID_OFFSET = 147000;
-        internal const int ITEM_ID_OFFSET = 147000;
+        internal const int ID_OFFSET = 147000;
 
         // When one of the following events is completed, send the associated check.
         private static readonly Dictionary<StoryEvent, APCheck> storyCheckPairs = new Dictionary<StoryEvent, APCheck>()
@@ -89,9 +87,9 @@ namespace Archipelago_Inscryption.Archipelago
 
         private static Dictionary<APCheck, CheckInfo> checkInfos = new Dictionary<APCheck, CheckInfo>();
 
-        private static Queue<NetworkItem> itemQueue = new Queue<NetworkItem>();
+        private static Queue<InscryptionItemInfo> itemQueue = new Queue<InscryptionItemInfo>();
 
-        private static Queue<NetworkItem> itemsToVerifyQueue = new Queue<NetworkItem>();
+        private static Queue<InscryptionItemInfo> itemsToVerifyQueue = new Queue<InscryptionItemInfo>();
 
         internal static void Init()
         {
@@ -100,12 +98,12 @@ namespace Archipelago_Inscryption.Archipelago
             ArchipelagoClient.onProcessedItemReceived += OnItemToVerifyReceived;
         }
 
-        private static void OnItemReceived(NetworkItem item)
+        private static void OnItemReceived(InscryptionItemInfo item)
         {
             itemQueue.Enqueue(item);
         }
 
-        private static void OnItemToVerifyReceived(NetworkItem item)
+        private static void OnItemToVerifyReceived(InscryptionItemInfo item)
         {
             itemsToVerifyQueue.Enqueue(item);
         }
@@ -116,20 +114,18 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 AudioController.Instance.PlaySound2D("creepy_rattle_lofi");
 
-                NetworkItem item = itemQueue.Dequeue();
+                InscryptionItemInfo item = itemQueue.Dequeue();
 
                 string message;
-                if (item.Player == ArchipelagoClient.session.ConnectionInfo.Slot)
-                    message = "You have found your " + ArchipelagoClient.GetItemName(item.Item);
+                if (item.PlayerSlot == ArchipelagoClient.session.ConnectionInfo.Slot)
+                    message = "You have found your " + item.ItemName;
                 else
-                    message = "Received " + ArchipelagoClient.GetItemName(item.Item) + " from " + ArchipelagoClient.GetPlayerName(item.Player);
+                    message = "Received " + item.ItemName + " from " + item.PlayerName;
 
                 Singleton<ArchipelagoUI>.Instance.LogImportant(message);
                 ArchipelagoModPlugin.Log.LogMessage(message);
 
-                APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
-
-                ApplyItemReceived(receivedItem);
+                ApplyItemReceived(item.Item);
 
                 Singleton<ArchipelagoUI>.Instance.QueueSave();
 
@@ -248,9 +244,9 @@ namespace Archipelago_Inscryption.Archipelago
                 int pieceCount = 0;
 
                 if (receivedItem == APItem.EpitaphPiece)
-                    pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPiece);
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == APItem.EpitaphPiece);
                 else if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.Groups)
-                    pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPieces) * 3;
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == APItem.EpitaphPieces) * 3;
                 else
                     pieceCount = 9;
 
@@ -403,19 +399,19 @@ namespace Archipelago_Inscryption.Archipelago
         {
             while (itemsToVerifyQueue.Count() > 0)
             {
-                NetworkItem nextItem = itemsToVerifyQueue.Dequeue();
+                InscryptionItemInfo nextItem = itemsToVerifyQueue.Dequeue();
 
                 if (!VerifyItem(nextItem))
                 {
-                    ArchipelagoModPlugin.Log.LogWarning($"Item ID {nextItem.Item} ({ArchipelagoClient.GetItemName(nextItem.Item)}) didn't apply properly. Retrying...");
+                    ArchipelagoModPlugin.Log.LogWarning($"Item ID {nextItem.ItemId} ({nextItem.ItemName}) didn't apply properly. Retrying...");
                     itemQueue.Enqueue(nextItem);
                 }
             }
         }
 
-        internal static bool VerifyItem(NetworkItem item)
+        internal static bool VerifyItem(InscryptionItemInfo item)
         {
-            APItem receivedItem = (APItem)(item.Item - ITEM_ID_OFFSET);
+            APItem receivedItem = item.Item;
 
             if (itemStoryPairs.TryGetValue(receivedItem, out StoryEvent storyEvent) && !StoryEventsData.EventCompleted(storyEvent))
             {
@@ -432,9 +428,9 @@ namespace Archipelago_Inscryption.Archipelago
                 int pieceCount = 0;
 
                 if (receivedItem == APItem.EpitaphPiece)
-                    pieceCount = ArchipelagoData.Data.receivedItems.Count(i => i.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPiece);
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(i => i.Item == APItem.EpitaphPiece);
                 else if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.Groups)
-                    pieceCount = ArchipelagoData.Data.receivedItems.Count(i => i.Item == ITEM_ID_OFFSET + (int)APItem.EpitaphPieces) * 3;
+                    pieceCount = ArchipelagoData.Data.receivedItems.Count(i => i.Item == APItem.EpitaphPieces) * 3;
                 else
                     pieceCount = 9;
 
@@ -465,7 +461,7 @@ namespace Archipelago_Inscryption.Archipelago
             {
                 return false;
             }
-            else if (receivedItem == APItem.HoloPelt && Part3SaveData.Data.pelts + Part3SaveData.Data.collectedTarots.Count < ArchipelagoData.Data.receivedItems.Count(i => i.Item == ITEM_ID_OFFSET + (int)APItem.HoloPelt))
+            else if (receivedItem == APItem.HoloPelt && Part3SaveData.Data.pelts + Part3SaveData.Data.collectedTarots.Count < ArchipelagoData.Data.receivedItems.Count(i => i.Item == APItem.HoloPelt))
             {
                 return false;
             }
@@ -479,21 +475,16 @@ namespace Archipelago_Inscryption.Archipelago
             ArchipelagoClient.ScoutLocationsAsync(OnScoutDone);
         }
 
-        private static void OnScoutDone(LocationInfoPacket packet)
+        private static void OnScoutDone(Dictionary<long, ScoutedItemInfo> packet)
         {
-            for (int i = 0; i < packet.Locations.Length; i++)
+            foreach (ScoutedItemInfo scoutInfo in packet.Values)
             {
-                NetworkItem location = packet.Locations[i];
-
-                string recipientName = ArchipelagoClient.GetPlayerName(location.Player);
-                string itemName = ArchipelagoClient.GetItemName(location.Item);
-
-                checkInfos.Add((APCheck)(location.Location - CHECK_ID_OFFSET), new CheckInfo(
-                    location.Location,
-                    location.Player,
-                    recipientName,
-                    location.Item,
-                    itemName)
+                checkInfos.Add((APCheck)(scoutInfo.LocationId - ID_OFFSET), new CheckInfo(
+                    scoutInfo.LocationId,
+                    scoutInfo.Player.Slot,
+                    scoutInfo.Player.Name,
+                    scoutInfo.ItemId,
+                    scoutInfo.ItemDisplayName)
                 );
             }
         }
@@ -510,7 +501,7 @@ namespace Archipelago_Inscryption.Archipelago
         {
             if (ArchipelagoData.Data == null) return;
 
-            long checkID = CHECK_ID_OFFSET + (long)check;
+            long checkID = ID_OFFSET + (long)check;
 
             if (!ArchipelagoData.Data.completedChecks.Contains(checkID))
             {
@@ -524,7 +515,7 @@ namespace Archipelago_Inscryption.Archipelago
         {
             if (ArchipelagoData.Data == null) return false;
 
-            long checkID = CHECK_ID_OFFSET + (long)check;
+            long checkID = ID_OFFSET + (long)check;
 
             return ArchipelagoData.Data.completedChecks.Contains(checkID);
         }
@@ -533,9 +524,7 @@ namespace Archipelago_Inscryption.Archipelago
         {
             if (ArchipelagoData.Data == null) return false;
 
-            long itemID = ITEM_ID_OFFSET + (long)item;
-
-            return ArchipelagoData.Data.receivedItems.Any(x => x.Item == itemID);
+            return ArchipelagoData.Data.receivedItems.Any(x => x.Item == item);
         }
 
         internal static void VerifyGoalCompletion()
@@ -561,7 +550,7 @@ namespace Archipelago_Inscryption.Archipelago
                 return info;
             }
 
-            CheckInfo basicInfo = new CheckInfo((int)check + CHECK_ID_OFFSET, 0, "Player", 0, check.ToString());
+            CheckInfo basicInfo = new CheckInfo((int)check + ID_OFFSET, 0, "Player", 0, check.ToString());
 
             return basicInfo;
         }

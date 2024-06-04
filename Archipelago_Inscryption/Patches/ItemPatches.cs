@@ -1,16 +1,13 @@
 ﻿using Archipelago.MultiClient.Net.Models;
 using Archipelago_Inscryption.Archipelago;
-using Archipelago_Inscryption.Assets;
 using Archipelago_Inscryption.Helpers;
 using DiskCardGame;
 using GBC;
 using HarmonyLib;
-using Pixelplacement;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using UnityEngine;
 
 namespace Archipelago_Inscryption.Patches
 {
@@ -33,16 +30,16 @@ namespace Archipelago_Inscryption.Patches
         {
             if (ArchipelagoData.Data == null) return;
 
-            List<NetworkItem> receivedItem = ArchipelagoData.Data.receivedItems;
-            int countCurrency = receivedItem.Count(item => item.Item == (ArchipelagoManager.ITEM_ID_OFFSET + (long)APItem.Currency));
+            List<InscryptionItemInfo> receivedItem = ArchipelagoData.Data.receivedItems;
+            int countCurrency = receivedItem.Count(item => item.Item == APItem.Currency);
             __instance.currency = countCurrency;
 
             int pieceCount = 0;
 
             if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.AllPieces)
-                pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ArchipelagoManager.ITEM_ID_OFFSET + (int)APItem.EpitaphPiece);
+                pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == APItem.EpitaphPiece);
             else if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.Groups)
-                pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == ArchipelagoManager.ITEM_ID_OFFSET + (int)APItem.EpitaphPieces) * 3;
+                pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == APItem.EpitaphPieces) * 3;
             else
                 pieceCount = 9;
 

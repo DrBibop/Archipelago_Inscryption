@@ -19,8 +19,8 @@ namespace Archipelago_Inscryption.Archipelago
     internal static class ArchipelagoClient
     {
         internal static Action<LoginResult> onConnectAttemptDone;
-        internal static Action<NetworkItem> onNewItemReceived;
-        internal static Action<NetworkItem> onProcessedItemReceived;
+        internal static Action<InscryptionItemInfo> onNewItemReceived;
+        internal static Action<InscryptionItemInfo> onProcessedItemReceived;
 
         internal static bool IsConnecting => isConnecting;
         internal static bool IsConnected => isConnected;
@@ -62,7 +62,7 @@ namespace Archipelago_Inscryption.Archipelago
             Singleton<ArchipelagoUI>.Instance.UpdateConnectionStatus(false);
         }
 
-        internal static void ScoutLocationsAsync(Action<LocationInfoPacket> callback)
+        internal static void ScoutLocationsAsync(Action<Dictionary<long, ScoutedItemInfo>> callback)
         {
             if (!isConnected) return;
 
@@ -175,29 +175,31 @@ namespace Archipelago_Inscryption.Archipelago
 
             ArchipelagoData.Data.index++;
 
-            NetworkItem nextItem = helper.DequeueItem();
-            NetworkItem matchedItem = ArchipelagoData.Data.itemsUnaccountedFor.FirstOrDefault(x => IsSameItem(x, nextItem));
+            ItemInfo nextItem = helper.DequeueItem();
+            InscryptionItemInfo matchedItem = ArchipelagoData.Data.itemsUnaccountedFor.FirstOrDefault(x => IsSameItem(x, nextItem));
 
-            if (IsSameItem(matchedItem, default(NetworkItem)))
+            if (matchedItem == null)
             {
                 // This item is new
-                ArchipelagoData.Data.receivedItems.Add(nextItem);
+                InscryptionItemInfo newItemInfo = new InscryptionItemInfo((APItem)(nextItem.ItemId - ArchipelagoManager.ID_OFFSET), nextItem.ItemName, nextItem.ItemId, nextItem.LocationId, nextItem.Player.Slot, nextItem.Player.Name);
+                
+                ArchipelagoData.Data.receivedItems.Add(newItemInfo);
 
-                onNewItemReceived?.Invoke(nextItem);
+                onNewItemReceived?.Invoke(newItemInfo);
             }
             else
             {
                 ArchipelagoData.Data.itemsUnaccountedFor.Remove(matchedItem);
 
-                onProcessedItemReceived?.Invoke(nextItem);
+                onProcessedItemReceived?.Invoke(matchedItem);
             }
         }
 
-        private static bool IsSameItem(NetworkItem left, NetworkItem right)
+        private static bool IsSameItem(InscryptionItemInfo left, ItemInfo right)
         {
-            return left.Item == right.Item 
-                && left.Location == right.Location 
-                && left.Player == right.Player;
+            return left.ItemId == right.ItemId
+                && left.LocationId == right.LocationId
+                && left.PlayerSlot == right.Player.Slot;
         }
 
         internal static string GetPlayerName(int player)

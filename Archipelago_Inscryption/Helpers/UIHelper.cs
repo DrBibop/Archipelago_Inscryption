@@ -9,8 +9,6 @@ namespace Archipelago_Inscryption.Helpers
 {
     internal static class UIHelper
     {
-        private static string oldSeed = "";
-
         internal static InputField CreateInputField(GameObject prefab, Transform parent, string name, string label, string defaultContent, float yPosition, int characterLimit, bool censor = false)
         {
             GameObject inputFieldInstance = GameObject.Instantiate(prefab);
