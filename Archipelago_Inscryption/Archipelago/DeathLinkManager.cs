@@ -152,7 +152,7 @@ namespace Archipelago_Inscryption.Archipelago
                     yield return new WaitUntil(() => Part3SaveData.Data.playerLives < Part3SaveData.Data.playerMaxLives);
                     yield return new WaitUntil(() => Part3SaveData.Data.playerLives == Part3SaveData.Data.playerMaxLives);
                 }
-                else
+                else if (Singleton<HoloGameMap>.Instance == null || !Singleton<HoloGameMap>.Instance.PoweredOff)
                 {
                     yield return new WaitUntil(() => Singleton<GameMap>.Instance.FullyUnrolled);
                     yield return Singleton<Part3GameFlowManager>.Instance.PlayerRespawnSequence();
