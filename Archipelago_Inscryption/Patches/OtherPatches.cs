@@ -893,7 +893,6 @@ namespace Archipelago_Inscryption.Patches
 
                         if (ArchipelagoOptions.randomizeSigils != RandomizeSigils.Disable)
                         {
-                            List<Ability> newAbilityMod = new List<Ability>();
                             if (modCurrent.abilities.Count > 0)
                             {
                                 int moddedAbilityCount = modCurrent.abilities.Count;
@@ -908,8 +907,6 @@ namespace Archipelago_Inscryption.Patches
                                 }
                             }
                         }
-
-                        card.mods.Add(modCurrent);
                     }
 
                     if (ArchipelagoOptions.randomizeSigils == RandomizeSigils.RandomizeAll)
