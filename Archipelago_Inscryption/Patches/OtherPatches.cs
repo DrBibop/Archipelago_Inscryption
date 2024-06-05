@@ -902,7 +902,13 @@ namespace Archipelago_Inscryption.Patches
                                     learnedAbilities.RemoveAll(x => card.HasAbility(x.ability));
                                     if (learnedAbilities.Count > 0)
                                     {
-                                        modCurrent.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)].ability);
+                                        Ability ab = learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)].ability;
+                                        modCurrent.abilities.Add(ab);
+
+                                        if (ab == Ability.PermaDeath)
+                                            modCurrent.attackAdjustment = 1;
+                                        else
+                                            modCurrent.attackAdjustment = 0;
                                     }
                                 }
                             }
@@ -911,6 +917,8 @@ namespace Archipelago_Inscryption.Patches
 
                     if (ArchipelagoOptions.randomizeSigils == RandomizeSigils.RandomizeAll)
                     {
+                        learnedAbilities.RemoveAll(x => x.ability == Ability.PermaDeath);
+
                         int baseAbilityCount = card.abilities.Count;
 
                         card.abilities = new List<Ability>();
