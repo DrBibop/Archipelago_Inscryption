@@ -80,8 +80,7 @@ namespace Archipelago_Inscryption.Archipelago
         {
             if (!isConnected) return;
 
-            StatusUpdatePacket statusUpdate = new StatusUpdatePacket() { Status = ArchipelagoClientState.ClientGoal };
-            session.Socket.SendPacketAsync(statusUpdate);
+            session.SetGoalAchieved();
             ArchipelagoData.Data.goalCompletedAndSent = true;
         }
 

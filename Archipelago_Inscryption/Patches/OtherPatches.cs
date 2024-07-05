@@ -566,7 +566,9 @@ namespace Archipelago_Inscryption.Patches
                     List<AbilityInfo> learnedAbilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(
                         x => x.metaCategories.Contains(AbilityMetaCategory.Part1Modular) 
                         && x.metaCategories.Contains(AbilityMetaCategory.Part1Rulebook) 
-                        && x.ability != Ability.RandomAbility);
+                        && x.ability != Ability.RandomAbility
+                        && x.ability != Ability.CreateEgg
+                        && x.ability != Ability.HydraEgg);
 
                     foreach (CardModificationInfo mod in c.Mods)
                     {
@@ -771,7 +773,7 @@ namespace Archipelago_Inscryption.Patches
             {
                 foreach (CardInfo card in SaveData.Data.deck.Cards)
                 {
-                    List<AbilityInfo> learnedAbilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(x => x.pixelIcon != null && x.ability != Ability.ActivatedSacrificeDrawCards);
+                    List<AbilityInfo> learnedAbilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(x => x.pixelIcon != null && x.ability != Ability.ActivatedSacrificeDrawCards && x.ability != Ability.CreateEgg && x.ability != Ability.HydraEgg);
 
                     int baseAbilityCount = card.abilities.Count;
 
@@ -821,8 +823,8 @@ namespace Archipelago_Inscryption.Patches
                 List<CardInfo> cardsInfoRandomConduitPool = cardsInfoRandomPool;
                 if (ArchipelagoOptions.randomizeDeck == RandomizeDeck.RandomizeType)
                 {
-                    cardsInfoRandomConduitPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.name.Contains("Conduit") || x.name.Contains("Cell"));
-                    cardsInfoRandomGemPool = ScriptableObjectLoader<CardInfo>.AllData.FindAll(x => x.name.Contains("Sentinel") || x.name.Contains("Gem"));
+                    cardsInfoRandomConduitPool = cardsInfoRandomPool.FindAll(x => x.name.Contains("Conduit") || x.name.Contains("Cell"));
+                    cardsInfoRandomGemPool = cardsInfoRandomPool.FindAll(x => x.name.Contains("Sentinel") || x.name.Contains("Gem"));
                     cardsInfoRandomPool.RemoveAll(x => x.name.Contains("Conduit") || x.name.Contains("Cell") || x.name.Contains("Sentinel") || x.name.Contains("Gem"));
                 }
                 else

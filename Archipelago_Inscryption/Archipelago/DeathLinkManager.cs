@@ -60,7 +60,7 @@ namespace Archipelago_Inscryption.Archipelago
 
                 RunState finishedRun = RunState.Run;
 
-                if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle)
+                if (Singleton<GameFlowManager>.Instance.CurrentGameState == GameState.CardBattle && !(Singleton<TurnManager>.Instance.GameEnding && Singleton<TurnManager>.Instance.opponent == null))
                 {
                     int prevLives = RunState.Run.playerLives;
                     yield return new WaitUntil(() => Singleton<TurnManager>.Instance.IsPlayerTurn || Singleton<TurnManager>.Instance.GameIsOver());
