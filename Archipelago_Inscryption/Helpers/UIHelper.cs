@@ -3,6 +3,7 @@ using Archipelago_Inscryption.Components;
 using Archipelago_Inscryption.Utils;
 using DiskCardGame;
 using GBC;
+using TMPro;
 using UnityEngine;
 
 namespace Archipelago_Inscryption.Helpers
@@ -102,12 +103,22 @@ namespace Archipelago_Inscryption.Helpers
         {
             ChapterSelectMenu menu = Singleton<VideoCameraRig>.Instance.chapterSelectMenu;
 
+            GameObject act1Button = menu.transform.Find("Chapter_Row/ChapterSelectItemUI (1)").gameObject;
+            GameObject act2Button = menu.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject;
+            GameObject act3Button = menu.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject;
+            GameObject epilogueButton = menu.transform.Find("Chapter_Row/ChapterSelectItemUI (4)").gameObject;
+
+            act1Button.GetComponentInChildren<TextMeshProUGUI>().text = ArchipelagoData.Data.act1Completed ? "<color=green>Act 1</color>" : "Act 1";
+            act2Button.GetComponentInChildren<TextMeshProUGUI>().text = ArchipelagoData.Data.act2Completed ? "<color=green>Act 2</color>" : "Act 2";
+            act3Button.GetComponentInChildren<TextMeshProUGUI>().text = ArchipelagoData.Data.act3Completed ? "<color=green>Act 3</color>" : "Act 3";
+            epilogueButton.GetComponentInChildren<TextMeshProUGUI>().text = ArchipelagoData.Data.epilogueCompleted ? "<color=green>Epilogue</color>" : "Epilogue";
+
             if (ArchipelagoOptions.goal != Goal.AllActsAnyOrder)
             {
-                menu.transform.Find("Chapter_Row/ChapterSelectItemUI (2)").gameObject.SetActive(ArchipelagoOptions.goal != Goal.Act1Only && StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked));
-                menu.transform.Find("Chapter_Row/ChapterSelectItemUI (3)").gameObject.SetActive(ArchipelagoOptions.goal != Goal.Act1Only && StoryEventsData.EventCompleted(StoryEvent.Part2Completed));
+                act2Button.SetActive(ArchipelagoOptions.goal != Goal.Act1Only && StoryEventsData.EventCompleted(StoryEvent.StartScreenNewGameUnlocked));
+                act3Button.SetActive(ArchipelagoOptions.goal != Goal.Act1Only && StoryEventsData.EventCompleted(StoryEvent.Part2Completed));
             }
-            menu.transform.Find("Chapter_Row/ChapterSelectItemUI (4)").gameObject.SetActive(ArchipelagoData.Data.act1Completed && ArchipelagoData.Data.act2Completed && ArchipelagoData.Data.act3Completed);
+            epilogueButton.SetActive(ArchipelagoData.Data.act1Completed && ArchipelagoData.Data.act2Completed && ArchipelagoData.Data.act3Completed);
         }
     }
 }

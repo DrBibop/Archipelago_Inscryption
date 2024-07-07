@@ -161,20 +161,33 @@ namespace Archipelago_Inscryption.Components
                 if (loadedData != null)
                 {
                     loadedData.itemsUnaccountedFor = new List<InscryptionItemInfo>(loadedData.receivedItems);
+
                     foreach (var cI in loadedData.customCardInfos)
                     {
-                        CardModificationInfo m = new CardModificationInfo();
-                        m.singletonId = cI.SingletonId;
-                        m.nameReplacement = cI.NameReplacement;
-                        m.attackAdjustment = cI.AttackAdjustment;
-                        m.healthAdjustment = cI.HealthAdjustment;
-                        m.energyCostAdjustment = cI.EnergyCostAdjustment;
-                        m.abilities = cI.Abilities;
+                        CardModificationInfo customCardMod = new CardModificationInfo();
+                        customCardMod.singletonId = cI.SingletonId;
+                        customCardMod.nameReplacement = cI.NameReplacement;
+                        customCardMod.attackAdjustment = cI.AttackAdjustment;
+                        customCardMod.healthAdjustment = cI.HealthAdjustment;
+                        customCardMod.energyCostAdjustment = cI.EnergyCostAdjustment;
+                        customCardMod.abilities = cI.Abilities;
                         BuildACardPortraitInfo portraitInfo = new BuildACardPortraitInfo();
                         portraitInfo.spriteIndices = cI.SpriteIndices;
-                        m.buildACardPortraitInfo = portraitInfo;
-                        loadedData.customCardsModsAct3.Add(m);
+                        customCardMod.buildACardPortraitInfo = portraitInfo;
+                        loadedData.customCardsModsAct3.Add(customCardMod);
                     }
+
+                    if (loadedData.mycoCardInfo.Abilities != null && loadedData.mycoCardInfo.Abilities.Count > 0)
+                    {
+                        CardModificationInfo mycoCardMod = new CardModificationInfo();
+                        mycoCardMod.singletonId = loadedData.mycoCardInfo.SingletonId;
+                        mycoCardMod.attackAdjustment = loadedData.mycoCardInfo.AttackAdjustment;
+                        mycoCardMod.healthAdjustment = loadedData.mycoCardInfo.HealthAdjustment;
+                        mycoCardMod.energyCostAdjustment = loadedData.mycoCardInfo.EnergyCostAdjustment;
+                        mycoCardMod.abilities = loadedData.mycoCardInfo.Abilities;
+                        loadedData.mycoCardMod = mycoCardMod;
+                    }
+
                     try
                     {
                         dataList.Add(File.GetLastWriteTime(dataPath), (dirInfo.Name, loadedData));

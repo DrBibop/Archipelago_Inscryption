@@ -555,9 +555,9 @@ namespace Archipelago_Inscryption.Helpers
             }
             else
                 card = cardsInfoRandomPool[SeededRandom.Range(0, cardsInfoRandomPool.Count, seed++)];
-            if (card.name == "BlueMage_Talking" || card.name == "Angler_Talking" || card.name == "Ouroboros_Part3" || card.name == "!BUILDACARD_BASE")
+            if (card.name == "BlueMage_Talking" || card.name == "Angler_Talking" || card.name == "Ouroboros_Part3" || card.name == "!BUILDACARD_BASE" || card.name == "!MYCOCARD_BASE")
                 cardsInfoRandomPool.Remove(card);
-            if (card.name != "!BUILDACARD_BASE")
+            if (card.name != "!BUILDACARD_BASE" && card.name != "!MYCOCARD_BASE")
                 card = (CardInfo)card.Clone();
             return card;
         }
@@ -582,16 +582,25 @@ namespace Archipelago_Inscryption.Helpers
             }
             return list;
         }
+
         internal static List<CardInfo> GetAllCustomCards()
         {
             List<CardInfo> list = new List<CardInfo>();
+
             foreach (CardModificationInfo customCardMod in ArchipelagoData.Data.customCardsModsAct3)
             {
-                Console.WriteLine($"custom : {customCardMod.nameReplacement}");
                 CardInfo c = CardLoader.GetCardByName("!BUILDACARD_BASE");
                 c.mods.Add(customCardMod);
                 list.Add(c);
             }
+
+            if (ArchipelagoData.Data.mycoCardMod != null)
+            {
+                CardInfo c = CardLoader.GetCardByName("!MYCOCARD_BASE");
+                c.mods.Add(ArchipelagoData.Data.mycoCardMod);
+                list.Add(c);
+            }
+
             return list;
         }
 
@@ -599,6 +608,12 @@ namespace Archipelago_Inscryption.Helpers
         {
             ArchipelagoData.Data.customCardInfos.Add(new CustomCardInfo(mod.singletonId, name, mod.attackAdjustment, mod.healthAdjustment, mod.energyCostAdjustment, mod.abilities, mod.buildACardPortraitInfo.spriteIndices));
             ArchipelagoData.Data.customCardsModsAct3.Add(mod);
+        }
+
+        internal static void AddMycoMod(CardModificationInfo mod)
+        {
+            ArchipelagoData.Data.mycoCardInfo = new CustomCardInfo(mod.singletonId, "Mycobot", mod.attackAdjustment, mod.healthAdjustment, mod.energyCostAdjustment, mod.abilities, null);
+            ArchipelagoData.Data.mycoCardMod = mod;
         }
 
         internal static CardInfo RandomRareCardInAct1(int seed)

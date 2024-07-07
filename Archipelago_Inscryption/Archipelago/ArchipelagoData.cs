@@ -61,8 +61,12 @@ namespace Archipelago_Inscryption.Archipelago
 
         [JsonProperty("customCardInfos")]
         internal List<CustomCardInfo> customCardInfos = new List<CustomCardInfo>();
+        [JsonProperty("mycoCardInfo")]
+        internal CustomCardInfo mycoCardInfo;
         [JsonIgnore]
         internal List<CardModificationInfo> customCardsModsAct3 = new List<CardModificationInfo>();
+        [JsonIgnore]
+        internal CardModificationInfo mycoCardMod = null;
 
         [JsonProperty("availableCardPacks")]
         internal int availableCardPacks = 0;

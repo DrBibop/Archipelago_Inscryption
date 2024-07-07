@@ -843,11 +843,16 @@ namespace Archipelago_Inscryption.Patches
                 foreach (CardInfo c in Part3SaveData.Data.deck.Cards)
                 {
                     CardInfo card = c;
+                    if (card.name == "!MYCOCARD_BASE" && card.mods.Count > 0)
+                    {
+                        card.mods.Remove(card.mods.First());
+                    }
+
                     int abilityCount = 0;
                     do
                     {
                         card = RandomizerHelper.RandomizeOneCardAct3(ref seed, ref cardsInfoRandomPool, ref cardsInfoRandomGemPool, ref cardsInfoRandomConduitPool, c);
-                        if (card.name == "!BUILDACARD_BASE")
+                        if (card.name == "!BUILDACARD_BASE" || card.name == "!MYCOCARD_BASE")
                             abilityCount = card.mods[0].abilities.Count;
                         else
                             abilityCount = card.abilities.Count;
@@ -886,6 +891,7 @@ namespace Archipelago_Inscryption.Patches
                 foreach (CardInfo card in Part3SaveData.Data.deck.Cards)
                 {
                     List<AbilityInfo> learnedAbilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(x => x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
+                    Debug.Log(learnedAbilities.Any(x => x.ability == Ability.PermaDeath));
                     foreach (var modCurrent in card.Mods)
                     {
                         if (modCurrent.buildACardPortraitInfo != null)
@@ -898,6 +904,8 @@ namespace Archipelago_Inscryption.Patches
                             if (modCurrent.abilities.Count > 0)
                             {
                                 int moddedAbilityCount = modCurrent.abilities.Count;
+                                if (modCurrent.abilities.Contains(Ability.PermaDeath))
+                                    modCurrent.attackAdjustment--;
                                 modCurrent.abilities = new List<Ability>();
                                 for (int l = 0; l < moddedAbilityCount; l++)
                                 {
@@ -908,9 +916,7 @@ namespace Archipelago_Inscryption.Patches
                                         modCurrent.abilities.Add(ab);
 
                                         if (ab == Ability.PermaDeath)
-                                            modCurrent.attackAdjustment = 1;
-                                        else
-                                            modCurrent.attackAdjustment = 0;
+                                            modCurrent.attackAdjustment++;
                                     }
                                 }
                             }
@@ -919,19 +925,39 @@ namespace Archipelago_Inscryption.Patches
 
                     if (ArchipelagoOptions.randomizeSigils == RandomizeSigils.RandomizeAll)
                     {
-                        learnedAbilities.RemoveAll(x => x.ability == Ability.PermaDeath);
+                        List<Ability> abilityList = (card.name == "!BUILDACARD_BASE" || card.name == "!MYCOCARD_BASE") ? card.mods.First().abilities : card.abilities;
+                        int baseAbilityCount = abilityList.Count;
 
-                        int baseAbilityCount = card.abilities.Count;
+                        if (abilityList.Contains(Ability.PermaDeath))
+                        {
+                            if (card.name == "!BUILDACARD_BASE" || card.name == "!MYCOCARD_BASE")
+                                card.mods.First().attackAdjustment--;
+                            else
+                                card.baseAttack--;
+                        }
 
-                        card.abilities = new List<Ability>();
+                        if (card.name == "!BUILDACARD_BASE" || card.name == "!MYCOCARD_BASE")
+                            card.mods.First().abilities = new List<Ability>();
+                        else
+                            card.abilities = new List<Ability>();
+
+                        abilityList = (card.name == "!BUILDACARD_BASE" || card.name == "!MYCOCARD_BASE") ? card.mods.First().abilities : card.abilities;
 
                         for (int t = 0; t < baseAbilityCount; t++)
                         {
                             learnedAbilities.RemoveAll(x => card.HasAbility(x.ability));
                             if (learnedAbilities.Count > 0)
                             {
-                                card.abilities.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)].ability);
+                                abilityList.Add(learnedAbilities[SeededRandom.Range(0, learnedAbilities.Count, seed++)].ability);
                             }
+                        }
+
+                        if (abilityList.Contains(Ability.PermaDeath))
+                        {
+                            if (card.name == "!BUILDACARD_BASE" || card.name == "!MYCOCARD_BASE")
+                                card.mods.First().attackAdjustment++;
+                            else
+                                card.baseAttack++;
                         }
                     }
                 }
@@ -961,11 +987,18 @@ namespace Archipelago_Inscryption.Patches
             }
         }
 
-            [HarmonyPatch(typeof(FactoryScannerScreen), "CheckBuildACardMatch")]
+        [HarmonyPatch(typeof(FactoryScannerScreen), "CheckBuildACardMatch")]
         [HarmonyPostfix]
         static void RememberCustomCard(BuildACardInfo info)
         {
             RandomizerHelper.AddCustomMod(info.mod , info.GetName());
+        }
+
+        [HarmonyPatch(typeof(MycologistsBossOpponent), "AddMycoCardToDeck")]
+        [HarmonyPostfix]
+        static void RememberMycoCard()
+        {
+            RandomizerHelper.AddMycoMod(Part3SaveData.Data.deck.Cards.First(c => c.name == "!MYCOCARD_BASE").mods.First());
         }
 
         [HarmonyPatch(typeof(Part1RareChoiceGenerator), "GenerateChoices")]
