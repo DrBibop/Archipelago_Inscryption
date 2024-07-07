@@ -891,7 +891,6 @@ namespace Archipelago_Inscryption.Patches
                 foreach (CardInfo card in Part3SaveData.Data.deck.Cards)
                 {
                     List<AbilityInfo> learnedAbilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(x => x.metaCategories.Contains(AbilityMetaCategory.Part3Modular));
-                    Debug.Log(learnedAbilities.Any(x => x.ability == Ability.PermaDeath));
                     foreach (var modCurrent in card.Mods)
                     {
                         if (modCurrent.buildACardPortraitInfo != null)
