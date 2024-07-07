@@ -1,3 +1,22 @@
+### 0.3.0
+ - Added support for new options:
+	- Added option to skip the epilogue.
+	- Added option to adjust the 2nd and 3rd painting checks. They can be moved to later spheres or be forced to only contain filler items.
+	- Added a new choice for the "Randomize Deck" option to only randomize starter decks.
+	- Added a new choice for the "Randomize Sigils" option to randomize all sigils on cards.
+ - The "Randomize Abilities" option has been renamed to "Randomize Sigils".
+ - Basic cards in act 2 (squirrels, skeletons, mox cards) are no longer randomized when randomizing the deck by type.
+ - A message appears after completing acts.
+ - Card pools for deck randomization and sigil pools for sigil randomization have been adjusted.
+ - The Mycobot card reward from the Mycologists boss is now included in the random card pool when receiving it.
+ - Dates in the chapter select screen have been replaced with act titles that turn green when completed.
+ - Fixed all candles extinguishing in act 1 combats after receiving deathlink even with the single candle option selected.
+ - Fixed multiple deathlink errors and moved to a failsafe approach in case more errors occur during deathlink.
+ - Fixed Grimora's ghouls not fighting the player if the Grimora puzzle was completed before fighting them.
+ - Fixed modded sigils being randomized in act 3 even with the option disabled when randomizing the deck.
+ - Fixed modded sigils not randomizing even with the option enabled when not randomizing the deck.
+ - Fixed the Hrokkall card unintentionally appearing in act 1 after starting act 2.
+
 ### 0.2.2
  - The caged wolf card will always appear in your deck if you own it when randomizing your deck.
  - The oil painting puzzles in act 1 will now contain a bee instead of a squirrel if you have the bee figurine.

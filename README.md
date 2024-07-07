@@ -27,7 +27,7 @@ Here are the different settings:
 	- **0**: No deck randomization (vanilla).
 	- **1**: Randomize cards within their type (Common/Rare, only works on act 1 for now).
 	- **2**: Randomize cards completely.
- - **randomize_abilities**: 
+ - **randomize_sigils**: 
 	- **0**: No ability randomization (vanilla).
 	- **1**: Randomize modded abilities only (like those gained from sacrifices).
  - **optional_death_card**: 
@@ -37,10 +37,17 @@ Here are the different settings:
  - **skip_tutorial**:
 	- **false**: Play through the tutorial (vanilla)
 	- **true**: Skip the first few tutorial runs. Bones are available from the start.
+ - **skip_epilogue**:
+	- **false**: Play through the epilogue to reach the goal.
+	- **true**: Reach the goal after completing the required acts without playing the epilogue.
  - **epitaph_pieces_randomization**:
     - **0**: Randomizes all nine pieces as their own item.
 	- **1**: Randomizes pieces in groups of three.
 	- **2**: Group all nine pieces as a single item.
+ - **painting_checks_balancing**:
+    - **0**: Adds no progression logic to the 2nd and 3rd painting checks. They will all count as sphere 1 (reachable early game checks).
+	- **1**: Adds rules to the 2nd and 3rd painting checks. Early game items are less likely to appear into these paintings.
+	- **2**: For when you dislike doing these last two paintings. Their checks will only contain filler items.
 
 ## What does randomization do to this game?
 Due to the nature of the randomizer, you are allowed to return to a previous act you've previously completed if there are location checks you've missed. The "New Game" option is replaced with a "Chapter Select" option and is enabled after you beat act 1. If you prefer, you can also make all acts available from the start by changing the goal option. All items that you can find lying around, in containers or from puzzles are randomized and replaced with location checks. Boss fights from all acts and battles from act 2 also count as location checks.
