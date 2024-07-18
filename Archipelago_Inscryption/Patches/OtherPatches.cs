@@ -773,7 +773,9 @@ namespace Archipelago_Inscryption.Patches
             {
                 foreach (CardInfo card in SaveData.Data.deck.Cards)
                 {
-                    List<AbilityInfo> learnedAbilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(x => x.pixelIcon != null && x.ability != Ability.ActivatedSacrificeDrawCards && x.ability != Ability.CreateEgg && x.ability != Ability.HydraEgg);
+                    List<AbilityInfo> learnedAbilities = ScriptableObjectLoader<AbilityInfo>.allData.FindAll(x => x.pixelIcon != null 
+                    && x.ability != Ability.ActivatedSacrificeDrawCards && x.ability != Ability.CreateEgg 
+                    && x.ability != Ability.HydraEgg && x.ability != Ability.Tutor);
 
                     int baseAbilityCount = card.abilities.Count;
 
