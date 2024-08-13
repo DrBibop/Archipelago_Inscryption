@@ -26,7 +26,7 @@ namespace Archipelago_Inscryption.Archipelago
 
         static void ReceiveDeathLink(DeathLink deathLink)
         {
-            if (receivedDeath == true)
+            if (receivedDeath == true || StoryEventsData.EventCompleted(StoryEvent.Part3Completed))
                 return;
             receivedDeath = true;
             string message = $"Received DeathLink from {deathLink.Source}: {deathLink.Cause}";
