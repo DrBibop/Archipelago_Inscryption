@@ -41,7 +41,7 @@ namespace Archipelago_Inscryption.Patches
             else if (ArchipelagoOptions.epitaphPiecesRandomization == EpitaphPiecesRandomization.Groups)
                 pieceCount = ArchipelagoData.Data.receivedItems.Count(item => item.Item == APItem.EpitaphPieces) * 3;
             else
-                pieceCount = 9;
+                pieceCount = ArchipelagoManager.HasItem(APItem.EpitaphPieces) ? 9 : 0;
 
             for (int i = 0; i < pieceCount; i++)
             {
