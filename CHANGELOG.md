@@ -1,3 +1,9 @@
+### 0.3.1
+ - Aded support for updated options from the latest apworld.
+ - The hoarder sigil can no longer appear in act 2 with randomized sigils on as it was not implemented in this act.
+ - Death link no longer applies during the epilogue.
+ - Fixed a bug that gave all epitaph pieces for free in act 2 if they were grouped as one item.
+
 ### 0.3.0
  - Added support for new options:
 	- Added option to skip the epilogue.
