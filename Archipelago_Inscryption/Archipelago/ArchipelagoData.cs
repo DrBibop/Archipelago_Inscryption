@@ -1,9 +1,5 @@
-﻿using Archipelago.MultiClient.Net.Models;
-using BepInEx;
-using DiskCardGame;
-using GracesGames.Common.Scripts;
+﻿using DiskCardGame;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 

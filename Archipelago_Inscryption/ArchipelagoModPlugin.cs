@@ -13,7 +13,7 @@ namespace Archipelago_Inscryption
     {
         internal const string PluginGuid = "ballininc.inscryption.archipelagomod";
         internal const string PluginName = "ArchipelagoMod";
-        internal const string PluginVersion = "0.3.0";
+        internal const string PluginVersion = "0.3.1";
 
         internal static ManualLogSource Log;
 
