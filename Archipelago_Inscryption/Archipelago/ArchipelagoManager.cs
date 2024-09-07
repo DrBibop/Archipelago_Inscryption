@@ -344,9 +344,13 @@ namespace Archipelago_Inscryption.Archipelago
 
         internal static void InitializeFromServer()
         {
-            if (ArchipelagoClient.slotData.TryGetValue("death_link", out var deathlink))
+            if (ArchipelagoClient.slotData.TryGetValue("death_link", out var deathLink))
+                ArchipelagoOptions.deathlink = Convert.ToInt32(deathLink) != 0;
+            else if (ArchipelagoClient.slotData.TryGetValue("deathlink", out var deathlink))
                 ArchipelagoOptions.deathlink = Convert.ToInt32(deathlink) != 0;
-            if (ArchipelagoClient.slotData.TryGetValue("act1_death_link_behaviour", out var act1Deathlink))
+            if (ArchipelagoClient.slotData.TryGetValue("act1_death_link_behaviour", out var act1DeathLink))
+                ArchipelagoOptions.act1DeathLinkBehaviour = (Act1DeathLink)Convert.ToInt32(act1DeathLink);
+            else if (ArchipelagoClient.slotData.TryGetValue("act1_deathlink_behaviour", out var act1Deathlink))
                 ArchipelagoOptions.act1DeathLinkBehaviour = (Act1DeathLink)Convert.ToInt32(act1Deathlink);
             if (ArchipelagoClient.slotData.TryGetValue("optional_death_card", out var optionalDeathCard))
                 ArchipelagoOptions.optionalDeathCard = (OptionalDeathCard)Convert.ToInt32(optionalDeathCard);
