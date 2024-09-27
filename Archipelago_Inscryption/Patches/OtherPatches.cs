@@ -799,8 +799,6 @@ namespace Archipelago_Inscryption.Patches
                 }
             }
 
-            SaveData.Data.deck.UpdateModDictionary();
-
             return true;
         }
 
