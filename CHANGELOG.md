@@ -1,3 +1,6 @@
+### 1.0.0
+ - Fixed a bug that would sometimes cause act 2 battles to break on start when randomizing sigils.
+
 ### 0.3.1
  - Aded support for updated options from the latest apworld.
  - The hoarder sigil can no longer appear in act 2 with randomized sigils on as it was not implemented in this act.
