@@ -2,54 +2,10 @@
 
 The ArchipelagoMod is a randomizer mod that will change how you play the story of Inscryption. With all items used to progress the game now shuffled, the order in which you complete the game won't be familiar.
 
-**Our implementation is not officially included in Archipelago for now. You need to download our apworld and our settings file template [here](https://github.com/DrBibop/Archipelago_Inscryption/releases).**
-
 This mod is meant to be used alongside Archipelago. To know more about Archipelago, you can visit their website [here](https://archipelago.gg/). To give you a quick rundown, Archipelago allows you to connect to a multiworld server which will shuffle items from different players and their respective game. This means that you can find items from other games belonging to your friends. Once found, these items will be sent to the appropriate player. Likewise, your friends can find your items in their own game and send them to you to help you progress. This essentially turns your singleplayer game into a coop experience. It can also be used with only one player if you just want to shuffle items within your own world.
 
 ## Where is the settings page?
-Since our implementation isn't officially included with Archipelago yet, you need to configure your settings using our [template settings file](https://github.com/DrBibop/Archipelago_Inscryption/releases). You can then edit it to your liking, find your Archipelago installation directory, create a `Players` folder inside, then put it in there before generating your multiworld.
-
-Here are the different settings:
- - **death_link**:
-	- **false**: Only die when you die (vanilla).
-	- **true**: When other players using deathlink die, you die as well.
- - **act1_death_link_behaviour**:
-	- **0**: Send a death when sacrificed by Leshy. Receiving a death will extinguish all candles.
-	- **1**: Send a death when a candle is extinguished. Receiving a death will extinguish a candle.
- - **goal**:
-	- **0**: Complete each act and the epilogue in order. You can return to previously completed acts.
-	- **1**: Complete each act in any order, then the epilogue. All acts are available from the start.
-	- **2**: Complete Act 1 by finding the New Game button. Great for a smaller scale randomizer.
- - **randomize_codes**: 
-	- **false**: No code randomization (vanilla)
-	- **true**: randomizes certain codes and passwords so that you can't unlock everything by memory.
- - **randomize_deck**: 
-	- **0**: No deck randomization (vanilla).
-	- **1**: Randomize cards within their type (Common/Rare, only works on act 1 for now).
-	- **2**: Randomize cards completely.
-	- **3**: Only randomize starting decks at the beginning of runs and acts.
- - **randomize_sigils**: 
-	- **0**: No sigil randomization (vanilla).
-	- **1**: Randomize added sigils only (like those gained from sacrifices).
-	- **2**: Randomize all sigils.
- - **optional_death_card**: 
-	- **0**: Make a death card on every act 1 death (vanilla).
-	- **1**: Gain the option to skip death cards on every act 1 death.
-	- **2**: Gain the option to skip death cards only when dying from death link in act 1.
- - **skip_tutorial**:
-	- **false**: Play through the tutorial (vanilla)
-	- **true**: Skip the first few tutorial runs. Bones are available from the start.
- - **skip_epilogue**:
-	- **false**: Play through the epilogue to reach the goal.
-	- **true**: Reach the goal after completing the required acts without playing the epilogue.
- - **epitaph_pieces_randomization**:
-    - **0**: Randomizes all nine pieces as their own item.
-	- **1**: Randomizes pieces in groups of three.
-	- **2**: Group all nine pieces as a single item.
- - **painting_checks_balancing**:
-    - **0**: Adds no progression logic to the 2nd and 3rd painting checks. They will all count as sphere 1 (reachable early game checks).
-	- **1**: Adds rules to the 2nd and 3rd painting checks. Early game items are less likely to appear into these paintings.
-	- **2**: For when you dislike doing these last two paintings. Their checks will only contain filler items.
+You can configure your player options with the Inscryption options page. [Click here](https://archipelago.gg/games/Inscryption/player-options) to start configuring them to your liking.
 
 ## What does randomization do to this game?
 Due to the nature of the randomizer, you are allowed to return to a previous act you've previously completed if there are location checks you've missed. The "New Game" option is replaced with a "Chapter Select" option and is enabled after you beat act 1. If you prefer, you can also make all acts available from the start by changing the goal option. All items that you can find lying around, in containers, or from puzzles are randomized and replaced with location checks. Boss fights from all acts and battles from act 2 also count as location checks.
