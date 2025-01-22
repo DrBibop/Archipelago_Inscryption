@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Archipelago.MultiClient.Net" Version="6.1.1" />
+    <PackageReference Include="Archipelago.MultiClient.Net" Version="6.5.0" />
   </ItemGroup>
 
   <ItemGroup>
