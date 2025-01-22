@@ -62,6 +62,9 @@ Before starting the installation process, here's what you should know:
 7. Drag and drop the `plugins` folder in the `BepInEx` folder to fuse with the existing `plugins` folder.
 8. Open the game normally to play with mods (if BepInEx was installed correctly, a console should appear).
 
+## Creating a MultiWorld
+Before playing, you or another player needs to generate and host a MultiWorld. For a detailed explanation, visit the [Archipelago setup guide](https://archipelago.gg/tutorial/Archipelago/setup/en).
+
 ## Joining a new MultiWorld Game
 1. After opening the game, you should see a new menu for browsing and creating save files.
 2. Click on the `New Game` button, then write a unique name for your save file.

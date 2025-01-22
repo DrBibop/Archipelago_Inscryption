@@ -1,3 +1,6 @@
+### 1.0.1
+ - Updated Archipelago.MultiClient.Net to 6.5.0 which fixes disconnect issues after hinting.
+
 ### 1.0.0
  - Fixed a bug that would sometimes cause act 2 battles to break on start when randomizing sigils.
 
