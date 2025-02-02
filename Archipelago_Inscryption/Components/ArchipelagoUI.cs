@@ -248,6 +248,8 @@ namespace Archipelago_Inscryption.Components
                 itemTimer = 0.2f;
             }
 
+            DeathLinkManager.HandleDeathLink();
+
             if (saveTimer > 0)
             {
                 saveTimer -= Time.unscaledDeltaTime;

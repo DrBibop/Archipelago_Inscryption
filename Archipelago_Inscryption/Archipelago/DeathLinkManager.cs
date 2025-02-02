@@ -13,6 +13,7 @@ namespace Archipelago_Inscryption.Archipelago
     {
         public static DeathLinkService DeathLinkService;
         internal static bool receivedDeath;
+        private static bool queuedDeathLink;
 
         internal static void Init()
         {
@@ -29,10 +30,10 @@ namespace Archipelago_Inscryption.Archipelago
             if (receivedDeath == true || StoryEventsData.EventCompleted(StoryEvent.Part3Completed))
                 return;
             receivedDeath = true;
+            queuedDeathLink = true;
             string message = $"Received DeathLink from {deathLink.Source}: {deathLink.Cause}";
             ArchipelagoModPlugin.Log.LogMessage(message);
             Singleton<ArchipelagoUI>.Instance.LogMessage(message);
-            FailsafeCoroutine.Start(Singleton<ArchipelagoUI>.Instance, ApplyDeathLink(), OnApplyDeathLinkDone);
         }
 
         static IEnumerator ApplyDeathLink()
@@ -185,6 +186,15 @@ namespace Archipelago_Inscryption.Archipelago
             else
                 cause = " ineptitude";
             DeathLinkService.SendDeathLink(new DeathLink(ArchipelagoClient.GetPlayerName(ArchipelagoClient.session.ConnectionInfo.Slot), alias + cause));
+        }
+
+        internal static void HandleDeathLink()
+        {
+            if (queuedDeathLink)
+            {
+                queuedDeathLink = false;
+                FailsafeCoroutine.Start(Singleton<ArchipelagoUI>.Instance, ApplyDeathLink(), OnApplyDeathLinkDone);
+            }
         }
     }
 }
