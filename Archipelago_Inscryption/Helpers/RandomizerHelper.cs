@@ -438,6 +438,7 @@ namespace Archipelago_Inscryption.Helpers
             if ((!DeathLinkManager.receivedDeath && ArchipelagoOptions.optionalDeathCard == OptionalDeathCard.EnableOnlyOnDeathLink)
                 || ArchipelagoOptions.optionalDeathCard == OptionalDeathCard.Disable)
             {
+                doDeathCard = true;
                 Singleton<ViewManager>.Instance.SwitchToView(View.Default, false, true);
                 yield return manager.KillPlayerSequence();
                 yield break;
