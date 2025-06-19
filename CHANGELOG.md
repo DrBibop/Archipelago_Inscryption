@@ -1,3 +1,9 @@
+### 1.0.2
+ - Updated Archipelago.MultiClient.Net to 6.6.0.
+ - Fixed crash that would sometimes occur on a deathlink during act 2.
+ - Fixed basic cards in act 2 randomizing when they shouldn't with randomize by type enabled.
+ - Fixed deathcard getting skipped if dying normally and the last choice was to skip with "deathlink only" option.
+
 ### 1.0.1
  - Updated Archipelago.MultiClient.Net to 6.5.0 which fixes disconnect issues after hinting.
 
