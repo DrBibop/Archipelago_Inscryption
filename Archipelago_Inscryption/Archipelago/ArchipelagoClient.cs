@@ -21,7 +21,7 @@ namespace Archipelago_Inscryption.Archipelago
         internal static bool IsConnecting => isConnecting;
         internal static bool IsConnected => isConnected;
 
-        private const string ArchipelagoVersion = "0.4.1";
+        private const string ArchipelagoVersion = "0.6.0";
 
         private delegate void OnConnectAttempt(LoginResult result);
 

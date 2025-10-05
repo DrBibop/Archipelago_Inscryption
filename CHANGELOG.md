@@ -1,3 +1,6 @@
+### 1.0.3
+ - Fixed client version string forcing the use of a discontinued client version.
+
 ### 1.0.2
  - Updated Archipelago.MultiClient.Net to 6.6.0.
  - Fixed crash that would sometimes occur on a deathlink during act 2.
